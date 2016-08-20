@@ -1,6 +1,5 @@
 module Authenticator.User exposing (Body, decodeBody, User)
 
-
 import Json.Decode exposing ((:=))
 import Json.Decode.Extra exposing ((|:))
 

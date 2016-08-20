@@ -1,6 +1,5 @@
 module Authenticator.Model exposing (Authentication, init, Model, Route(..))
 
-
 import Authenticator.SignIn as SignIn
 import Authenticator.SignOut as SignOut
 import Authenticator.SignUp as SignUp

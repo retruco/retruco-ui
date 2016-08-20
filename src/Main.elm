@@ -1,10 +1,9 @@
 module Main exposing (..)
 
-
 import Authenticator.Model
 import Authenticator.Update
 import Authenticator.View
-import Combine exposing (Parser)
+-- import Combine exposing (Parser)
 import Hop
 import Hop.Matchers exposing (match1, match2)
 import Hop.Types
@@ -168,11 +167,6 @@ update msg model =
                     | authenticationMaybe = authenticator.authenticationMaybe
                     , authenticator = authenticator
                     }
-                -- (model'', effect'') = case authenticationMaybe of
-                --     Just authentication ->
-                --         update (Navigate "/") model'
-                --     Nothing ->
-                --         (model', Cmd.none)
                 (model'', effect'') = if changed
                     then
                         update (Navigate "/") model'
@@ -267,26 +261,6 @@ view model =
                 ]
                 ++ [ viewContent model ]
             )
-
-
--- view : Model -> Html Msg
--- view model =
---     Ui.App.view
---         App
---         model.app
---         [ Ui.Header.view []
---             ([ Ui.Header.title [ onClick (Navigate "/") ]
---                 [ img [ src "/images/logo-small.svg" ] []
---                 , text "Retruco"
---                 ]
---              ]
---                 ++ (List.map viewHeaderPageLink pages)
---                 ++ [ viewHeaderExternalLink "Github" "social-github" "https://github.com/gdotdesign/elm-ui"
---                    ]
---             )
---         , viewContent model
---         , node "ui-footer" [] []
---         ]
 
 
 viewContent : Model -> Html Msg

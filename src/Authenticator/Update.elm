@@ -1,6 +1,5 @@
 module Authenticator.Update exposing (Msg(..), update)
 
-
 import Authenticator.Model exposing (Authentication, Model)
 import Authenticator.SignIn as SignIn
 import Authenticator.SignOut as SignOut

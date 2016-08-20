@@ -1,6 +1,5 @@
 module Statements exposing (..)
 
-import Debug
 import Dict exposing (Dict)
 import Html exposing (div, li, node, text, ul)
 -- import Html.App
@@ -8,6 +7,9 @@ import Http
 import Json.Decode as Json exposing ((:=), andThen, dict, fail, list, map, maybe, string, succeed)
 import Json.Decode.Extra as Json exposing ((|:))
 import Task
+
+
+-- MODEL
 
 
 type alias Abuse =
@@ -37,12 +39,6 @@ type alias Model =
     { byId : Dict String Statement
     , ids : List String
     }
-
-
-type Msg
-    = Load
-    | Loaded Body
-    | Error Http.Error
 
 
 type alias Plain =
@@ -121,6 +117,15 @@ init =
     }
 
 
+-- UPDATE
+
+
+type Msg
+    = Load
+    | Loaded Body
+    | Error Http.Error
+
+
 load : Cmd Msg
 load =
     Task.perform (\_ -> Debug.crash "") (\_ -> Load) (Task.succeed "")
@@ -152,6 +157,9 @@ update msg model =
               }
             , Cmd.none
             )
+
+
+-- VIEW
 
 
 view : Model -> Html.Html Msg
@@ -217,4 +225,3 @@ viewStatementLine id model =
                             , text " tag "
                             , text tag.createdAt
                             ]
-

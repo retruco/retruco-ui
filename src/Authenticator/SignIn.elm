@@ -1,6 +1,5 @@
 module Authenticator.SignIn exposing (Model, init, Msg, update, view)
 
-
 import Authenticator.User exposing (Body, decodeBody, User)
 -- import Converters exposing (Converter)
 import Dict exposing (Dict)

@@ -1,7 +1,5 @@
 module Authenticator.SignOut exposing (Model, init, Msg, update, view)
 
-
--- import Converters exposing (Converter)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
