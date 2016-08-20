@@ -1,8 +1,8 @@
 {
     "version": "1.0.0",
-    "summary": "HTML User Interface for Retruco",
+    "summary": "Web user interface to bring out shared positions from argumented statements",
     "repository": "https://github.com/retruco/retruco-ui.git",
-    "license": "BSD3",
+    "license": "AGPL-3.0+",
     "source-directories": [
         "src"
     ],
