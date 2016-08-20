@@ -14,7 +14,7 @@ import Html.Attributes.Aria exposing (..)
 import Html.Events exposing (..)
 import Json.Decode
 import Navigation
--- import Statements
+import Statements
 
 
 main : Program Never
@@ -37,7 +37,7 @@ type alias Model =
     , location : Hop.Types.Location
     , page : String
     , route : Route
-    -- , statements : Statements.Model
+    , statements : Statements.Model
     }
 
 
@@ -48,7 +48,7 @@ init ( route, location ) =
     , location = location
     , page = "reference"
     , route = route
-    -- , statements = Statements.init
+    , statements = Statements.init
     }
         |> urlUpdate ( route, location )
 
@@ -57,23 +57,21 @@ init ( route, location ) =
 
 
 type Route
-    = Component String
+    = AuthenticatorRoute Authenticator.Model.Route
+    -- | Component String
     | Home
-    | AuthenticatorRoute Authenticator.Model.Route
+    -- | ReferencePage
     | StatementsRoute
-    | Documentation
-    | DocumentationPage String
-    | ReferencePage
 
 
-all : Parser String
-all =
-    Combine.regex ".+"
+-- all : Parser String
+-- all =
+--     Combine.regex ".+"
 
 
-idParser : Parser String
-idParser =
-    Combine.regex ".+"
+-- idParser : Parser String
+-- idParser =
+--     Combine.regex ".+"
 
 
 makeUrl : String -> String
@@ -83,10 +81,10 @@ makeUrl path = Hop.makeUrl routerConfig path
 matchers : List (Hop.Types.PathMatcher Route)
 matchers =
     [ match1 Home ""
-    , match2 Component "/reference/" all
-    , match1 Documentation "/documentation"
-    , match2 DocumentationPage "/documentation/" all
-    , match1 ReferencePage "/reference"
+    -- , match2 Component "/reference/" all
+    -- , match1 Documentation "/documentation"
+    -- , match2 DocumentationPage "/documentation/" all
+    -- , match1 ReferencePage "/reference"
     , match1 (AuthenticatorRoute Authenticator.Model.SignInRoute) "/sign_in"
     , match1 (AuthenticatorRoute Authenticator.Model.SignOutRoute) "/sign_out"
     , match1 (AuthenticatorRoute Authenticator.Model.SignUpRoute) "/sign_up"
@@ -113,8 +111,8 @@ urlUpdate ( route, location ) model =
                 -- DocumentationPage page ->
                 --   Cmd.map Docs (Documentation.load page)
 
-                -- StatementsRoute ->
-                --     Cmd.map StatementsMsg Statements.load
+                StatementsRoute ->
+                    Cmd.map StatementsMsg Statements.load
 
                 _ ->
                     Cmd.none
@@ -144,7 +142,7 @@ routerConfig =
 type Msg
     = AuthenticatorMsg Authenticator.Update.Msg
     | Navigate String
-    -- | StatementsMsg Statements.Msg
+    | StatementsMsg Statements.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -175,12 +173,12 @@ update msg model =
             in
                 model'' ! [Cmd.map AuthenticatorMsg subEffect, effect'']
 
-        -- StatementsMsg subMsg ->
-        --     let
-        --         ( statements, effect ) =
-        --             Statements.update subMsg model.statements
-        --     in
-        --         ( { model | statements = statements }, Cmd.map StatementsMsg effect )
+        StatementsMsg subMsg ->
+            let
+                ( statements, subEffect ) =
+                    Statements.update subMsg model.statements
+            in
+                ( { model | statements = statements }, Cmd.map StatementsMsg subEffect )
 
 
 -- VIEW
@@ -278,9 +276,8 @@ viewContent model =
         --     Html.App.map Docs (Documentation.view model.docs)
         AuthenticatorRoute subRoute ->
             Html.App.map AuthenticatorMsg (Authenticator.View.view subRoute model.authenticator)
-
-        -- StatementsRoute ->
-        --     Html.App.map StatementsMsg (Statements.view model.statements)
+        StatementsRoute ->
+            Html.App.map StatementsMsg (Statements.view model.statements)
 
         _ ->
             p
