@@ -1,6 +1,5 @@
 module Authenticator.SignIn exposing (Model, init, Msg, update, view)
 
-import Authenticator.User exposing (Body, decodeBody, User)
 -- import Converters exposing (Converter)
 import Dict exposing (Dict)
 import Html exposing (..)
@@ -11,6 +10,7 @@ import Http
 import Json.Encode
 import String
 import Task
+import Types exposing (decodeUserBody, User, UserBody)
 
 
 -- MODEL
@@ -46,7 +46,7 @@ init =
 type Msg
     = Error Http.Error
     | Submit
-    | Success Body
+    | Success UserBody
     | UsernameInput String
     | PasswordInput String
 
@@ -56,7 +56,7 @@ update msg model =
     case msg of
         Error err ->
             let
-                errLogged = Debug.log "Error" err
+                _ = Debug.log "Sign In Error" err
             in
                 ( model, Cmd.none, Nothing )
 
@@ -94,7 +94,7 @@ update msg model =
                             Task.perform
                                 Error
                                 Success
-                                ( Http.fromJson decodeBody ( Http.send Http.defaultSettings
+                                ( Http.fromJson decodeUserBody ( Http.send Http.defaultSettings
                                     { verb = "POST"
                                     , url = "http://localhost:3000/login"
                                     , headers =

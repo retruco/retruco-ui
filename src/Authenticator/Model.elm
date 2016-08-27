@@ -3,7 +3,7 @@ module Authenticator.Model exposing (Authentication, init, Model, Route(..))
 import Authenticator.SignIn as SignIn
 import Authenticator.SignOut as SignOut
 import Authenticator.SignUp as SignUp
-import Authenticator.User exposing (User)
+import Types exposing (User)
 
 
 type alias Authentication = User

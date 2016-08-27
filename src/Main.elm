@@ -176,7 +176,7 @@ update msg model =
         StatementsMsg subMsg ->
             let
                 ( statements, subEffect ) =
-                    Statements.update subMsg model.statements
+                    Statements.update subMsg model.authenticationMaybe model.statements
             in
                 ( { model | statements = statements }, Cmd.map StatementsMsg subEffect )
 
@@ -238,7 +238,7 @@ view model =
                                 , span [ class "icon-bar" ] []
                                 , span [ class "icon-bar" ] []
                                 ]
-                            , aForPath "/" [ class "navbar-brand"] [ text "TODO: config.title" ]
+                            , aForPath "/" [ class "navbar-brand"] [ text "Retruco" ]
                             ]
                         , div
                             [ class "collapse navbar-collapse"
@@ -277,7 +277,7 @@ viewContent model =
         AuthenticatorRoute subRoute ->
             Html.App.map AuthenticatorMsg (Authenticator.View.view subRoute model.authenticator)
         StatementsRoute ->
-            Html.App.map StatementsMsg (Statements.view model.statements)
+            Html.App.map StatementsMsg (Statements.view model.authenticationMaybe model.statements)
 
         _ ->
             p

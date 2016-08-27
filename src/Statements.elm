@@ -1,119 +1,32 @@
 module Statements exposing (..)
 
+import Authenticator.Model
 import Dict exposing (Dict)
-import Html exposing (div, li, node, text, ul)
--- import Html.App
+import Html exposing (..)
+import Html.App
 import Http
-import Json.Decode as Json exposing ((:=), andThen, dict, fail, list, map, maybe, string, succeed)
-import Json.Decode.Extra as Json exposing ((|:))
+import NewStatement
 import Task
+import Types exposing (Ballot, DataId, DataIdsBody, decodeDataIdsBody, Statement, StatementCustom(..))
 
 
 -- MODEL
 
 
-type alias Abuse =
-    { createdAt : String
-    , id : String
-    }
-
-
-type alias Argument =
-    { createdAt : String
-    , id : String
-    }
-
-
-type alias Body =
-    { data : Data
-    }
-
-
-type alias Data =
-    { ids : List String
-    , statements : Dict String Statement
-    }
-
-
 type alias Model =
-    { byId : Dict String Statement
-    , ids : List String
+    { ballotById : Dict String Ballot
+    , newStatement : NewStatement.Model
+    , statementById : Dict String Statement
+    , statementIds : List String
     }
 
-
-type alias Plain =
-    { createdAt : String
-    , id : String
-    , name : Maybe String
-    }
-
-
-type Statement
-    = AbuseStatement Abuse
-    | ArgumentStatement Argument
-    | PlainStatement Plain
-    | TagStatement Tag
-
-
-type alias Tag =
-    { createdAt : String
-    , id : String
-    }
-
-
-decodeBody : Json.Decoder Body
-decodeBody =
-    succeed Body
-        |: ("data" := decodeData)
-
-
-decodeData : Json.Decoder Data
-decodeData =
-    succeed Data
-        |: ("ids" := list string)
-        |: ("statements" := dict decodeStatement)
-
-
-decodeStatement : Json.Decoder Statement
-decodeStatement =
-    ("type" := string) `andThen` decodeStatementFromType
-
-
-decodeStatementFromType : String -> Json.Decoder Statement
-decodeStatementFromType statementType =
-    case statementType of
-        "Abuse" ->
-            succeed Abuse
-                |: ("createdAt" := string)
-                |: ("id" := string)
-            `andThen` \abuse -> succeed (AbuseStatement abuse)
-
-        "Argument" ->
-            succeed Argument
-                |: ("createdAt" := string)
-                |: ("id" := string)
-            `andThen` \argument -> succeed (ArgumentStatement argument)
-
-        "PlainStatement" ->
-            succeed Plain
-                |: ("createdAt" := string)
-                |: ("id" := string)
-                |: maybe ("name" := string)
-            `andThen` \plain -> succeed (PlainStatement plain)
-
-        "Tag" ->
-            succeed Tag
-                |: ("createdAt" := string)
-                |: ("id" := string)
-            `andThen` \tag -> succeed (TagStatement tag)
-
-        _ ->
-            fail ("Unkown statement type: " ++ statementType)
 
 init : Model
 init =
-    { ids = []
-    , byId = Dict.empty
+    { ballotById = Dict.empty
+    , newStatement = NewStatement.init
+    , statementById = Dict.empty
+    , statementIds = []
     }
 
 
@@ -121,9 +34,10 @@ init =
 
 
 type Msg
-    = Load
-    | Loaded Body
-    | Error Http.Error
+    = Error Http.Error
+    | Load
+    | Loaded DataIdsBody
+    | NewStatementMsg NewStatement.Msg
 
 
 load : Cmd Msg
@@ -131,12 +45,12 @@ load =
     Task.perform (\_ -> Debug.crash "") (\_ -> Load) (Task.succeed "")
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : Msg -> Maybe Authenticator.Model.Authentication -> Model -> ( Model, Cmd Msg )
+update msg authenticationMaybe model =
     case msg of
         Error err ->
             let
-                errLogged = Debug.log "Error" err
+                _ = Debug.log "Statemants Error" err
             in
                 ( model, Cmd.none )
 
@@ -146,28 +60,78 @@ update msg model =
                     Task.perform
                         Error
                         Loaded
-                        (Http.get decodeBody "http://localhost:3000/statements")
+                        (Http.get decodeDataIdsBody "http://localhost:3000/statements")
             in
                 ( model, cmd )
 
         Loaded body ->
             ( { model
-                | byId = body.data.statements
-                , ids = body.data.ids
+                | statementById = body.data.statements
+                , statementIds = body.data.ids
               }
             , Cmd.none
             )
 
+        NewStatementMsg subMsg ->
+            let
+                (newStatement, subEffect, dataMaybe) =
+                    NewStatement.update subMsg authenticationMaybe model.newStatement
+                model' = case dataMaybe of
+                    Just data ->
+                        { model
+                        | ballotById = Dict.merge
+                            (\id ballot ballotById -> if ballot.deleted
+                                then ballotById
+                                else Dict.insert id ballot ballotById)
+                            (\id leftBallot rightBallot ballotById -> if leftBallot.deleted
+                                then ballotById
+                                else Dict.insert id leftBallot ballotById)
+                            Dict.insert
+                            data.ballots
+                            model.ballotById
+                            Dict.empty
+                        , newStatement = newStatement
+                        , statementById = Dict.merge
+                            (\id statement statementById -> if statement.deleted
+                                then statementById
+                                else Dict.insert id statement statementById)
+                            (\id leftStatement rightStatement statementById -> if leftStatement.deleted
+                                then statementById
+                                else Dict.insert id leftStatement statementById)
+                            Dict.insert
+                            data.statements
+                            model.statementById
+                            Dict.empty
+                        , statementIds = if Dict.member data.id data.statements
+                            then if List.member data.id model.statementIds
+                                then model.statementIds
+                                else data.id :: model.statementIds
+                            else
+                                -- data.id is not the ID of a statement (but a ballot ID, etc).
+                                model.statementIds
+                        }
+                    Nothing ->
+                        { model
+                        | newStatement = newStatement
+                        }
+            in
+                (model', Cmd.map NewStatementMsg subEffect)
+            
 
 -- VIEW
 
 
-view : Model -> Html.Html Msg
-view model =
+view : Maybe Authenticator.Model.Authentication -> Model -> Html Msg
+view authenticationMaybe model =
     node "ui-statements"
         []
         [ text "Statements"
-        , ul [] (List.map (\id -> li [] [ viewStatementLine id model ]) model.ids)
+        , ul [] (List.map (\id -> li [] [ viewStatementLine id model ]) model.statementIds)
+        , case authenticationMaybe of
+            Just authentication ->
+                Html.App.map NewStatementMsg (NewStatement.view model.newStatement)
+            Nothing ->
+                text ""
         ]
 
 
@@ -175,7 +139,7 @@ viewStatementLine : String -> Model -> Html.Html Msg
 viewStatementLine id model =
     let
         statementMaybe =
-            Dict.get id model.byId
+            Dict.get id model.statementById
     in
         case statementMaybe of
             Nothing ->
@@ -186,22 +150,22 @@ viewStatementLine id model =
                     ]
 
             Just statement ->
-                case statement of
-                    AbuseStatement abuse ->
+                case statement.custom of
+                    AbuseCustom abuse ->
                         div []
                             [ text id
                             , text " abuse "
-                            , text abuse.createdAt
+                            , text statement.createdAt
                             ]
 
-                    ArgumentStatement argument ->
+                    ArgumentCustom argument ->
                         div []
                             [ text id
                             , text " argument "
-                            , text argument.createdAt
+                            , text statement.createdAt
                             ]
 
-                    PlainStatement plain ->
+                    PlainCustom plain ->
                         let
                             nameMaybe = plain.name
                         in
@@ -219,9 +183,9 @@ viewStatementLine id model =
                                         , text name
                                         ]
 
-                    TagStatement tag ->
+                    TagCustom tag ->
                         div []
                             [ text id
                             , text " tag "
-                            , text tag.createdAt
+                            , text statement.createdAt
                             ]
