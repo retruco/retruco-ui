@@ -8,6 +8,7 @@ import Http
 import NewStatement
 import Task
 import Types exposing (Ballot, DataId, DataIdsBody, decodeDataIdsBody, Statement, StatementCustom(..))
+import Views exposing (aForPath)
 
 
 -- MODEL
@@ -33,19 +34,52 @@ init =
 -- UPDATE
 
 
-type Msg
+type ExternalMsg
+    = Navigate String
+
+
+type InternalMsg
     = Error Http.Error
     | Load
     | Loaded DataIdsBody
     | NewStatementMsg NewStatement.Msg
 
 
+type Msg
+    = ForParent ExternalMsg
+    | ForSelf InternalMsg
+
+
+type alias MsgTranslation parentMsg =
+    { onInternalMsg : InternalMsg -> parentMsg
+    , onNavigate : String -> parentMsg
+    }
+
+
+type alias MsgTranslator parentMsg = Msg -> parentMsg
+
+
 load : Cmd Msg
 load =
-    Task.perform (\_ -> Debug.crash "") (\_ -> Load) (Task.succeed "")
+    Task.perform (\_ -> Debug.crash "") (\_ -> ForSelf Load) (Task.succeed "")
 
 
-update : Msg -> Maybe Authenticator.Model.Authentication -> Model -> ( Model, Cmd Msg )
+navigate : String -> Msg
+navigate path =
+    ForParent (Navigate path)
+
+
+translateMsg : MsgTranslation parentMsg -> MsgTranslator parentMsg
+translateMsg {onInternalMsg, onNavigate} msg =
+    case msg of
+        ForParent (Navigate path) ->
+            onNavigate path
+
+        ForSelf internalMsg ->
+            onInternalMsg internalMsg
+
+
+update : InternalMsg -> Maybe Authenticator.Model.Authentication -> Model -> ( Model, Cmd Msg )
 update msg authenticationMaybe model =
     case msg of
         Error err ->
@@ -58,8 +92,8 @@ update msg authenticationMaybe model =
             let
                 cmd =
                     Task.perform
-                        Error
-                        Loaded
+                        (\msg -> ForSelf (Error msg))
+                        (\msg -> ForSelf (Loaded msg))
                         (Http.get decodeDataIdsBody "http://localhost:3000/statements")
             in
                 ( model, cmd )
@@ -74,7 +108,7 @@ update msg authenticationMaybe model =
 
         NewStatementMsg subMsg ->
             let
-                (newStatement, subEffect, dataMaybe) =
+                (newStatement, childMsg, dataMaybe) =
                     NewStatement.update subMsg authenticationMaybe model.newStatement
                 model' = case dataMaybe of
                     Just data ->
@@ -115,7 +149,7 @@ update msg authenticationMaybe model =
                         | newStatement = newStatement
                         }
             in
-                (model', Cmd.map NewStatementMsg subEffect)
+                (model', Cmd.map (\msg -> ForSelf (NewStatementMsg msg)) childMsg)
             
 
 -- VIEW
@@ -129,7 +163,7 @@ view authenticationMaybe model =
         , ul [] (List.map (\id -> li [] [ viewStatementLine id model ]) model.statementIds)
         , case authenticationMaybe of
             Just authentication ->
-                Html.App.map NewStatementMsg (NewStatement.view model.newStatement)
+                Html.App.map (\msg -> ForSelf (NewStatementMsg msg)) (NewStatement.view model.newStatement)
             Nothing ->
                 text ""
         ]
@@ -169,7 +203,7 @@ viewStatementLine id model =
                         div []
                             [ text id
                             , text " plain "
-                            , text plain.name
+                            , aForPath navigate ("/statements/" ++ id) [] [ text plain.name ]
                             ]
 
                     TagCustom tag ->

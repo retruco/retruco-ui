@@ -4,17 +4,15 @@ import Authenticator.Model
 import Authenticator.Update
 import Authenticator.View
 -- import Combine exposing (Parser)
-import Hop
-import Hop.Matchers exposing (match1, match2)
 import Hop.Types
 import Html exposing (..)
 import Html.App
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
-import Html.Events exposing (..)
-import Json.Decode
 import Navigation
+import Routes exposing (makeUrl, Route(..), urlParser)
 import Statements
+import Views exposing (aForPath)
 
 
 main : Program Never
@@ -56,48 +54,6 @@ init ( route, location ) =
 -- ROUTING
 
 
-type Route
-    = AuthenticatorRoute Authenticator.Model.Route
-    -- | Component String
-    | Home
-    -- | ReferencePage
-    | StatementsRoute
-
-
--- all : Parser String
--- all =
---     Combine.regex ".+"
-
-
--- idParser : Parser String
--- idParser =
---     Combine.regex ".+"
-
-
-makeUrl : String -> String
-makeUrl path = Hop.makeUrl routerConfig path 
-
-
-matchers : List (Hop.Types.PathMatcher Route)
-matchers =
-    [ match1 Home ""
-    -- , match2 Component "/reference/" all
-    -- , match1 Documentation "/documentation"
-    -- , match2 DocumentationPage "/documentation/" all
-    -- , match1 ReferencePage "/reference"
-    , match1 (AuthenticatorRoute Authenticator.Model.SignInRoute) "/sign_in"
-    , match1 (AuthenticatorRoute Authenticator.Model.SignOutRoute) "/sign_out"
-    , match1 (AuthenticatorRoute Authenticator.Model.SignUpRoute) "/sign_up"
-    , match1 StatementsRoute "/statements"
-      -- , match2 Statement "/statements/" idParser
-    ]
-
-
-urlParser : Navigation.Parser ( Route, Hop.Types.Location )
-urlParser =
-    Navigation.makeParser (.href >> Hop.matchUrl routerConfig)
-
-
 urlUpdate : ( Route, Hop.Types.Location ) -> Model -> ( Model, Cmd Msg )
 urlUpdate ( route, location ) model =
     let
@@ -112,28 +68,12 @@ urlUpdate ( route, location ) model =
                 --   Cmd.map Docs (Documentation.load page)
 
                 StatementsRoute ->
-                    Cmd.map StatementsMsg Statements.load
+                    Cmd.map translateStatementsMsg Statements.load
 
                 _ ->
                     Cmd.none
     in
         ( updatedModel, cmd )
-
-
-routerConfig : Hop.Types.Config Route
-routerConfig =
-    -- Production:
-    -- { hash = False
-    -- , basePath = ""
-    -- , matchers = matchers
-    -- , notFound = Home
-    -- }
-    -- Development:
-    { hash = True
-    , basePath = ""
-    , matchers = matchers
-    , notFound = Home
-    }
 
 
 -- UPDATE
@@ -142,7 +82,18 @@ routerConfig =
 type Msg
     = AuthenticatorMsg Authenticator.Update.Msg
     | Navigate String
-    | StatementsMsg Statements.Msg
+    | StatementsMsg Statements.InternalMsg
+
+
+statementsMsgTranslation : Statements.MsgTranslation Msg
+statementsMsgTranslation =
+    { onInternalMsg = StatementsMsg
+    , onNavigate = Navigate
+    }
+
+
+translateStatementsMsg : Statements.MsgTranslator Msg
+translateStatementsMsg = Statements.translateMsg statementsMsgTranslation
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -178,25 +129,10 @@ update msg model =
                 ( statements, subEffect ) =
                     Statements.update subMsg model.authenticationMaybe model.statements
             in
-                ( { model | statements = statements }, Cmd.map StatementsMsg subEffect )
+                ( { model | statements = statements }, Cmd.map translateStatementsMsg subEffect )
 
 
 -- VIEW
-
-
-aForPath : String -> List (Attribute Msg) -> List (Html Msg) -> Html Msg
-aForPath path attributes children =
-    a
-        (
-            [ href (makeUrl path)
-            , onWithOptions
-                "click"
-                { stopPropagation = False, preventDefault = True }
-                (Json.Decode.succeed (Navigate path))
-            ]
-            ++ attributes
-        )
-        children
 
 
 view : Model -> Html Msg
@@ -204,19 +140,19 @@ view model =
     let
         profileNavItem = case model.authenticationMaybe of
             Just authentication ->
-                li [] [ aForPath "/profile" [] [ text authentication.name ] ]
+                li [] [ aForPath Navigate "/profile" [] [ text authentication.name ] ]
             Nothing ->
                 text ""
         signInOrOutNavItem = case model.authenticationMaybe of
             Just authentication ->
-                li [] [ aForPath "/sign_out" [] [ text "Sign Out" ] ]
+                li [] [ aForPath Navigate "/sign_out" [] [ text "Sign Out" ] ]
             Nothing ->
-                li [] [ aForPath "/sign_in" [] [ text "Sign In" ] ]
+                li [] [ aForPath Navigate "/sign_in" [] [ text "Sign In" ] ]
         signUpNavItem = case model.authenticationMaybe of
             Just authentication ->
                 text ""
             Nothing ->
-                li [] [ aForPath "/sign_up" [] [ text "Sign Up" ] ]
+                li [] [ aForPath Navigate "/sign_up" [] [ text "Sign Up" ] ]
     in
         div
             [ class "container-fluid" ]
@@ -238,15 +174,15 @@ view model =
                                 , span [ class "icon-bar" ] []
                                 , span [ class "icon-bar" ] []
                                 ]
-                            , aForPath "/" [ class "navbar-brand"] [ text "Retruco" ]
+                            , aForPath Navigate "/" [ class "navbar-brand"] [ text "Retruco" ]
                             ]
                         , div
                             [ class "collapse navbar-collapse"
                             , id "navbar-collapse"
                             ]
                             [ ul [ class "nav navbar-nav" ]
-                                [ li [] [ aForPath "/about" [] [ text "About" ] ]
-                                , li [] [ aForPath "/statements" [] [ text "Statements" ] ]
+                                [ li [] [ aForPath Navigate "/about" [] [ text "About" ] ]
+                                , li [] [ aForPath Navigate "/statements" [] [ text "Statements" ] ]
                                 ]
                             , ul [ class "nav navbar-nav navbar-right" ]
                                 [ profileNavItem
@@ -277,7 +213,7 @@ viewContent model =
         AuthenticatorRoute subRoute ->
             Html.App.map AuthenticatorMsg (Authenticator.View.view subRoute model.authenticator)
         StatementsRoute ->
-            Html.App.map StatementsMsg (Statements.view model.authenticationMaybe model.statements)
+            Html.App.map translateStatementsMsg (Statements.view model.authenticationMaybe model.statements)
 
         _ ->
             p
