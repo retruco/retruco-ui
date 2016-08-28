@@ -16,6 +16,7 @@ import Views exposing (aForPath)
 
 type alias Model =
     { ballotById : Dict String Ballot
+    , loaded : Bool
     , newStatement : NewStatement.Model
     , statementById : Dict String Statement
     , statementIds : List String
@@ -25,6 +26,7 @@ type alias Model =
 init : Model
 init =
     { ballotById = Dict.empty
+    , loaded = False
     , newStatement = NewStatement.init
     , statementById = Dict.empty
     , statementIds = []
@@ -90,17 +92,21 @@ update msg authenticationMaybe model =
 
         Load ->
             let
-                cmd =
-                    Task.perform
-                        (\msg -> ForSelf (Error msg))
-                        (\msg -> ForSelf (Loaded msg))
-                        (Http.get decodeDataIdsBody "http://localhost:3000/statements")
+                cmd = if model.loaded
+                    then
+                        Cmd.none
+                    else
+                        Task.perform
+                            (\msg -> ForSelf (Error msg))
+                            (\msg -> ForSelf (Loaded msg))
+                            (Http.get decodeDataIdsBody "http://localhost:3000/statements")
             in
                 ( model, cmd )
 
         Loaded body ->
             ( { model
-                | statementById = body.data.statements
+                | loaded = True
+                , statementById = body.data.statements
                 , statementIds = body.data.ids
               }
             , Cmd.none
