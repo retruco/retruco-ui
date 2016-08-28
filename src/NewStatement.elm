@@ -117,18 +117,21 @@ update msg authenticationMaybe model =
                     )
                     [
                         ( "kind"
-                        , if String.isEmpty model.kind then Just "Missing type" else Nothing
+                        , if String.isEmpty model.kind
+                            then Just "Missing type"
+                            else Nothing
                         )
                     ,
                         ( "languageCpde"
-                        , if String.isEmpty model.languageCode then Just "Missing language" else Nothing
+                        , if  model.kind == "PlainStatement" && String.isEmpty model.languageCode
+                            then Just "Missing language"
+                            else Nothing
                         )
                     ,
                         ( "name"
-                        , if model.kind == "PlainStatement" && String.isEmpty model.name then
-                                Just "Missing name"
-                            else
-                                Nothing
+                        , if List.member model.kind ["PlainStatement", "Tag"] && String.isEmpty model.name
+                            then Just "Missing name"
+                            else Nothing
                         )
                     ] )
 
@@ -143,6 +146,10 @@ update msg authenticationMaybe model =
                                             "PlainStatement" ->
                                                 [ ("languageCode", Json.Encode.string model.languageCode)
                                                 , ("name", Json.Encode.string model.name)
+                                                ]
+
+                                            "Tag" ->
+                                                [ ("name", Json.Encode.string model.name)
                                                 ]
 
                                             _ ->
@@ -305,7 +312,34 @@ view model =
                 ]
 
             "Tag" ->
-                [ text "TODO" ]
+                [ let
+                        errorMaybe = Dict.get "name" model.errors
+                        ( errorClass, errorAttributes, errorBlock ) = case errorMaybe of
+                            Just error ->
+                                ( " has-error"
+                                , [ ariaDescribedby "name-error" ]
+                                , [ span 
+                                    [ class "help-block"
+                                    , id "name-error"
+                                    ]
+                                    [ text error ] ]
+                                )
+                            Nothing ->
+                                ("", [] , [])
+                    in
+                        div [ class ( "form-group" ++ errorClass) ]
+                            ( [ label [ class "control-label", for "name" ] [ text "Name" ]
+                            , input
+                                ( [ class "form-control"
+                                , id "name"
+                                , placeholder "To be or not to be"
+                                , type' "text"
+                                , value model.name
+                                , onInput NameInput
+                                ] ++ errorAttributes )
+                                []
+                            ] ++ errorBlock )
+                ]
 
             _ ->
                 []

@@ -166,26 +166,15 @@ viewStatementLine id model =
                             ]
 
                     PlainCustom plain ->
-                        let
-                            nameMaybe = plain.name
-                        in
-                            case nameMaybe of
-                                Nothing ->
-                                    div []
-                                        [ text id
-                                        , text " plain "
-                                        ]
-
-                                Just name ->
-                                    div []
-                                        [ text id
-                                        , text " plain "
-                                        , text name
-                                        ]
+                        div []
+                            [ text id
+                            , text " plain "
+                            , text plain.name
+                            ]
 
                     TagCustom tag ->
                         div []
                             [ text id
                             , text " tag "
-                            , text statement.createdAt
+                            , text tag.name
                             ]

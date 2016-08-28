@@ -51,7 +51,8 @@ type alias DataIdsBody =
 
 
 type alias Plain =
-    { name : Maybe String
+    { languageCode : String
+    , name : String
     }
 
 
@@ -71,7 +72,8 @@ type StatementCustom
 
 
 type alias Tag =
-    {}
+    { name : String
+    }
 
 
 type alias User =
@@ -148,11 +150,14 @@ decodeStatementFromType statementType =
 
         "PlainStatement" ->
             succeed Plain
-                |: maybe ("name" := string)
+                |: ("languageCode" := string)
+                |: ("name" := string)
             `andThen` \plain -> succeed (PlainCustom plain)
 
         "Tag" ->
-            succeed (TagCustom {})
+            succeed Tag
+                |: ("name" := string)
+            `andThen` \tag -> succeed (TagCustom tag)
 
         _ ->
             fail ("Unkown statement type: " ++ statementType)
