@@ -60,6 +60,7 @@ type alias Statement =
     { createdAt : String
     , custom : StatementCustom
     , deleted : Bool
+    , groundIds : List String
     , id : String
     }
 
@@ -136,6 +137,7 @@ decodeStatement =
         |: ("createdAt" := string)
         |: (("type" := string) `andThen` decodeStatementFromType)
         |: ("deleted" := bool)
+        |: oneOf [("groundIds" := list string), null [], succeed []]
         |: ("id" := string)
 
 

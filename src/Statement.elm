@@ -1,100 +1,176 @@
-module Statement exposing (..)
+module Statement exposing (InternalMsg, Msg, MsgTranslation, MsgTranslator, translateMsg, update, view)
 
-import Html.Events exposing (onClick)
-import Html exposing (node, text)
-import Html.App
-import Http
-import Task
-import Components.Markdown as Markdown
-import Components.NavList as NavList
+import Authenticator.Model
+import Dict exposing (Dict)
+import Html exposing (div, Html, li, node, text, ul)
+import Types exposing (Ballot, Statement, StatementCustom(..))
+import Views exposing (aForPath, viewStatementLinePanel)
+
+
+-- MODEL
 
 
 type alias Model =
-    { contents : String
-    , list : NavList.Model
+    { ballotById : Dict String Ballot
+    , statementById : Dict String Statement
+    , statementId : String
     }
+
+
+-- UPDATE
+
+
+type ExternalMsg
+    = Navigate String
+
+
+type InternalMsg
+    = None
 
 
 type Msg
-    = Load String
-    | Loaded String
-    | Error Http.Error
-    | List NavList.Msg
+    = ForParent ExternalMsg
+    | ForSelf InternalMsg
 
 
-pages : List ( String, String )
-pages =
-    [ ( "getting-started/setup", "1.1 Setup" )
-    , ( "getting-started/adding-components", "1.2 Adding Components" )
-    ]
-
-
-guidePages : List ( String, String )
-guidePages =
-    [ ( "guides/focusing", "Focusing" )
-    , ( "guides/handling-files", "Handling Files" )
-    , ( "guides/environment-variables", "Environment Variables" )
-    ]
-
-
-navItems =
-    let
-        convert items =
-            List.map (\( url, label ) -> { href = url, label = label }) items
-    in
-        [ ( "1. Getting Started", convert pages )
-        , ( "Guides", convert guidePages )
-        ]
-
-
-init : Model
-init =
-    { contents = ""
-    , list = NavList.init "documentation" "Search the docs..." navItems
+type alias MsgTranslation parentMsg =
+    { onInternalMsg : InternalMsg -> parentMsg
+    , onNavigate : String -> parentMsg
     }
 
 
-setContents : String -> Model -> Model
-setContents contents model =
-    { model | contents = contents }
+type alias MsgTranslator parentMsg = Msg -> parentMsg
 
 
-load : String -> Cmd Msg
-load page =
-    Task.perform (\_ -> Debug.crash "") (\_ -> Load page) (Task.succeed "")
+navigate : String -> Msg
+navigate path =
+    ForParent (Navigate path)
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+translateMsg : MsgTranslation parentMsg -> MsgTranslator parentMsg
+translateMsg {onInternalMsg, onNavigate} msg =
     case msg of
-        Load page ->
-            let
-                cmd =
-                    Task.perform
-                        Error
-                        Loaded
-                        (Http.getString ("/docs/" ++ page ++ ".md"))
-            in
-                ( model, cmd )
+        ForParent (Navigate path) ->
+            onNavigate path
 
-        Loaded contents ->
-            ( setContents contents model, Cmd.none )
+        ForSelf internalMsg ->
+            onInternalMsg internalMsg
 
-        Error _ ->
+
+update : InternalMsg -> Maybe Authenticator.Model.Authentication -> Model -> ( Model, Cmd Msg )
+update msg authenticationMaybe model =
+    case msg of
+        None ->
             ( model, Cmd.none )
 
-        List subMsg ->
-            let
-                ( list, effect ) =
-                    NavList.update subMsg model.list
-            in
-                ( { model | list = list }, Cmd.map List effect )
+
+-- VIEW
 
 
-view : Model -> Html.Html Msg
-view model =
-    node "ui-documentation"
-        []
-        [ Html.App.map List (NavList.view "" model.list)
-        , Markdown.view model.contents
-        ]
+view : Maybe Authenticator.Model.Authentication -> Model -> Html Msg
+view authenticationMaybe model =
+    let
+        statementMaybe = Dict.get model.statementId model.statementById
+    in
+        case statementMaybe of
+            Nothing ->
+                div []
+                    [ text model.statementId
+                    , text " "
+                    , text "Missing statement"
+                    ]
+
+            Just statement ->
+                let
+                    statementCustomView = case statement.custom of
+                        AbuseCustom abuse ->
+                            div []
+                                [ viewStatementLinePanel statement
+                                , text statement.id
+                                , text " abuse "
+                                , text statement.createdAt
+                                ]
+
+                        ArgumentCustom argument ->
+                            div []
+                                [ viewStatementLinePanel statement
+                                , text statement.id
+                                , text " argument "
+                                , text statement.createdAt
+                                ]
+
+                        PlainCustom plain ->
+                            div []
+                                [ viewStatementLinePanel statement
+                                , text statement.id
+                                , text " plain "
+                                , aForPath navigate ("/statements/" ++ statement.id) [] [ text plain.name ]
+                                ]
+
+                        TagCustom tag ->
+                            div []
+                                [ viewStatementLinePanel statement
+                                , text statement.id
+                                , text " tag "
+                                , text tag.name
+                                ]
+                in
+                    node "ui-statement"
+                        []
+                        [ statementCustomView
+                        , ul [] (List.map (\id -> li [] [ viewGroundArgumentLine id model ]) statement.groundIds)
+                        -- , case authenticationMaybe of
+                        --     Just authentication ->
+                        --         Html.App.map (\msg -> ForSelf (NewStatementMsg msg)) (NewStatement.view model.newStatement)
+                        --     Nothing ->
+                        --         text ""
+                        ]
+
+
+viewGroundArgumentLine : String -> Model -> Html Msg
+viewGroundArgumentLine statementId model =
+    let
+        statementMaybe =
+            Dict.get statementId model.statementById
+    in
+        case statementMaybe of
+            Nothing ->
+                div []
+                    [ text statementId
+                    , text " "
+                    , text "Missing statement"
+                    ]
+
+            Just statement ->
+                case statement.custom of
+                    AbuseCustom abuse ->
+                        div []
+                            [ viewStatementLinePanel statement
+                            , text statement.id
+                            , text " abuse "
+                            , text statement.createdAt
+                            ]
+
+                    ArgumentCustom argument ->
+                        div []
+                            [ viewStatementLinePanel statement
+                            , text statement.id
+                            , text " argument "
+                            , text statement.createdAt
+                            ]
+
+                    PlainCustom plain ->
+                        div []
+                            [ viewStatementLinePanel statement
+                            , text statement.id
+                            , text " plain "
+                            , aForPath navigate ("/statements/" ++ statement.id) [] [ text plain.name ]
+                            ]
+
+                    TagCustom tag ->
+                        div []
+                            [ viewStatementLinePanel statement
+                            , text statement.id
+                            , text " tag "
+                            , text tag.name
+                            ]

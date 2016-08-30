@@ -1,28 +1,25 @@
-module Routes exposing (makeUrl, Route(..), urlParser)
+module Routes exposing (makeUrl, Route(..), StatementsNestedRoute(..), urlParser)
 
 import Authenticator.Model
+import Combine exposing (Parser)
 import Hop
-import Hop.Matchers exposing (match1, match2)
+import Hop.Matchers exposing (match1, match2, nested1)
 import Hop.Types
 import Navigation
 
 
 type Route
-    = AuthenticatorRoute Authenticator.Model.Route
-    -- | Component String
-    | Home
-    -- | ReferencePage
-    | StatementsRoute
+    = AboutRoute
+    | AuthenticatorRoute Authenticator.Model.Route
+    | HomeRoute
+    | NotFoundRoute
+    | StatementsRoute StatementsNestedRoute
 
 
--- all : Parser String
--- all =
---     Combine.regex ".+"
-
-
--- idParser : Parser String
--- idParser =
---     Combine.regex ".+"
+type StatementsNestedRoute
+    = StatementRoute String
+    | StatementsIndexRoute
+    | StatementsNotFoundRoute
 
 
 makeUrl : String -> String
@@ -31,16 +28,15 @@ makeUrl path = Hop.makeUrl routerConfig path
 
 matchers : List (Hop.Types.PathMatcher Route)
 matchers =
-    [ match1 Home ""
-    -- , match2 Component "/reference/" all
-    -- , match1 Documentation "/documentation"
-    -- , match2 DocumentationPage "/documentation/" all
-    -- , match1 ReferencePage "/reference"
+    [ match1 HomeRoute ""
+    , match1 AboutRoute "/about"
     , match1 (AuthenticatorRoute Authenticator.Model.SignInRoute) "/sign_in"
     , match1 (AuthenticatorRoute Authenticator.Model.SignOutRoute) "/sign_out"
     , match1 (AuthenticatorRoute Authenticator.Model.SignUpRoute) "/sign_up"
-    , match1 StatementsRoute "/statements"
-      -- , match2 Statement "/statements/" idParser
+    , nested1 StatementsRoute "/statements"
+        [ match1 StatementsIndexRoute ""
+        , match2 StatementRoute "/" statementIdParser
+        ]
     ]
 
 
@@ -50,14 +46,19 @@ routerConfig =
     -- { hash = False
     -- , basePath = ""
     -- , matchers = matchers
-    -- , notFound = Home
+    -- , notFound = NotFoundRoute
     -- }
     -- Development:
     { hash = True
     , basePath = ""
     , matchers = matchers
-    , notFound = Home
+    , notFound = NotFoundRoute
     }
+
+
+statementIdParser : Parser String
+statementIdParser =
+    Combine.regex "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
 
 
 urlParser : Navigation.Parser ( Route, Hop.Types.Location )

@@ -3,7 +3,6 @@ module Main exposing (..)
 import Authenticator.Model
 import Authenticator.Update
 import Authenticator.View
--- import Combine exposing (Parser)
 import Hop.Types
 import Html exposing (..)
 import Html.App
@@ -12,7 +11,7 @@ import Html.Attributes.Aria exposing (..)
 import Navigation
 import Routes exposing (makeUrl, Route(..), urlParser)
 import Statements
-import Views exposing (aForPath)
+import Views exposing (aForPath, viewNotFound)
 
 
 main : Program Never
@@ -54,26 +53,38 @@ init ( route, location ) =
 -- ROUTING
 
 
-urlUpdate : ( Route, Hop.Types.Location ) -> Model -> ( Model, Cmd Msg )
-urlUpdate ( route, location ) model =
+urlUpdate : (Route, Hop.Types.Location) -> Model -> (Model, Cmd Msg)
+urlUpdate (route, location) model =
     let
-        updatedModel =
-            { model | route = route, location = location }
-
-        cmd =
-            case route of
-                -- Documentation ->
-                --   Cmd.map Docs (Documentation.load "index")
-                -- DocumentationPage page ->
-                --   Cmd.map Docs (Documentation.load page)
-
-                StatementsRoute ->
-                    Cmd.map translateStatementsMsg Statements.load
-
-                _ ->
-                    Cmd.none
+        model' = { model
+            | location = location
+            , route = route
+            }
     in
-        ( updatedModel, cmd )
+        case route of
+            AboutRoute ->
+                (model', Cmd.none)
+
+            AuthenticatorRoute _ ->
+                (model', Cmd.none)
+
+            -- Documentation ->
+            --   Cmd.map Docs (Documentation.load "index")
+            -- DocumentationPage page ->
+            --   Cmd.map Docs (Documentation.load page)
+
+            HomeRoute ->
+                (model', Cmd.none)
+
+            NotFoundRoute ->
+                (model', Cmd.none)
+
+            StatementsRoute childRoute ->
+                let
+                    -- Cmd.map translateStatementsMsg Statements.load
+                    (statements, childEffect) = Statements.urlUpdate (childRoute, location) model'.statements
+                in
+                    ({ model' | statements = statements }, Cmd.map translateStatementsMsg childEffect)
 
 
 -- UPDATE
@@ -107,10 +118,10 @@ update msg model =
             in
                 ( model, command )
 
-        AuthenticatorMsg subMsg ->
+        AuthenticatorMsg childMsg ->
             let
-                ( authenticator, subEffect ) =
-                    Authenticator.Update.update subMsg model.authenticator
+                ( authenticator, childEffect ) =
+                    Authenticator.Update.update childMsg model.authenticator
                 changed = authenticator.authenticationMaybe /= model.authenticationMaybe
                 model' = { model
                     | authenticationMaybe = authenticator.authenticationMaybe
@@ -122,14 +133,14 @@ update msg model =
                     else
                         (model', Cmd.none)
             in
-                model'' ! [Cmd.map AuthenticatorMsg subEffect, effect'']
+                model'' ! [Cmd.map AuthenticatorMsg childEffect, effect'']
 
-        StatementsMsg subMsg ->
+        StatementsMsg childMsg ->
             let
-                ( statements, subEffect ) =
-                    Statements.update subMsg model.authenticationMaybe model.statements
+                ( statements, childEffect ) =
+                    Statements.update childMsg model.authenticationMaybe model.statements
             in
-                ( { model | statements = statements }, Cmd.map translateStatementsMsg subEffect )
+                ( { model | statements = statements }, Cmd.map translateStatementsMsg childEffect )
 
 
 -- VIEW
@@ -200,27 +211,28 @@ view model =
 viewContent : Model -> Html Msg
 viewContent model =
     case model.route of
-        --   Home ->
-        --     Pages.Index.view Navigate
-        --   ReferencePage ->
-        --     Html.App.map Reference (Reference.view model.reference "")
-        --   Component comp ->
-        --     Html.App.map Reference (Reference.view model.reference comp)
-        --   Documentation ->
-        --     Html.App.map Docs (Documentation.view model.docs)
-        --   DocumentationPage page ->
-        --     Html.App.map Docs (Documentation.view model.docs)
-        AuthenticatorRoute subRoute ->
-            Html.App.map AuthenticatorMsg (Authenticator.View.view subRoute model.authenticator)
-        StatementsRoute ->
-            Html.App.map translateStatementsMsg (Statements.view model.authenticationMaybe model.statements)
-
-        _ ->
+        AboutRoute ->
             p
                 []
                 [ img [ src "./img/elm.png" ] []
-                , text "Hello world"
+                , text "About Retruco"
                 ]
+
+        AuthenticatorRoute subRoute ->
+            Html.App.map AuthenticatorMsg (Authenticator.View.view subRoute model.authenticator)
+
+        HomeRoute ->
+            p
+                []
+                [ img [ src "./img/elm.png" ] []
+                , text "Hello Retruco user"
+                ]
+
+        NotFoundRoute ->
+            viewNotFound
+
+        StatementsRoute nestedRoute ->
+            Html.App.map translateStatementsMsg (Statements.view model.authenticationMaybe model.statements)
 
 
 -- SUBSCRIPTIONS

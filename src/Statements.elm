@@ -2,13 +2,16 @@ module Statements exposing (..)
 
 import Authenticator.Model
 import Dict exposing (Dict)
+import Hop.Types
 import Html exposing (..)
 import Html.App
 import Http
 import NewStatement
+import Statement
 import Task
+import Routes exposing (StatementsNestedRoute(..))
 import Types exposing (Ballot, DataId, DataIdsBody, decodeDataIdsBody, Statement, StatementCustom(..))
-import Views exposing (aForPath)
+import Views exposing (aForPath, viewNotFound, viewStatementLinePanel)
 
 
 -- MODEL
@@ -17,8 +20,11 @@ import Views exposing (aForPath)
 type alias Model =
     { ballotById : Dict String Ballot
     , loaded : Bool
+    -- , location : Hop.Types.Location
     , newStatement : NewStatement.Model
+    , route : StatementsNestedRoute
     , statementById : Dict String Statement
+    , statementId : String
     , statementIds : List String
     }
 
@@ -27,10 +33,35 @@ init : Model
 init =
     { ballotById = Dict.empty
     , loaded = False
+    -- , location = Hop.Types.newLocation
     , newStatement = NewStatement.init
+    , route = StatementsNotFoundRoute
     , statementById = Dict.empty
+    , statementId = "nothing"
     , statementIds = []
     }
+
+
+-- ROUTING
+
+
+urlUpdate : (StatementsNestedRoute, Hop.Types.Location) -> Model -> (Model, Cmd Msg)
+urlUpdate (route, location) model =
+    let
+        model' = { model
+            -- | location = location
+            | route = route
+            }
+    in
+        case route of
+            StatementRoute statementId ->
+                ({ model' | statementId = statementId }, Cmd.none)
+
+            StatementsIndexRoute ->
+                (model', load)
+
+            StatementsNotFoundRoute ->
+                (model', Cmd.none)
 
 
 -- UPDATE
@@ -45,6 +76,7 @@ type InternalMsg
     | Load
     | Loaded DataIdsBody
     | NewStatementMsg NewStatement.Msg
+    | StatementMsg Statement.InternalMsg
 
 
 type Msg
@@ -69,6 +101,17 @@ load =
 navigate : String -> Msg
 navigate path =
     ForParent (Navigate path)
+
+
+statementMsgTranslation : Statement.MsgTranslation Msg
+statementMsgTranslation =
+    { onInternalMsg = \internalMsg -> ForSelf (StatementMsg internalMsg)
+    , onNavigate = \path -> ForParent (Navigate path)
+    }
+
+
+translateStatementMsg : Statement.MsgTranslator Msg
+translateStatementMsg = Statement.translateMsg statementMsgTranslation
 
 
 translateMsg : MsgTranslation parentMsg -> MsgTranslator parentMsg
@@ -112,10 +155,10 @@ update msg authenticationMaybe model =
             , Cmd.none
             )
 
-        NewStatementMsg subMsg ->
+        NewStatementMsg childMsg ->
             let
-                (newStatement, childMsg, dataMaybe) =
-                    NewStatement.update subMsg authenticationMaybe model.newStatement
+                (newStatement, childEffect, dataMaybe) =
+                    NewStatement.update childMsg authenticationMaybe model.newStatement
                 model' = case dataMaybe of
                     Just data ->
                         { model
@@ -155,36 +198,67 @@ update msg authenticationMaybe model =
                         | newStatement = newStatement
                         }
             in
-                (model', Cmd.map (\msg -> ForSelf (NewStatementMsg msg)) childMsg)
-            
+                (model', Cmd.map (\msg -> ForSelf (NewStatementMsg msg)) childEffect)
+
+        StatementMsg childMsg ->
+            let
+                statementModel =
+                    { ballotById = model.ballotById
+                    , statementById = model.statementById
+                    , statementId = model.statementId
+                    }
+                (statementModel', childEffect) = Statement.update childMsg authenticationMaybe statementModel
+                model' =
+                    { model
+                    | ballotById = statementModel'.ballotById
+                    , statementById = statementModel'.statementById
+                    }
+            in
+                (model', Cmd.map translateStatementMsg childEffect)
+
 
 -- VIEW
 
 
 view : Maybe Authenticator.Model.Authentication -> Model -> Html Msg
 view authenticationMaybe model =
-    node "ui-statements"
-        []
-        [ text "Statements"
-        , ul [] (List.map (\id -> li [] [ viewStatementLine id model ]) model.statementIds)
-        , case authenticationMaybe of
-            Just authentication ->
-                Html.App.map (\msg -> ForSelf (NewStatementMsg msg)) (NewStatement.view model.newStatement)
-            Nothing ->
-                text ""
-        ]
+    case model.route of
+        StatementRoute statementId ->
+            let
+                statementModel =
+                    { ballotById = model.ballotById
+                    , statementById = model.statementById
+                    , statementId = model.statementId
+                    }
+            in
+                Html.App.map translateStatementMsg (Statement.view authenticationMaybe statementModel)
+
+        StatementsIndexRoute ->
+            node "ui-statements"
+                []
+                [ text "Statements"
+                , ul [] (List.map (\id -> li [] [ viewStatementLine id model ]) model.statementIds)
+                , case authenticationMaybe of
+                    Just authentication ->
+                        Html.App.map (\msg -> ForSelf (NewStatementMsg msg)) (NewStatement.view model.newStatement)
+                    Nothing ->
+                        text ""
+                ]
+
+        StatementsNotFoundRoute ->
+            viewNotFound
 
 
-viewStatementLine : String -> Model -> Html.Html Msg
-viewStatementLine id model =
+viewStatementLine : String -> Model -> Html Msg
+viewStatementLine statementId model =
     let
         statementMaybe =
-            Dict.get id model.statementById
+            Dict.get statementId model.statementById
     in
         case statementMaybe of
             Nothing ->
                 div []
-                    [ text id
+                    [ text statementId
                     , text " "
                     , text "Missing statement"
                     ]
@@ -193,28 +267,32 @@ viewStatementLine id model =
                 case statement.custom of
                     AbuseCustom abuse ->
                         div []
-                            [ text id
+                            [ viewStatementLinePanel statement
+                            , text statement.id
                             , text " abuse "
                             , text statement.createdAt
                             ]
 
                     ArgumentCustom argument ->
                         div []
-                            [ text id
+                            [ viewStatementLinePanel statement
+                            , text statement.id
                             , text " argument "
                             , text statement.createdAt
                             ]
 
                     PlainCustom plain ->
                         div []
-                            [ text id
+                            [ viewStatementLinePanel statement
+                            , text statement.id
                             , text " plain "
-                            , aForPath navigate ("/statements/" ++ id) [] [ text plain.name ]
+                            , aForPath navigate ("/statements/" ++ statement.id) [] [ text plain.name ]
                             ]
 
                     TagCustom tag ->
                         div []
-                            [ text id
+                            [ viewStatementLinePanel statement
+                            , text statement.id
                             , text " tag "
                             , text tag.name
                             ]
