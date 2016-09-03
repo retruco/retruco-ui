@@ -30,22 +30,22 @@ main =
 
 type alias Model =
     { authenticationMaybe : Maybe Authenticator.Model.Authentication
-    , authenticator : Authenticator.Model.Model
+    , authenticatorModel : Authenticator.Model.Model
     , location : Hop.Types.Location
     , page : String
     , route : Route
-    , statements : Statements.Model
+    , statementsModel : Statements.Model
     }
 
 
 init : ( Route, Hop.Types.Location ) -> ( Model, Cmd Msg )
 init ( route, location ) =
     { authenticationMaybe = Nothing
-    , authenticator = Authenticator.Model.init
+    , authenticatorModel = Authenticator.Model.init
     , location = location
     , page = "reference"
     , route = route
-    , statements = Statements.init
+    , statementsModel = Statements.init
     }
         |> urlUpdate ( route, location )
 
@@ -82,9 +82,9 @@ urlUpdate (route, location) model =
             StatementsRoute childRoute ->
                 let
                     -- Cmd.map translateStatementsMsg Statements.load
-                    (statements, childEffect) = Statements.urlUpdate (childRoute, location) model'.statements
+                    (statementsModel, childEffect) = Statements.urlUpdate (childRoute, location) model'.statementsModel
                 in
-                    ({ model' | statements = statements }, Cmd.map translateStatementsMsg childEffect)
+                    ({ model' | statementsModel = statementsModel }, Cmd.map translateStatementsMsg childEffect)
 
 
 -- UPDATE
@@ -120,12 +120,12 @@ update msg model =
 
         AuthenticatorMsg childMsg ->
             let
-                ( authenticator, childEffect ) =
-                    Authenticator.Update.update childMsg model.authenticator
-                changed = authenticator.authenticationMaybe /= model.authenticationMaybe
+                ( authenticatorModel, childEffect ) =
+                    Authenticator.Update.update childMsg model.authenticatorModel
+                changed = authenticatorModel.authenticationMaybe /= model.authenticationMaybe
                 model' = { model
-                    | authenticationMaybe = authenticator.authenticationMaybe
-                    , authenticator = authenticator
+                    | authenticationMaybe = authenticatorModel.authenticationMaybe
+                    , authenticatorModel = authenticatorModel
                     }
                 (model'', effect'') = if changed
                     then
@@ -137,10 +137,10 @@ update msg model =
 
         StatementsMsg childMsg ->
             let
-                ( statements, childEffect ) =
-                    Statements.update childMsg model.authenticationMaybe model.statements
+                ( statementsModel, childEffect ) =
+                    Statements.update childMsg model.authenticationMaybe model.statementsModel
             in
-                ( { model | statements = statements }, Cmd.map translateStatementsMsg childEffect )
+                ( { model | statementsModel = statementsModel }, Cmd.map translateStatementsMsg childEffect )
 
 
 -- VIEW
@@ -219,7 +219,7 @@ viewContent model =
                 ]
 
         AuthenticatorRoute subRoute ->
-            Html.App.map AuthenticatorMsg (Authenticator.View.view subRoute model.authenticator)
+            Html.App.map AuthenticatorMsg (Authenticator.View.view subRoute model.authenticatorModel)
 
         HomeRoute ->
             p
@@ -232,7 +232,7 @@ viewContent model =
             viewNotFound
 
         StatementsRoute nestedRoute ->
-            Html.App.map translateStatementsMsg (Statements.view model.authenticationMaybe model.statements)
+            Html.App.map translateStatementsMsg (Statements.view model.authenticationMaybe model.statementsModel)
 
 
 -- SUBSCRIPTIONS

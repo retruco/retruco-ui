@@ -1,4 +1,4 @@
-module NewStatement exposing (init, Msg, Model, update, view)
+module NewGroundArgument exposing (init, Msg, Model, update, view)
 
 import Authenticator.Model
 import Dict exposing (Dict)
@@ -8,93 +8,169 @@ import Html.Attributes.Aria exposing (..)
 import Html.Events exposing (..)
 import Http
 import Json.Decode
-import Json.Encode
+import Requests exposing (newTaskCreateStatement, newTaskRateStatement)
 import String
 import Task
-import Types exposing (DataId, DataIdBody, decodeDataIdBody, initStatementForm, StatementForm)
+import Types exposing (convertStatementFormToCustom, DataId, DataIdBody, decodeDataIdBody, initStatementForm,
+    StatementCustom(..), StatementForm)
 import Views exposing (viewOption)
 
 
 -- MODEL
 
 
-type alias Model = StatementForm
+type alias Model =
+    { claimId : String
+    , groundId : String
+    , rating : Int
+    , statementForm : StatementForm
+    }
 
 
 init : Model
-init = initStatementForm
+init =
+    { claimId = ""
+    , groundId = ""
+    , rating = 0
+    , statementForm = initStatementForm
+    }
 
 
 -- UPDATE
 
 
 type Msg
-    = Created DataIdBody
-    | CreateError Http.Error
+    = ArgumentCreated DataIdBody
+    | ArgumentCreateError Http.Error
+    | GroundCreated DataIdBody
+    | GroundCreateError Http.Error
     | KindChanged String
     | LanguageCodeChanged String
     | NameInput String
-    | Rated DataIdBody
-    | RateError Http.Error
+    | ArgumentRated DataIdBody
+    | ArgumentRateError Http.Error
+    | GroundRated DataIdBody
+    | GroundRateError Http.Error
+    | RatingChanged Int
     | Submit
 
 
 update : Msg -> Maybe Authenticator.Model.Authentication -> Model -> ( Model, Cmd Msg, Maybe DataId )
 update msg authenticationMaybe model =
     case msg of
-        Created body ->
+        ArgumentCreated body ->
             let
                 data = body.data
-                ratingBody = Json.Encode.object
-                    [ ("rating", Json.Encode.float 1) ]
                 cmd =
                     case authenticationMaybe of
                         Just authentication ->
                             Task.perform
-                                RateError
-                                Rated
-                                ( Http.fromJson decodeDataIdBody ( Http.send Http.defaultSettings
-                                    { verb = "POST"
-                                    , url = ("http://localhost:3000/statements/" ++ data.id
-                                        ++ "/rating?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=tags")
-                                    , headers =
-                                        [ ("Accept", "application/json")
-                                        , ("Content-Type", "application/json")
-                                        , ("Retruco-API-Key", authentication.apiKey)
-                                        ]
-                                    , body = Http.string ( Json.Encode.encode 2 ratingBody )
-                                    } ) )
+                                ArgumentRateError
+                                ArgumentRated
+                                (newTaskRateStatement authentication model.rating data.id)
+
                         Nothing ->
                             Cmd.none
             in
                 (model, cmd, Just data)
 
-        CreateError err ->
+        ArgumentCreateError err ->
             let
-                _ = Debug.log "New Statement Create Error" err
+                _ = Debug.log "Argument Create Error" err
+            in
+                (model, Cmd.none, Nothing)
+
+        ArgumentRated body ->
+            (model, Cmd.none, Just body.data)
+
+        ArgumentRateError err ->
+            let
+                _ = Debug.log "Argumenet Rate Error" err
+            in
+                (model, Cmd.none, Nothing)
+
+        GroundCreated body ->
+            let
+                data = body.data
+                cmd =
+                    case authenticationMaybe of
+                        Just authentication ->
+                            Task.perform
+                                GroundRateError
+                                GroundRated
+                                (newTaskRateStatement authentication 1 data.id)
+
+                        Nothing ->
+                            Cmd.none
+            in
+                ({ model | groundId = data.id }, cmd, Just data)
+
+        GroundCreateError err ->
+            let
+                _ = Debug.log "Ground Statement Create Error" err
+            in
+                (model, Cmd.none, Nothing)
+
+        GroundRated body ->
+            let
+                cmd =
+                    case authenticationMaybe of
+                        Just authentication ->
+                            Task.perform
+                                ArgumentCreateError
+                                ArgumentCreated
+                                (newTaskCreateStatement authentication (ArgumentCustom
+                                    { claimId = model.claimId
+                                    , groundId = model.groundId
+                                    }))
+
+                        Nothing ->
+                            Cmd.none
+            in
+                (model, cmd, Just body.data)
+
+        GroundRateError err ->
+            let
+                _ = Debug.log "Ground Statement Rate Error" err
             in
                 (model, Cmd.none, Nothing)
 
         KindChanged kind ->
-            ({ model | kind = kind }, Cmd.none, Nothing)
+            let
+                statementForm = model.statementForm
+                statementForm' =
+                    { statementForm
+                    | kind = kind
+                    }
+            in
+                ({ model | statementForm = statementForm' }, Cmd.none, Nothing)
 
         LanguageCodeChanged languageCode ->
-            ({ model | languageCode = languageCode }, Cmd.none, Nothing)
+            let
+                statementForm = model.statementForm
+                statementForm' =
+                    { statementForm
+                    | languageCode = languageCode
+                    }
+            in
+                ({ model | statementForm = statementForm' }, Cmd.none, Nothing)
 
         NameInput name ->
-            ({ model | name = name }, Cmd.none, Nothing)
-
-        Rated body ->
-            (model, Cmd.none, Just body.data)
-
-        RateError err ->
             let
-                _ = Debug.log "New Statement Rate Error" err
+                statementForm = model.statementForm
+                statementForm' =
+                    { statementForm
+                    | name = name
+                    }
             in
-                (model, Cmd.none, Nothing)
+                ({ model | statementForm = statementForm' }, Cmd.none, Nothing)
+
+        RatingChanged rating ->
+            ({ model | rating = rating }, Cmd.none, Nothing)
 
         Submit ->
             let
+                statementForm = model.statementForm
                 errorsList = ( List.filterMap (
                     \(name, errorMaybe) ->
                         case errorMaybe of
@@ -105,19 +181,20 @@ update msg authenticationMaybe model =
                     )
                     [
                         ( "kind"
-                        , if String.isEmpty model.kind
+                        , if String.isEmpty statementForm.kind
                             then Just "Missing type"
                             else Nothing
                         )
                     ,
                         ( "languageCpde"
-                        , if  model.kind == "PlainStatement" && String.isEmpty model.languageCode
+                        , if  statementForm.kind == "PlainStatement" && String.isEmpty statementForm.languageCode
                             then Just "Missing language"
                             else Nothing
                         )
                     ,
                         ( "name"
-                        , if List.member model.kind ["PlainStatement", "Tag"] && String.isEmpty model.name
+                        , if List.member statementForm.kind ["PlainStatement", "Tag"]
+                            && String.isEmpty statementForm.name
                             then Just "Missing name"
                             else Nothing
                         )
@@ -127,43 +204,22 @@ update msg authenticationMaybe model =
                     if List.isEmpty errorsList then
                         case authenticationMaybe of
                             Just authentication ->
-                                let
-                                    bodyJson = Json.Encode.object
-                                        ( [ ("type", Json.Encode.string model.kind) ]
-                                        ++ case model.kind of
-                                            "PlainStatement" ->
-                                                [ ("languageCode", Json.Encode.string model.languageCode)
-                                                , ("name", Json.Encode.string model.name)
-                                                ]
-
-                                            "Tag" ->
-                                                [ ("name", Json.Encode.string model.name)
-                                                ]
-
-                                            _ ->
-                                                []
-                                        )
-                                in
-                                    Task.perform
-                                        CreateError
-                                        Created
-                                        ( Http.fromJson decodeDataIdBody ( Http.send Http.defaultSettings
-                                            { verb = "POST"
-                                            , url = ("http://localhost:3000/statements"
-                                                ++ "?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=tags")
-                                            , headers =
-                                                [ ("Accept", "application/json")
-                                                , ("Content-Type", "application/json")
-                                                , ("Retruco-API-Key", authentication.apiKey)
-                                                ]
-                                            , body = Http.string ( Json.Encode.encode 2 bodyJson )
-                                            } ) )
+                                Task.perform
+                                    GroundCreateError
+                                    GroundCreated
+                                    (newTaskCreateStatement
+                                        authentication
+                                        (convertStatementFormToCustom statementForm))
                             Nothing ->
                                 Cmd.none
                     else
                         Cmd.none
+                statementForm' =
+                    { statementForm
+                    | errors = Dict.fromList errorsList
+                    }
             in
-                ({ model | errors = Dict.fromList errorsList }, cmd, Nothing)
+                ({ model | statementForm = statementForm' }, cmd, Nothing)
 
 
 -- VIEW
@@ -209,11 +265,62 @@ languageCodeTargetValueDecoder =
             Json.Decode.fail ("Unknown language: " ++ value)
 
 
+ratingLabelCouples : List (Int, String)
+ratingLabelCouples =
+    [ (1, "Because")
+    , (0, "However")
+    , (-1, "But")
+    ]
+
+
+ratings : List Int
+ratings = List.map (\(item, label) -> item) ratingLabelCouples
+
+
+ratingTargetValueDecoder : Json.Decode.Decoder Int
+ratingTargetValueDecoder =
+    Json.Decode.customDecoder targetValue (Json.Decode.decodeString Json.Decode.int) `Json.Decode.andThen` \value ->
+        if List.member value ratings then
+            Json.Decode.succeed value
+        else
+            Json.Decode.fail ("Unknown rating: " ++ toString value)
+
+
 view : Model -> Html Msg
 view model =
+    let
+        statementForm = model.statementForm
+    in
     Html.form [ onSubmit Submit ]
         ([ let
-                errorMaybe = Dict.get "kind" model.errors
+                errorMaybe = Dict.get "rating" statementForm.errors
+                ( errorClass, errorAttributes, errorBlock ) = case errorMaybe of
+                    Just error ->
+                        ( " has-error"
+                        , [ ariaDescribedby "rating-error" ]
+                        , [ span 
+                            [ class "help-block"
+                            , id "rating-error"
+                            ]
+                            [ text error ] ]
+                        )
+                    Nothing ->
+                        ("", [] , [])
+            in
+                div [ class ( "form-group" ++ errorClass) ]
+                    ( [ label [ class "control-label", for "rating" ] [ text "Rating" ]
+                    , select
+                        ( [ class "form-control"
+                        , id "rating"
+                        , on "change" (Json.Decode.map RatingChanged ratingTargetValueDecoder)
+                        ] ++ errorAttributes )
+                        ( List.map
+                            (viewOption model.rating)
+                            ratingLabelCouples
+                        )
+                    ] ++ errorBlock )
+        , let
+                errorMaybe = Dict.get "kind" statementForm.errors
                 ( errorClass, errorAttributes, errorBlock ) = case errorMaybe of
                     Just error ->
                         ( " has-error"
@@ -235,16 +342,16 @@ view model =
                         , on "change" (Json.Decode.map KindChanged kindTargetValueDecoder)
                         ] ++ errorAttributes )
                         ( List.map
-                            (viewOption model.kind)
+                            (viewOption statementForm.kind)
                             kindLabelCouples
                         )
                     ] ++ errorBlock )
         ]
         ++
-        ( case model.kind of
+        ( case statementForm.kind of
             "PlainStatement" ->
                 [ let
-                        errorMaybe = Dict.get "languageCode" model.errors
+                        errorMaybe = Dict.get "languageCode" statementForm.errors
                         ( errorClass, errorAttributes, errorBlock ) = case errorMaybe of
                             Just error ->
                                 ( " has-error"
@@ -266,12 +373,12 @@ view model =
                                 , on "change" (Json.Decode.map LanguageCodeChanged languageCodeTargetValueDecoder)
                                 ] ++ errorAttributes )
                                 ( List.map
-                                    (viewOption model.languageCode)
+                                    (viewOption statementForm.languageCode)
                                     languageCodeLabelCouples
                                 )
                             ] ++ errorBlock )
                 , let
-                        errorMaybe = Dict.get "name" model.errors
+                        errorMaybe = Dict.get "name" statementForm.errors
                         ( errorClass, errorAttributes, errorBlock ) = case errorMaybe of
                             Just error ->
                                 ( " has-error"
@@ -292,7 +399,7 @@ view model =
                                 , id "name"
                                 , placeholder "To be or not to be"
                                 , type' "text"
-                                , value model.name
+                                , value statementForm.name
                                 , onInput NameInput
                                 ] ++ errorAttributes )
                                 []
@@ -301,7 +408,7 @@ view model =
 
             "Tag" ->
                 [ let
-                        errorMaybe = Dict.get "name" model.errors
+                        errorMaybe = Dict.get "name" statementForm.errors
                         ( errorClass, errorAttributes, errorBlock ) = case errorMaybe of
                             Just error ->
                                 ( " has-error"
@@ -322,7 +429,7 @@ view model =
                                 , id "name"
                                 , placeholder "To be or not to be"
                                 , type' "text"
-                                , value model.name
+                                , value statementForm.name
                                 , onInput NameInput
                                 ] ++ errorAttributes )
                                 []

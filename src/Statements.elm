@@ -21,10 +21,10 @@ type alias Model =
     { ballotById : Dict String Ballot
     , loaded : Bool
     -- , location : Hop.Types.Location
-    , newStatement : NewStatement.Model
+    , newStatementModel : NewStatement.Model
     , route : StatementsNestedRoute
+    , statementModel : Statement.Model
     , statementById : Dict String Statement
-    , statementId : String
     , statementIds : List String
     }
 
@@ -34,10 +34,10 @@ init =
     { ballotById = Dict.empty
     , loaded = False
     -- , location = Hop.Types.newLocation
-    , newStatement = NewStatement.init
+    , newStatementModel = NewStatement.init
     , route = StatementsNotFoundRoute
+    , statementModel = Statement.init
     , statementById = Dict.empty
-    , statementId = "nothing"
     , statementIds = []
     }
 
@@ -55,7 +55,17 @@ urlUpdate (route, location) model =
     in
         case route of
             StatementRoute statementId ->
-                ({ model' | statementId = statementId }, Cmd.none)
+                let
+                    statementModel = model'.statementModel
+                    model'' =
+                        { model'
+                        | statementModel =
+                            { statementModel
+                            | statementId = statementId
+                            }
+                        }
+                in
+                    (model'', load)
 
             StatementsIndexRoute ->
                 (model', load)
@@ -157,8 +167,8 @@ update msg authenticationMaybe model =
 
         NewStatementMsg childMsg ->
             let
-                (newStatement, childEffect, dataMaybe) =
-                    NewStatement.update childMsg authenticationMaybe model.newStatement
+                (newStatementModel, childEffect, dataMaybe) =
+                    NewStatement.update childMsg authenticationMaybe model.newStatementModel
                 model' = case dataMaybe of
                     Just data ->
                         { model
@@ -173,7 +183,7 @@ update msg authenticationMaybe model =
                             data.ballots
                             model.ballotById
                             Dict.empty
-                        , newStatement = newStatement
+                        , newStatementModel = newStatementModel
                         , statementById = Dict.merge
                             (\id statement statementById -> if statement.deleted
                                 then statementById
@@ -195,23 +205,27 @@ update msg authenticationMaybe model =
                         }
                     Nothing ->
                         { model
-                        | newStatement = newStatement
+                        | newStatementModel = newStatementModel
                         }
             in
                 (model', Cmd.map (\msg -> ForSelf (NewStatementMsg msg)) childEffect)
 
         StatementMsg childMsg ->
             let
-                statementModel =
-                    { ballotById = model.ballotById
+                statementModel = model.statementModel
+                statementModel' = 
+                    { statementModel
+                    | ballotById = model.ballotById
                     , statementById = model.statementById
-                    , statementId = model.statementId
+                    , statementIds = model.statementIds
                     }
-                (statementModel', childEffect) = Statement.update childMsg authenticationMaybe statementModel
+                (statementModel'', childEffect) = Statement.update childMsg authenticationMaybe statementModel'
                 model' =
                     { model
-                    | ballotById = statementModel'.ballotById
-                    , statementById = statementModel'.statementById
+                    | ballotById = statementModel''.ballotById
+                    , statementById = statementModel''.statementById
+                    , statementIds = statementModel''.statementIds
+                    , statementModel = statementModel''
                     }
             in
                 (model', Cmd.map translateStatementMsg childEffect)
@@ -225,13 +239,15 @@ view authenticationMaybe model =
     case model.route of
         StatementRoute statementId ->
             let
-                statementModel =
-                    { ballotById = model.ballotById
+                statementModel = model.statementModel
+                statementModel' = 
+                    { statementModel
+                    | ballotById = model.ballotById
                     , statementById = model.statementById
-                    , statementId = model.statementId
+                    , statementIds = model.statementIds
                     }
             in
-                Html.App.map translateStatementMsg (Statement.view authenticationMaybe statementModel)
+                Html.App.map translateStatementMsg (Statement.view authenticationMaybe statementModel')
 
         StatementsIndexRoute ->
             node "ui-statements"
@@ -240,7 +256,7 @@ view authenticationMaybe model =
                 , ul [] (List.map (\id -> li [] [ viewStatementLine id model ]) model.statementIds)
                 , case authenticationMaybe of
                     Just authentication ->
-                        Html.App.map (\msg -> ForSelf (NewStatementMsg msg)) (NewStatement.view model.newStatement)
+                        Html.App.map (\msg -> ForSelf (NewStatementMsg msg)) (NewStatement.view model.newStatementModel)
                     Nothing ->
                         text ""
                 ]

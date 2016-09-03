@@ -7,11 +7,14 @@ import Json.Decode.Extra as Json exposing ((|:))
 
 
 type alias Abuse =
-    {}
+    { statementId : String
+    }
 
 
 type alias Argument =
-    {}
+    { claimId : String
+    , groundId : String
+    }
 
 
 type alias Ballot =
@@ -50,6 +53,9 @@ type alias DataIdsBody =
     }
 
 
+type alias FormErrors = Dict String String
+
+
 type alias Plain =
     { languageCode : String
     , name : String
@@ -72,6 +78,17 @@ type StatementCustom
     | TagCustom Tag
 
 
+type alias StatementForm =
+    { claimId : String
+    , errors : FormErrors
+    , groundId : String
+    , kind : String
+    , languageCode : String
+    , name : String
+    , statementId : String
+    }
+
+
 type alias Tag =
     { name : String
     }
@@ -88,6 +105,55 @@ type alias User =
 type alias UserBody =
     { data : User
     }
+
+
+convertStatementCustomToKind : StatementCustom -> String
+convertStatementCustomToKind statementCustom =
+    case statementCustom of
+        AbuseCustom abuse ->
+            "Abuse"
+
+        ArgumentCustom argument ->
+            "Argument"
+
+        PlainCustom plain ->
+            "PlainStatement"
+
+        TagCustom tag ->
+            "Tag"
+
+
+convertStatementFormToCustom : StatementForm -> StatementCustom
+convertStatementFormToCustom form =
+    case form.kind of
+        "Abuse" ->
+            AbuseCustom
+                { statementId = form.statementId
+                }
+
+        "Argument" ->
+            ArgumentCustom
+                { claimId = form.claimId
+                , groundId = form.groundId
+                }
+
+        "PlainStatement" ->
+            PlainCustom
+                { languageCode = form.languageCode
+                , name = form.name
+                }
+
+        "Tag" ->
+            TagCustom
+                { name = form.name
+                }
+
+        _ ->
+            -- TODO: Return a Result instead of a dummy PlainCustom.
+            PlainCustom
+                { languageCode = "en"
+                , name = "Unknown kind: " ++ form.kind
+                }
 
 
 decodeBallot : Decoder Ballot
@@ -145,10 +211,15 @@ decodeStatementFromType : String -> Decoder StatementCustom
 decodeStatementFromType statementType =
     case statementType of
         "Abuse" ->
-            succeed (AbuseCustom {})
+            succeed Abuse
+                |: ("statementId" := string)
+            `andThen` \abuse -> succeed (AbuseCustom abuse)
 
         "Argument" ->
-            succeed (ArgumentCustom {})
+            succeed Argument
+                |: ("claimId" := string)
+                |: ("groundId" := string)
+            `andThen` \argument -> succeed (ArgumentCustom argument)
 
         "PlainStatement" ->
             succeed Plain
@@ -178,3 +249,15 @@ decodeUserBody : Decoder UserBody
 decodeUserBody =
     succeed UserBody
         |: ("data" := decodeUser)
+
+
+initStatementForm : StatementForm
+initStatementForm =
+    { claimId = ""
+    , errors = Dict.empty
+    , groundId = ""
+    , kind = "PlainStatement"
+    , languageCode = "en"
+    , name = ""
+    , statementId = ""
+    }

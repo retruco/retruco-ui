@@ -1,10 +1,11 @@
-module Views exposing (aForPath, viewNotFound, viewStatementLinePanel)
+module Views exposing (aForPath, viewGroundArgumentLinePanel, viewNotFound, viewOption, viewStatementLinePanel)
 
 import Json.Decode
-import Html exposing (a, Attribute, div, Html, img, p, text)
-import Html.Attributes exposing (href, src)
+import Html exposing (a, Attribute, div, Html, img, option, p, text)
+import Html.Attributes exposing (href, selected, src, value)
 import Html.Events exposing (onWithOptions)
 import Routes exposing (makeUrl)
+import String
 import Types exposing (Statement)
 
 
@@ -23,6 +24,11 @@ aForPath navigate path attributes children =
         children
 
 
+viewGroundArgumentLinePanel : Statement -> Html msg
+viewGroundArgumentLinePanel statement =
+    div [] [ text "viewGroundArgumentLinePanel TODO!" ]
+
+
 viewNotFound : Html msg
 viewNotFound =
     p
@@ -32,7 +38,22 @@ viewNotFound =
         ]
 
 
+viewOption : a -> (a, String) -> Html msg
+viewOption selectedItem (item, label) =
+    let
+        itemString = (toString item)
+        itemString' = if String.left 1 itemString == "\"" && String.right 1 itemString == "\"" then
+                String.slice 1 -1 itemString
+            else
+                itemString
+    in
+        option
+            [ selected (item == selectedItem)
+            , value itemString'
+            ]
+            [ text label ]
+
+
 viewStatementLinePanel : Statement -> Html msg
 viewStatementLinePanel statement =
-    -- text "Panel TODO"
-    div [] [ text "Panel TODO!" ]
+    div [] [ text "viewStatementLinePanel TODO!" ]
