@@ -23,7 +23,7 @@ type StatementsNestedRoute
 
 
 makeUrl : String -> String
-makeUrl path = Hop.makeUrl routerConfig path 
+makeUrl path = Hop.makeUrl routerConfig path
 
 
 matchers : List (Hop.Types.PathMatcher Route)

@@ -4,16 +4,14 @@ import Authenticator.Model
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Attributes.Aria exposing (..)
 import Html.Events exposing (..)
 import Http
-import Json.Decode
 import Requests exposing (newTaskCreateStatement, newTaskRateStatement)
 import String
 import Task
 import Types exposing (convertStatementFormToCustom, DataId, DataIdBody, decodeDataIdBody, initStatementForm,
     StatementCustom(..), StatementForm)
-import Views exposing (viewOption)
+import Views exposing (viewKind, viewLanguageCode, viewName, viewOption, viewRating)
 
 
 -- MODEL
@@ -225,221 +223,31 @@ update msg authenticationMaybe model =
 -- VIEW
 
 
-kindLabelCouples : List (String, String)
-kindLabelCouples =
-    [ ("PlainStatement", "Plain")
-    , ("Tag", "Tag")
-    ]
-
-
-kinds : List String
-kinds = List.map (\(item, label) -> item) kindLabelCouples
-
-
-kindTargetValueDecoder : Json.Decode.Decoder String
-kindTargetValueDecoder =
-    targetValue `Json.Decode.andThen` \value ->
-        if List.member value kinds then
-            Json.Decode.succeed value
-        else
-            Json.Decode.fail ("Unknown type: " ++ value)
-
-
-languageCodeLabelCouples : List (String, String)
-languageCodeLabelCouples =
-    [ ("en", "English")
-    , ("fr", "Français")
-    ]
-
-
-languageCodes : List String
-languageCodes = List.map (\(item, label) -> item) languageCodeLabelCouples
-
-
-languageCodeTargetValueDecoder : Json.Decode.Decoder String
-languageCodeTargetValueDecoder =
-    targetValue `Json.Decode.andThen` \value ->
-        if List.member value languageCodes then
-            Json.Decode.succeed value
-        else
-            Json.Decode.fail ("Unknown language: " ++ value)
-
-
-ratingLabelCouples : List (Int, String)
-ratingLabelCouples =
-    [ (1, "Because")
-    , (0, "However")
-    , (-1, "But")
-    ]
-
-
-ratings : List Int
-ratings = List.map (\(item, label) -> item) ratingLabelCouples
-
-
-ratingTargetValueDecoder : Json.Decode.Decoder Int
-ratingTargetValueDecoder =
-    Json.Decode.customDecoder targetValue (Json.Decode.decodeString Json.Decode.int) `Json.Decode.andThen` \value ->
-        if List.member value ratings then
-            Json.Decode.succeed value
-        else
-            Json.Decode.fail ("Unknown rating: " ++ toString value)
-
-
 view : Model -> Html Msg
 view model =
     let
         statementForm = model.statementForm
     in
-    Html.form [ onSubmit Submit ]
-        ([ let
-                errorMaybe = Dict.get "rating" statementForm.errors
-                ( errorClass, errorAttributes, errorBlock ) = case errorMaybe of
-                    Just error ->
-                        ( " has-error"
-                        , [ ariaDescribedby "rating-error" ]
-                        , [ span 
-                            [ class "help-block"
-                            , id "rating-error"
-                            ]
-                            [ text error ] ]
-                        )
-                    Nothing ->
-                        ("", [] , [])
-            in
-                div [ class ( "form-group" ++ errorClass) ]
-                    ( [ label [ class "control-label", for "rating" ] [ text "Rating" ]
-                    , select
-                        ( [ class "form-control"
-                        , id "rating"
-                        , on "change" (Json.Decode.map RatingChanged ratingTargetValueDecoder)
-                        ] ++ errorAttributes )
-                        ( List.map
-                            (viewOption model.rating)
-                            ratingLabelCouples
-                        )
-                    ] ++ errorBlock )
-        , let
-                errorMaybe = Dict.get "kind" statementForm.errors
-                ( errorClass, errorAttributes, errorBlock ) = case errorMaybe of
-                    Just error ->
-                        ( " has-error"
-                        , [ ariaDescribedby "type-error" ]
-                        , [ span 
-                            [ class "help-block"
-                            , id "type-error"
-                            ]
-                            [ text error ] ]
-                        )
-                    Nothing ->
-                        ("", [] , [])
-            in
-                div [ class ( "form-group" ++ errorClass) ]
-                    ( [ label [ class "control-label", for "type" ] [ text "Type" ]
-                    , select
-                        ( [ class "form-control"
-                        , id "type"
-                        , on "change" (Json.Decode.map KindChanged kindTargetValueDecoder)
-                        ] ++ errorAttributes )
-                        ( List.map
-                            (viewOption statementForm.kind)
-                            kindLabelCouples
-                        )
-                    ] ++ errorBlock )
-        ]
-        ++
-        ( case statementForm.kind of
-            "PlainStatement" ->
-                [ let
-                        errorMaybe = Dict.get "languageCode" statementForm.errors
-                        ( errorClass, errorAttributes, errorBlock ) = case errorMaybe of
-                            Just error ->
-                                ( " has-error"
-                                , [ ariaDescribedby "language-error" ]
-                                , [ span 
-                                    [ class "help-block"
-                                    , id "language-error"
-                                    ]
-                                    [ text error ] ]
-                                )
-                            Nothing ->
-                                ("", [] , [])
-                    in
-                        div [ class ( "form-group" ++ errorClass) ]
-                            ( [ label [ class "control-label", for "language" ] [ text "Language" ]
-                            , select
-                                ( [ class "form-control"
-                                , id "language"
-                                , on "change" (Json.Decode.map LanguageCodeChanged languageCodeTargetValueDecoder)
-                                ] ++ errorAttributes )
-                                ( List.map
-                                    (viewOption statementForm.languageCode)
-                                    languageCodeLabelCouples
-                                )
-                            ] ++ errorBlock )
-                , let
-                        errorMaybe = Dict.get "name" statementForm.errors
-                        ( errorClass, errorAttributes, errorBlock ) = case errorMaybe of
-                            Just error ->
-                                ( " has-error"
-                                , [ ariaDescribedby "name-error" ]
-                                , [ span 
-                                    [ class "help-block"
-                                    , id "name-error"
-                                    ]
-                                    [ text error ] ]
-                                )
-                            Nothing ->
-                                ("", [] , [])
-                    in
-                        div [ class ( "form-group" ++ errorClass) ]
-                            ( [ label [ class "control-label", for "name" ] [ text "Name" ]
-                            , input
-                                ( [ class "form-control"
-                                , id "name"
-                                , placeholder "To be or not to be"
-                                , type' "text"
-                                , value statementForm.name
-                                , onInput NameInput
-                                ] ++ errorAttributes )
-                                []
-                            ] ++ errorBlock )
+        Html.form [ onSubmit Submit ]
+            ([ viewRating model.rating (Dict.get "rating" statementForm.errors) RatingChanged
+                , viewKind statementForm.kind (Dict.get "kind" statementForm.errors) KindChanged
                 ]
+            ++
+            (case statementForm.kind of
+                "PlainStatement" ->
+                    [ viewLanguageCode statementForm.languageCode (Dict.get "languageCode" statementForm.errors)
+                        LanguageCodeChanged
+                    , viewName statementForm.name (Dict.get "name" statementForm.errors) NameInput
+                    ]
+                "Tag" ->
+                    [ viewName statementForm.name (Dict.get "name" statementForm.errors) NameInput
+                    ]
 
-            "Tag" ->
-                [ let
-                        errorMaybe = Dict.get "name" statementForm.errors
-                        ( errorClass, errorAttributes, errorBlock ) = case errorMaybe of
-                            Just error ->
-                                ( " has-error"
-                                , [ ariaDescribedby "name-error" ]
-                                , [ span 
-                                    [ class "help-block"
-                                    , id "name-error"
-                                    ]
-                                    [ text error ] ]
-                                )
-                            Nothing ->
-                                ("", [] , [])
-                    in
-                        div [ class ( "form-group" ++ errorClass) ]
-                            ( [ label [ class "control-label", for "name" ] [ text "Name" ]
-                            , input
-                                ( [ class "form-control"
-                                , id "name"
-                                , placeholder "To be or not to be"
-                                , type' "text"
-                                , value statementForm.name
-                                , onInput NameInput
-                                ] ++ errorAttributes )
-                                []
-                            ] ++ errorBlock )
-                ]
-
-            _ ->
-                []
-        ) ++ 
-        [ button
-            [ class "btn btn-primary", type' "submit" ]
-            [ text "Create" ]
-        ])
+                _ ->
+                    []
+            )
+            ++
+            [ button
+                [ class "btn btn-primary", type' "submit" ]
+                [ text "Create" ]
+            ])

@@ -213,7 +213,7 @@ update msg authenticationMaybe model =
         StatementMsg childMsg ->
             let
                 statementModel = model.statementModel
-                statementModel' = 
+                statementModel' =
                     { statementModel
                     | ballotById = model.ballotById
                     , statementById = model.statementById
@@ -240,7 +240,7 @@ view authenticationMaybe model =
         StatementRoute statementId ->
             let
                 statementModel = model.statementModel
-                statementModel' = 
+                statementModel' =
                     { statementModel
                     | ballotById = model.ballotById
                     , statementById = model.statementById
