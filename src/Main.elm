@@ -126,6 +126,11 @@ update msg model =
                 model' = { model
                     | authenticationMaybe = authenticatorModel.authenticationMaybe
                     , authenticatorModel = authenticatorModel
+                    , statementsModel = if changed
+                        then
+                            Statements.init
+                        else
+                            model.statementsModel
                     }
                 (model'', effect'') = if changed
                     then
