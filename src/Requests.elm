@@ -1,9 +1,10 @@
-module Requests exposing (newTaskCreateStatement, newTaskRateStatement)
+module Requests exposing (newTaskCreateStatement, newTaskGetStatements, newTaskRateStatement)
 
 import Authenticator.Model
 import Http
 import Json.Encode
-import Types exposing (convertStatementCustomToKind, DataIdBody, decodeDataIdBody, StatementCustom(..))
+import Types exposing (convertStatementCustomToKind, DataIdBody, DataIdsBody, decodeDataIdBody, decodeDataIdsBody,
+    StatementCustom(..))
 import Task exposing (Task)
 
 
@@ -42,6 +43,27 @@ newTaskCreateStatement authentication statementCustom =
                 , ("Retruco-API-Key", authentication.apiKey)
                 ]
             , body = Http.string ( Json.Encode.encode 2 bodyJson )
+            } )
+
+
+newTaskGetStatements : Maybe Authenticator.Model.Authentication -> Task Http.Error DataIdsBody
+newTaskGetStatements authenticationMaybe =
+    let
+        authenticationHeaders = case authenticationMaybe of
+            Just authentication ->
+                [ ("Retruco-API-Key", authentication.apiKey)
+                ]
+            Nothing ->
+                []
+    in
+        Http.fromJson decodeDataIdsBody ( Http.send Http.defaultSettings
+            { verb = "GET"
+            , url = ("http://localhost:3000/statements"
+                ++ "?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=tags")
+            , headers =
+                [ ("Accept", "application/json")
+                ] ++ authenticationHeaders
+            , body = Http.empty
             } )
 
 

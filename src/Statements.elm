@@ -7,6 +7,7 @@ import Html exposing (..)
 import Html.App
 import Http
 import NewStatement
+import Requests exposing (newTaskGetStatements)
 import Statement
 import Task
 import Routes exposing (StatementsNestedRoute(..))
@@ -152,7 +153,7 @@ update msg authenticationMaybe model =
                         Task.perform
                             (\msg -> ForSelf (Error msg))
                             (\msg -> ForSelf (Loaded msg))
-                            (Http.get decodeDataIdsBody "http://localhost:3000/statements")
+                            (newTaskGetStatements authenticationMaybe)
             in
                 ( model, cmd )
 
