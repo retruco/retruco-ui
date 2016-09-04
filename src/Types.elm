@@ -63,7 +63,8 @@ type alias Plain =
 
 
 type alias Statement =
-    { createdAt : String
+    { ballotIdMaybe : Maybe String
+    , createdAt : String
     , custom : StatementCustom
     , deleted : Bool
     , groundIds : List String
@@ -159,7 +160,7 @@ convertStatementFormToCustom form =
 decodeBallot : Decoder Ballot
 decodeBallot =
     succeed Ballot
-        |: ("deleted" := bool)
+        |: oneOf [("deleted" := bool), succeed False]
         |: ("id" := string)
         |: ("rating" := int)
         |: ("statementId" := string)
@@ -170,19 +171,19 @@ decodeBallot =
 decodeDataId : Decoder DataId
 decodeDataId =
     succeed DataId
-        |: oneOf [("ballots" := dict decodeBallot), null Dict.empty, succeed Dict.empty]
+        |: oneOf [("ballots" := dict decodeBallot), succeed Dict.empty]
         |: ("id" := string)
-        |: oneOf [("statements" := dict decodeStatement), null Dict.empty, succeed Dict.empty]
-        |: oneOf [("users" := dict decodeUser), null Dict.empty, succeed Dict.empty]
+        |: oneOf [("statements" := dict decodeStatement), succeed Dict.empty]
+        |: oneOf [("users" := dict decodeUser), succeed Dict.empty]
 
 
 decodeDataIds : Decoder DataIds
 decodeDataIds =
     succeed DataIds
-        |: oneOf [("ballots" := dict decodeBallot), null Dict.empty, succeed Dict.empty]
+        |: oneOf [("ballots" := dict decodeBallot), succeed Dict.empty]
         |: ("ids" := list string)
-        |: oneOf [("statements" := dict decodeStatement), null Dict.empty, succeed Dict.empty]
-        |: oneOf [("users" := dict decodeUser), null Dict.empty, succeed Dict.empty]
+        |: oneOf [("statements" := dict decodeStatement), succeed Dict.empty]
+        |: oneOf [("users" := dict decodeUser), succeed Dict.empty]
 
 
 decodeDataIdBody : Decoder DataIdBody
@@ -200,10 +201,11 @@ decodeDataIdsBody =
 decodeStatement : Decoder Statement
 decodeStatement =
     succeed Statement
+        |: maybe ("ballotId" := string)
         |: ("createdAt" := string)
         |: (("type" := string) `andThen` decodeStatementFromType)
-        |: ("deleted" := bool)
-        |: oneOf [("groundIds" := list string), null [], succeed []]
+        |: oneOf [("deleted" := bool), succeed False]
+        |: oneOf [("groundIds" := list string), succeed []]
         |: ("id" := string)
 
 

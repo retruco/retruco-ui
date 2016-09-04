@@ -1,14 +1,15 @@
-module Views exposing (aForPath, viewGroundArgumentLinePanel, viewKind, viewLanguageCode, viewName, viewNotFound,
-    viewOption, viewRating, viewStatementLinePanel)
+module Views exposing (aForPath, viewKind, viewLanguageCode, viewName, viewNotFound, viewOption, viewRating,
+    viewStatementLinePanel)
 
 import Json.Decode
-import Html exposing (a, Attribute, div, Html, img, input, label, option, p, select, span, text)
-import Html.Attributes exposing (class, for, placeholder, href, id, selected, src, type', value)
-import Html.Attributes.Aria exposing (ariaDescribedby)
-import Html.Events exposing (on, onInput, onWithOptions, targetValue)
+import Html exposing (a, Attribute, button, div, Html, img, input, label, option, p, select, span, text)
+import Html.Attributes exposing (attribute, class, for, href, id, placeholder, selected, src, type', value)
+import Html.Attributes.Aria exposing (ariaDescribedby, ariaHidden, ariaLabel, role)
+import Html.Events exposing (on, onClick, onInput, onWithOptions, targetValue)
+import Json.Encode
 import Routes exposing (makeUrl)
 import String
-import Types exposing (Statement)
+import Types exposing (Ballot, Statement)
 
 
 kindLabelCouples : List (String, String)
@@ -60,6 +61,20 @@ aForPath navigate path attributes children =
         children
 
 
+{-| Indicates the current "pressed" state of toggle buttons.
+See the [official specs](https://www.w3.org/TR/wai-aria/states_and_properties#aria-pressed).
+    button [ ariaPressed True ] [ text "Submit" ]
+-}
+ariaPressed : Bool -> Attribute msg
+ariaPressed =
+    boolAttribute "aria-pressed"
+
+
+boolAttribute : String -> Bool -> Attribute msg
+boolAttribute name val =
+    attribute name (Json.Encode.encode 0 <| Json.Encode.bool val)
+
+
 decodeKind : String -> Json.Decode.Decoder String
 decodeKind value =
     if List.member value kinds then
@@ -89,9 +104,13 @@ decodeRatingTargetValue =
     Json.Decode.customDecoder targetValue (Json.Decode.decodeString Json.Decode.int) `Json.Decode.andThen` decodeRating
 
 
-viewGroundArgumentLinePanel : Statement -> Html msg
-viewGroundArgumentLinePanel statement =
-    div [] [ text "viewGroundArgumentLinePanel TODO!" ]
+hasBallotRating : Int -> Maybe Ballot -> Bool
+hasBallotRating rating ballotMaybe =
+    case ballotMaybe of
+        Just ballot ->
+            ballot.rating == rating
+        Nothing ->
+            False
 
 
 viewKind : String -> Maybe String -> (String -> msg) -> Html msg
@@ -223,6 +242,7 @@ viewRating rating errorMaybe ratingChanged =
                 )
             ] ++ errorBlock )
 
+
 viewOption : a -> (a, String) -> Html msg
 viewOption selectedItem (item, label) =
     let
@@ -239,6 +259,69 @@ viewOption selectedItem (item, label) =
             [ text label ]
 
 
-viewStatementLinePanel : Statement -> Html msg
-viewStatementLinePanel statement =
-    div [] [ text "viewStatementLinePanel TODO!" ]
+viewStatementLinePanel : Statement -> Maybe Ballot -> (Int -> String -> msg) -> Html msg
+viewStatementLinePanel statement ballotMaybe ratingChanged =
+    let
+        negativeRatingAttributes = if hasBallotRating -1 ballotMaybe
+            then
+                [ ariaPressed True
+                , class "active btn btn-default"
+                ]
+            else
+                [ class "btn btn-default"
+                , onClick (ratingChanged -1 statement.id)
+                ]
+        positiveRatingAttributes = if hasBallotRating 1 ballotMaybe
+            then
+                [ ariaPressed True
+                , class "active btn btn-default"
+                ]
+            else
+                [ class "btn btn-default"
+                , onClick (ratingChanged 1 statement.id)
+                ]
+        zeroRatingAttributes = if hasBallotRating 0 ballotMaybe
+            then
+                [ ariaPressed True
+                , class "active btn btn-default"
+                ]
+            else
+                [ class "btn btn-default"
+                , onClick (ratingChanged 0 statement.id)
+                ]
+    in
+        div
+            [ ariaLabel "Rate statement"
+            , role "group"
+            , class "btn-group-vertical btn-group-xs"
+            ]
+            [ button
+                ([ ariaLabel "Set statement rating to 1"
+                , role "button"
+                , type' "button"
+                ] ++ positiveRatingAttributes)
+                [ span
+                    [ ariaHidden True
+                    , class "glyphicon glyphicon-triangle-top"
+                    ]
+                    []
+                ]
+            , button
+                ([ ariaLabel "Set statement rating to 0"
+                , role "button"
+                , type' "button"
+                ] ++ zeroRatingAttributes)
+                [ text "="
+                ]
+            , button
+                ([ ariaLabel "Set statement rating to -1"
+                , role "button"
+                , type' "button"
+                ] ++ negativeRatingAttributes)
+                [ span
+                    [ ariaHidden True
+                    , class "glyphicon glyphicon-triangle-bottom"
+                    ]
+                    []
+                ]
+            ]

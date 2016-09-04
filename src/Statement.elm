@@ -4,9 +4,12 @@ import Authenticator.Model
 import Dict exposing (Dict)
 import Html exposing (div, Html, li, node, text, ul)
 import Html.App
+import Http
 import NewGroundArgument
-import Types exposing (Ballot, Statement, StatementCustom(..))
-import Views exposing (aForPath, viewGroundArgumentLinePanel)
+import Requests exposing (newTaskRateStatement)
+import Task
+import Types exposing (Ballot, DataIdBody, Statement, StatementCustom(..))
+import Views exposing (aForPath, viewStatementLinePanel)
 
 
 -- MODEL
@@ -40,6 +43,9 @@ type ExternalMsg
 
 type InternalMsg
     = NewGroundArgumentMsg NewGroundArgument.Msg
+    | Rated DataIdBody
+    | RateError Http.Error
+    | RatingChanged Int String
 
 
 type Msg
@@ -124,6 +130,65 @@ update msg authenticationMaybe model =
             in
                 (model', Cmd.map (\msg -> ForSelf (NewGroundArgumentMsg msg)) childEffect)
 
+        Rated body ->
+            let
+                data = body.data
+            in
+                ( { model
+                    | ballotById = Dict.merge
+                        (\id ballot ballotById -> if ballot.deleted
+                            then ballotById
+                            else Dict.insert id ballot ballotById)
+                        (\id leftBallot rightBallot ballotById -> if leftBallot.deleted
+                            then ballotById
+                            else Dict.insert id leftBallot ballotById)
+                        Dict.insert
+                        data.ballots
+                        model.ballotById
+                        Dict.empty
+                    , statementById = Dict.merge
+                        (\id statement statementById -> if statement.deleted
+                            then statementById
+                            else Dict.insert id statement statementById)
+                        (\id leftStatement rightStatement statementById -> if leftStatement.deleted
+                            then statementById
+                            else Dict.insert id leftStatement statementById)
+                        Dict.insert
+                        data.statements
+                        model.statementById
+                        Dict.empty
+                    , statementIds = if Dict.member data.id data.statements
+                        then if List.member data.id model.statementIds
+                            then model.statementIds
+                            else data.id :: model.statementIds
+                        else
+                            -- data.id is not the ID of a statement (but a ballot ID, etc).
+                            model.statementIds
+                    }
+                , Cmd.none
+                )
+
+        RateError err ->
+            let
+                _ = Debug.log "Existing Statement Rate Error" err
+            in
+                (model, Cmd.none)
+
+        RatingChanged rating statementId ->
+            let
+                cmd =
+                    case authenticationMaybe of
+                        Just authentication ->
+                            Task.perform
+                                (\err -> ForSelf (RateError err))
+                                (\body -> ForSelf (Rated body))
+                                (newTaskRateStatement authentication rating statementId)
+
+                        Nothing ->
+                            Cmd.none
+            in
+                (model, cmd)
+
 
 -- VIEW
 
@@ -143,10 +208,19 @@ view authenticationMaybe model =
 
             Just statement ->
                 let
+                    ballotMaybe = case statement.ballotIdMaybe of
+                        Just ballotId ->
+                            Dict.get ballotId model.ballotById
+                        Nothing ->
+                            Nothing
+                    statementLinePanelView = viewStatementLinePanel
+                        statement
+                        ballotMaybe
+                        (\rating statementId -> ForSelf (RatingChanged rating statementId))
                     statementCustomView = case statement.custom of
                         AbuseCustom abuse ->
                             div []
-                                [ viewGroundArgumentLinePanel statement
+                                [ statementLinePanelView
                                 , text statement.id
                                 , text " abuse "
                                 , text statement.createdAt
@@ -154,7 +228,7 @@ view authenticationMaybe model =
 
                         ArgumentCustom argument ->
                             div []
-                                [ viewGroundArgumentLinePanel statement
+                                [ statementLinePanelView
                                 , text statement.id
                                 , text " argument "
                                 , text statement.createdAt
@@ -162,7 +236,7 @@ view authenticationMaybe model =
 
                         PlainCustom plain ->
                             div []
-                                [ viewGroundArgumentLinePanel statement
+                                [ statementLinePanelView
                                 , text statement.id
                                 , text " plain "
                                 , aForPath navigate ("/statements/" ++ statement.id) [] [ text plain.name ]
@@ -170,7 +244,7 @@ view authenticationMaybe model =
 
                         TagCustom tag ->
                             div []
-                                [ viewGroundArgumentLinePanel statement
+                                [ statementLinePanelView
                                 , text statement.id
                                 , text " tag "
                                 , text tag.name
@@ -205,35 +279,46 @@ viewGroundArgumentLine statementId model =
                     ]
 
             Just statement ->
-                case statement.custom of
-                    AbuseCustom abuse ->
-                        div []
-                            [ viewGroundArgumentLinePanel statement
-                            , text statement.id
-                            , text " abuse "
-                            , text statement.createdAt
-                            ]
+                let
+                    ballotMaybe = case statement.ballotIdMaybe of
+                        Just ballotId ->
+                            Dict.get ballotId model.ballotById
+                        Nothing ->
+                            Nothing
+                    statementLinePanelView = viewStatementLinePanel
+                        statement
+                        ballotMaybe
+                        (\rating statementId -> ForSelf (RatingChanged rating statementId))
+                in
+                    case statement.custom of
+                        AbuseCustom abuse ->
+                            div []
+                                [ statementLinePanelView
+                                , text statement.id
+                                , text " abuse "
+                                , text statement.createdAt
+                                ]
 
-                    ArgumentCustom argument ->
-                        div []
-                            [ viewGroundArgumentLinePanel statement
-                            , text statement.id
-                            , text " argument "
-                            , text statement.createdAt
-                            ]
+                        ArgumentCustom argument ->
+                            div []
+                                [ statementLinePanelView
+                                , text statement.id
+                                , text " argument "
+                                , text statement.createdAt
+                                ]
 
-                    PlainCustom plain ->
-                        div []
-                            [ viewGroundArgumentLinePanel statement
-                            , text statement.id
-                            , text " plain "
-                            , aForPath navigate ("/statements/" ++ statement.id) [] [ text plain.name ]
-                            ]
+                        PlainCustom plain ->
+                            div []
+                                [ statementLinePanelView
+                                , text statement.id
+                                , text " plain "
+                                , aForPath navigate ("/statements/" ++ statement.id) [] [ text plain.name ]
+                                ]
 
-                    TagCustom tag ->
-                        div []
-                            [ viewGroundArgumentLinePanel statement
-                            , text statement.id
-                            , text " tag "
-                            , text tag.name
-                            ]
+                        TagCustom tag ->
+                            div []
+                                [ statementLinePanelView
+                                , text statement.id
+                                , text " tag "
+                                , text tag.name
+                                ]
