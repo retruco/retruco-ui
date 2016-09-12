@@ -3,16 +3,19 @@ module Statements exposing (..)
 import Authenticator.Model
 import Dict exposing (Dict)
 import Hop.Types
-import Html exposing (..)
+import Html exposing (article, h1, Html, li, text, ul)
+import Html.Attributes exposing (class)
 import Html.App
 import Http
+import Navigation
 import NewStatement
-import Requests exposing (newTaskGetStatements, newTaskRateStatement)
-import Routes exposing (StatementsNestedRoute(..))
+import Requests exposing (newTaskDeleteStatementRating, newTaskFlagAbuse, newTaskGetStatements, newTaskRateStatement,
+    updateFromDataId)
+import Routes exposing (makeUrl, StatementsNestedRoute(..))
 import Statement
 import Task
 import Types exposing (Ballot, DataId, DataIdBody, DataIdsBody, decodeDataIdsBody, Statement, StatementCustom(..))
-import Views exposing (aForPath, viewNotFound, viewStatementLinePanel)
+import Views exposing (aForPath, viewNotFound, viewStatementLine)
 
 
 -- MODEL
@@ -84,12 +87,15 @@ type ExternalMsg
 
 type InternalMsg
     = Error Http.Error
+    | FlagAbuse String
+    | FlagAbuseError Http.Error
+    | FlaggedAbuse DataIdBody
     | Load
     | Loaded DataIdsBody
     | NewStatementMsg NewStatement.Msg
     | Rated DataIdBody
     | RateError Http.Error
-    | RatingChanged Int String
+    | RatingChanged (Maybe Int) String
     | StatementMsg Statement.InternalMsg
 
 
@@ -143,9 +149,32 @@ update msg authenticationMaybe model =
     case msg of
         Error err ->
             let
-                _ = Debug.log "Statemants Error" err
+                _ = Debug.log "Statements Error" err
             in
                 ( model, Cmd.none )
+
+        FlagAbuse statementId ->
+            let
+                cmd =
+                    case authenticationMaybe of
+                        Just authentication ->
+                            Task.perform
+                                (\err -> ForSelf (FlagAbuseError err))
+                                (\body -> ForSelf (FlaggedAbuse body))
+                                (newTaskFlagAbuse authentication statementId)
+                        Nothing ->
+                            Cmd.none
+            in
+                ( model, cmd )
+
+        FlagAbuseError err ->
+            let
+                _ = Debug.log "Flag Abuse Error" err
+            in
+                ( model, Cmd.none )
+
+        FlaggedAbuse body ->
+            ( updateFromDataId body.data model, makeUrl ("/statements/" ++ body.data.id) |> Navigation.newUrl )
 
         Load ->
             let
@@ -166,7 +195,7 @@ update msg authenticationMaybe model =
                 , loaded = True
                 , statementById = body.data.statements
                 , statementIds = body.data.ids
-              }
+                }
             , Cmd.none
             )
 
@@ -176,82 +205,16 @@ update msg authenticationMaybe model =
                     NewStatement.update childMsg authenticationMaybe model.newStatementModel
                 model' = case dataMaybe of
                     Just data ->
-                        { model
-                        | ballotById = Dict.merge
-                            (\id ballot ballotById -> if ballot.deleted
-                                then ballotById
-                                else Dict.insert id ballot ballotById)
-                            (\id leftBallot rightBallot ballotById -> if leftBallot.deleted
-                                then ballotById
-                                else Dict.insert id leftBallot ballotById)
-                            Dict.insert
-                            data.ballots
-                            model.ballotById
-                            Dict.empty
-                        , newStatementModel = newStatementModel
-                        , statementById = Dict.merge
-                            (\id statement statementById -> if statement.deleted
-                                then statementById
-                                else Dict.insert id statement statementById)
-                            (\id leftStatement rightStatement statementById -> if leftStatement.deleted
-                                then statementById
-                                else Dict.insert id leftStatement statementById)
-                            Dict.insert
-                            data.statements
-                            model.statementById
-                            Dict.empty
-                        , statementIds = if Dict.member data.id data.statements
-                            then if List.member data.id model.statementIds
-                                then model.statementIds
-                                else data.id :: model.statementIds
-                            else
-                                -- data.id is not the ID of a statement (but a ballot ID, etc).
-                                model.statementIds
-                        }
+                        updateFromDataId data model
                     Nothing ->
-                        { model
-                        | newStatementModel = newStatementModel
-                        }
+                        model
             in
-                (model', Cmd.map (\msg -> ForSelf (NewStatementMsg msg)) childEffect)
+                ( { model' | newStatementModel = newStatementModel }
+                , Cmd.map (\msg -> ForSelf (NewStatementMsg msg)) childEffect
+                )
 
         Rated body ->
-            let
-                data = body.data
-            in
-                ( { model
-                    | ballotById = Dict.merge
-                        (\id ballot ballotById -> if ballot.deleted
-                            then ballotById
-                            else Dict.insert id ballot ballotById)
-                        (\id leftBallot rightBallot ballotById -> if leftBallot.deleted
-                            then ballotById
-                            else Dict.insert id leftBallot ballotById)
-                        Dict.insert
-                        data.ballots
-                        model.ballotById
-                        Dict.empty
-                    , statementById = Dict.merge
-                        (\id statement statementById -> if statement.deleted
-                            then statementById
-                            else Dict.insert id statement statementById)
-                        (\id leftStatement rightStatement statementById -> if leftStatement.deleted
-                            then statementById
-                            else Dict.insert id leftStatement statementById)
-                        Dict.insert
-                        data.statements
-                        model.statementById
-                        Dict.empty
-                    , statementIds = if Dict.member data.id data.statements
-                        then if List.member data.id model.statementIds
-                            then model.statementIds
-                            else data.id :: model.statementIds
-                        else
-                            -- data.id is not the ID of a statement (but a ballot ID, etc).
-                            model.statementIds
-                    }
-                , Cmd.none
-                )
+            ( updateFromDataId body.data model, Cmd.none )
 
         RateError err ->
             let
@@ -259,16 +222,22 @@ update msg authenticationMaybe model =
             in
                 (model, Cmd.none)
 
-        RatingChanged rating statementId ->
+        RatingChanged ratingMaybe statementId ->
             let
                 cmd =
                     case authenticationMaybe of
                         Just authentication ->
-                            Task.perform
-                                (\err -> ForSelf (RateError err))
-                                (\body -> ForSelf (Rated body))
-                                (newTaskRateStatement authentication rating statementId)
-
+                            case ratingMaybe of
+                                Just rating ->
+                                    Task.perform
+                                        (\err -> ForSelf (RateError err))
+                                        (\body -> ForSelf (Rated body))
+                                        (newTaskRateStatement authentication rating statementId)
+                                Nothing ->
+                                    Task.perform
+                                        (\err -> ForSelf (RateError err))
+                                        (\body -> ForSelf (Rated body))
+                                        (newTaskDeleteStatementRating authentication statementId)
                         Nothing ->
                             Cmd.none
             in
@@ -314,10 +283,22 @@ view authenticationMaybe model =
                 Html.App.map translateStatementMsg (Statement.view authenticationMaybe statementModel')
 
         StatementsIndexRoute ->
-            node "ui-statements"
-                []
-                [ text "Statements"
-                , ul [] (List.map (\id -> li [] [ viewStatementLine id model ]) model.statementIds)
+            article
+                [ class "statements" ]
+                [ h1 [] [ text "Statements" ]
+                , ul
+                    [ class "list-unstyled statements-list" ]
+                    (List.map
+                        (\statementId -> viewStatementLine
+                            authenticationMaybe
+                            li
+                            statementId
+                            True
+                            navigate
+                            (\ratingMaybe statementId -> ForSelf (RatingChanged ratingMaybe statementId))
+                            (\statementId -> ForSelf (FlagAbuse statementId))
+                            model)
+                        model.statementIds)
                 , case authenticationMaybe of
                     Just authentication ->
                         Html.App.map (\msg -> ForSelf (NewStatementMsg msg)) (NewStatement.view model.newStatementModel)
@@ -327,63 +308,3 @@ view authenticationMaybe model =
 
         StatementsNotFoundRoute ->
             viewNotFound
-
-
-viewStatementLine : String -> Model -> Html Msg
-viewStatementLine statementId model =
-    let
-        statementMaybe =
-            Dict.get statementId model.statementById
-    in
-        case statementMaybe of
-            Nothing ->
-                div []
-                    [ text statementId
-                    , text " "
-                    , text "Missing statement"
-                    ]
-
-            Just statement ->
-                let
-                    ballotMaybe = case statement.ballotIdMaybe of
-                        Just ballotId ->
-                            Dict.get ballotId model.ballotById
-                        Nothing ->
-                            Nothing
-                    statementLinePanelView = viewStatementLinePanel
-                        statement
-                        ballotMaybe
-                        (\rating statementId -> ForSelf (RatingChanged rating statementId))
-                in
-                    case statement.custom of
-                        AbuseCustom abuse ->
-                            div []
-                                [ statementLinePanelView
-                                , text statement.id
-                                , text " abuse "
-                                , text statement.createdAt
-                                ]
-
-                        ArgumentCustom argument ->
-                            div []
-                                [ statementLinePanelView
-                                , text statement.id
-                                , text " argument "
-                                , text statement.createdAt
-                                ]
-
-                        PlainCustom plain ->
-                            div []
-                                [ statementLinePanelView
-                                , text statement.id
-                                , text " plain "
-                                , aForPath navigate ("/statements/" ++ statement.id) [] [ text plain.name ]
-                                ]
-
-                        TagCustom tag ->
-                            div []
-                                [ statementLinePanelView
-                                , text statement.id
-                                , text " tag "
-                                , text tag.name
-                                ]

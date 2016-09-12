@@ -1,10 +1,12 @@
-module Requests exposing (newTaskCreateStatement, newTaskGetStatements, newTaskRateStatement)
+module Requests exposing (newTaskCreateStatement, newTaskDeleteStatementRating, newTaskFlagAbuse, newTaskGetStatements,
+    newTaskRateStatement, updateFromDataId)
 
 import Authenticator.Model
+import Dict exposing (Dict)
 import Http
 import Json.Encode
-import Types exposing (convertStatementCustomToKind, DataIdBody, DataIdsBody, decodeDataIdBody, decodeDataIdsBody,
-    StatementCustom(..))
+import Types exposing (Ballot, convertStatementCustomToKind, DataId, DataIdBody, DataIdsBody, decodeDataIdBody,
+    decodeDataIdsBody, ModelFragment, Statement, StatementCustom(..))
 import Task exposing (Task)
 
 
@@ -46,6 +48,34 @@ newTaskCreateStatement authentication statementCustom =
             } )
 
 
+newTaskDeleteStatementRating : Authenticator.Model.Authentication -> String -> Task Http.Error DataIdBody
+newTaskDeleteStatementRating authentication statementId =
+    Http.fromJson decodeDataIdBody ( Http.send Http.defaultSettings
+        { verb = "DELETE"
+        , url = ("http://localhost:3000/statements/" ++ statementId
+            ++ "/rating?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=tags")
+        , headers =
+            [ ("Accept", "application/json")
+            , ("Retruco-API-Key", authentication.apiKey)
+            ]
+        , body = Http.empty
+        } )
+
+
+newTaskFlagAbuse : Authenticator.Model.Authentication -> String -> Task Http.Error DataIdBody
+newTaskFlagAbuse authentication statementId =
+    Http.fromJson decodeDataIdBody ( Http.send Http.defaultSettings
+        { verb = "GET"
+        , url = ("http://localhost:3000/statements/" ++ statementId
+            ++ "/abuse?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=tags")
+        , headers =
+            [ ("Accept", "application/json")
+            , ("Retruco-API-Key", authentication.apiKey)
+            ]
+        , body = Http.empty
+        } )
+
+
 newTaskGetStatements : Maybe Authenticator.Model.Authentication -> Task Http.Error DataIdsBody
 newTaskGetStatements authenticationMaybe =
     let
@@ -84,3 +114,38 @@ newTaskRateStatement authentication rating statementId =
                 ]
             , body = Http.string ( Json.Encode.encode 2 bodyJson )
             } )
+
+
+updateFromDataId : DataId -> ModelFragment a -> ModelFragment a
+updateFromDataId data model =
+    { model
+    | ballotById = Dict.merge
+        (\id ballot ballotById -> if ballot.deleted
+            then ballotById
+            else Dict.insert id ballot ballotById)
+        (\id leftBallot rightBallot ballotById -> if leftBallot.deleted
+            then ballotById
+            else Dict.insert id leftBallot ballotById)
+        Dict.insert
+        data.ballots
+        model.ballotById
+        Dict.empty
+    , statementById = Dict.merge
+        (\id statement statementById -> if statement.deleted
+            then statementById
+            else Dict.insert id statement statementById)
+        (\id leftStatement rightStatement statementById -> if leftStatement.deleted
+            then statementById
+            else Dict.insert id leftStatement statementById)
+        Dict.insert
+        data.statements
+        model.statementById
+        Dict.empty
+    , statementIds = if Dict.member data.id data.statements
+        then if List.member data.id model.statementIds
+            then model.statementIds
+            else data.id :: model.statementIds
+        else
+            -- data.id is not the ID of a statement (but a ballot ID, etc).
+            model.statementIds
+    }

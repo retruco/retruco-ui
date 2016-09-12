@@ -1,15 +1,17 @@
 module Views exposing (aForPath, viewKind, viewLanguageCode, viewName, viewNotFound, viewOption, viewRating,
-    viewStatementLinePanel)
+    viewStatementLine, viewStatementLineBody, viewStatementLinePanel)
 
+import Authenticator.Model
+import Dict
 import Json.Decode
-import Html exposing (a, Attribute, button, div, Html, img, input, label, option, p, select, span, text)
-import Html.Attributes exposing (attribute, class, for, href, id, placeholder, selected, src, type', value)
-import Html.Attributes.Aria exposing (ariaDescribedby, ariaHidden, ariaLabel, role)
+import Html exposing (a, Attribute, button, dd, div, dl, dt, h4, Html, img, input, label, option, p, select, span, text)
+import Html.Attributes exposing (attribute, class, disabled, for, href, id, placeholder, selected, src, title, type',
+    value)
+import Html.Attributes.Aria exposing (ariaDescribedby, ariaHidden, ariaLabel, ariaPressed, role)
 import Html.Events exposing (on, onClick, onInput, onWithOptions, targetValue)
-import Json.Encode
 import Routes exposing (makeUrl)
 import String
-import Types exposing (Ballot, Statement)
+import Types exposing (Ballot, ModelFragment, Statement, StatementCustom(..))
 
 
 kindLabelCouples : List (String, String)
@@ -59,20 +61,6 @@ aForPath navigate path attributes children =
             ++ attributes
         )
         children
-
-
-{-| Indicates the current "pressed" state of toggle buttons.
-See the [official specs](https://www.w3.org/TR/wai-aria/states_and_properties#aria-pressed).
-    button [ ariaPressed True ] [ text "Submit" ]
--}
-ariaPressed : Bool -> Attribute msg
-ariaPressed =
-    boolAttribute "aria-pressed"
-
-
-boolAttribute : String -> Bool -> Attribute msg
-boolAttribute name val =
-    attribute name (Json.Encode.encode 0 <| Json.Encode.bool val)
 
 
 decodeKind : String -> Json.Decode.Decoder String
@@ -259,69 +247,271 @@ viewOption selectedItem (item, label) =
             [ text label ]
 
 
-viewStatementLinePanel : Statement -> Maybe Ballot -> (Int -> String -> msg) -> Html msg
-viewStatementLinePanel statement ballotMaybe ratingChanged =
+viewStatementLine : Maybe Authenticator.Model.Authentication -> (List (Attribute msg) -> List (Html msg) -> Html msg)
+    -> String -> Bool -> (String -> msg) -> (Maybe Int -> String -> msg) -> (String -> msg) -> ModelFragment a
+    -> Html msg
+viewStatementLine authenticationMaybe htmlElement statementId link navigate ratingChanged flagAbuse model =
+    htmlElement
+        [ class "statement-line" ]
+        [ viewStatementLinePanel authenticationMaybe statementId ratingChanged flagAbuse model
+        , viewStatementLineBody authenticationMaybe statementId link navigate model
+        ]
+
+
+viewStatementLineBody : Maybe Authenticator.Model.Authentication -> String -> Bool -> (String -> msg) -> ModelFragment a
+    -> Html msg
+viewStatementLineBody authenticationMaybe statementId link navigate model =
     let
-        negativeRatingAttributes = if hasBallotRating -1 ballotMaybe
-            then
-                [ ariaPressed True
-                , class "active btn btn-default"
-                ]
-            else
-                [ class "btn btn-default"
-                , onClick (ratingChanged -1 statement.id)
-                ]
-        positiveRatingAttributes = if hasBallotRating 1 ballotMaybe
-            then
-                [ ariaPressed True
-                , class "active btn btn-default"
-                ]
-            else
-                [ class "btn btn-default"
-                , onClick (ratingChanged 1 statement.id)
-                ]
-        zeroRatingAttributes = if hasBallotRating 0 ballotMaybe
-            then
-                [ ariaPressed True
-                , class "active btn btn-default"
-                ]
-            else
-                [ class "btn btn-default"
-                , onClick (ratingChanged 0 statement.id)
-                ]
+        statementMaybe =
+            Dict.get statementId model.statementById
     in
-        div
-            [ ariaLabel "Rate statement"
-            , role "group"
-            , class "btn-group-vertical btn-group-xs"
-            ]
-            [ button
-                ([ ariaLabel "Set statement rating to 1"
-                , role "button"
-                , type' "button"
-                ] ++ positiveRatingAttributes)
-                [ span
-                    [ ariaHidden True
-                    , class "glyphicon glyphicon-triangle-top"
+        case statementMaybe of
+            Nothing ->
+                div
+                    [ class "statement-line-body" ]
+                    [ h4
+                        [ class "statement-line-title" ]
+                        [ text ("Missing statement " ++ statementId) ]
                     ]
-                    []
-                ]
-            , button
-                ([ ariaLabel "Set statement rating to 0"
-                , role "button"
-                , type' "button"
-                ] ++ zeroRatingAttributes)
-                [ text "="
-                ]
-            , button
-                ([ ariaLabel "Set statement rating to -1"
-                , role "button"
-                , type' "button"
-                ] ++ negativeRatingAttributes)
-                [ span
-                    [ ariaHidden True
-                    , class "glyphicon glyphicon-triangle-bottom"
-                    ]
-                    []
-                ]
-            ]
+
+            Just statement ->
+                case statement.custom of
+                    AbuseCustom abuse ->
+                        let
+                            content = "Abuse"
+                        in
+                            div
+                                [ class "statement-line-body" ]
+                                [ h4
+                                    [ class "statement-line-title" ]
+                                    [ if link then
+                                            aForPath navigate ("/statements/" ++ statement.id) [] [ text content ]
+                                        else
+                                    text content
+                                    , text " for "
+                                    ]
+                                , viewStatementLineBody authenticationMaybe abuse.statementId True navigate model
+                                ]
+
+                    ArgumentCustom argument ->
+                        let
+                            content = "Argument"
+                        in
+                            div
+                                [ class "statement-line-body" ]
+                                [ h4
+                                    [ class "statement-line-title" ]
+                                    [ if link then
+                                            aForPath navigate ("/statements/" ++ statement.id) [] [ text content ]
+                                        else
+                                            text content
+                                    , text " for "
+                                    ]
+                                , dl
+                                    []
+                                    [ dt [] [ text "Claim:"]
+                                    , dd []
+                                        [ viewStatementLineBody authenticationMaybe argument.claimId True navigate
+                                            model ]
+                                    , dt [] [ text "Ground:"]
+                                    , dd []
+                                        [ viewStatementLineBody authenticationMaybe argument.groundId True navigate
+                                            model ]
+                                    ]
+                                ]
+
+                    PlainCustom plain ->
+                        div
+                            [ class "statement-line-body" ]
+                            [ h4
+                                [ class "statement-line-title" ]
+                                [ if link then
+                                        aForPath navigate ("/statements/" ++ statement.id) [] [ text plain.name ]
+                                    else
+                                        text plain.name
+                                ]
+                            ]
+
+                    TagCustom tag ->
+                        let
+                            content = "Tag " ++ tag.name
+                        in
+                            div
+                                [ class "statement-line-body" ]
+                                [ h4
+                                    [ class "statement-line-title" ]
+                                    [ if link then
+                                            aForPath navigate ("/statements/" ++ statement.id) [] [ text content ]
+                                        else
+                                            text content
+                                    , text " for "
+                                    ]
+                                , viewStatementLineBody authenticationMaybe tag.statementId True navigate model
+                                ]
+
+viewStatementLinePanel : Maybe Authenticator.Model.Authentication -> String -> (Maybe Int -> String -> msg)
+    -> (String -> msg) -> ModelFragment a -> Html msg
+viewStatementLinePanel authenticationMaybe statementId ratingChanged flagAbuse model =
+     let
+        statementMaybe =
+            Dict.get statementId model.statementById
+    in
+        case statementMaybe of
+            Nothing ->
+                text ""
+
+            Just statement ->
+                let
+                    authenticated = case authenticationMaybe of
+                        Just _ ->
+                            True
+                        Nothing ->
+                            False
+                    abuseAttributes = if authenticated
+                        then
+                            [ onClick (flagAbuse statement.id)
+                            ]
+                        else
+                            [ disabled True
+                            ]
+                    ballotMaybe = case statement.ballotIdMaybe of
+                        Just ballotId ->
+                            Dict.get ballotId model.ballotById
+                        Nothing ->
+                            Nothing
+                    deleteRatingAttributes = case ballotMaybe of
+                        Just ballot ->
+                            [ class "btn btn-default"
+                            , onClick (ratingChanged Nothing statement.id)
+                            ]
+                        Nothing ->
+                            [ class "btn btn-default"
+                            , disabled (not authenticated)
+                            ]
+                    negativeRatingAttributes = if hasBallotRating -1 ballotMaybe
+                        then
+                            [ ariaPressed True
+                            , class "active btn btn-default"
+                            ]
+                        else if authenticated then
+                            [ class "btn btn-default"
+                            , onClick (ratingChanged (Just -1) statement.id)
+                            ]
+                        else
+                            [ class "btn btn-default"
+                            , disabled True
+                            ]
+                    positiveRatingAttributes = if hasBallotRating 1 ballotMaybe
+                        then
+                            [ ariaPressed True
+                            , class "active btn btn-default"
+                            ]
+                        else if authenticated then
+                            [ class "btn btn-default"
+                            , onClick (ratingChanged (Just 1) statement.id)
+                            ]
+                        else
+                            [ class "btn btn-default"
+                            , disabled True
+                            ]
+                    zeroRatingAttributes = if hasBallotRating 0 ballotMaybe
+                        then
+                            [ ariaPressed True
+                            , class "active btn btn-default"
+                            ]
+                        else if authenticated then
+                            [ class "btn btn-default"
+                            , onClick (ratingChanged (Just 0) statement.id)
+                            ]
+                        else
+                            [ class "btn btn-default"
+                            , disabled True
+                            ]
+                in
+                    div
+                        [ ariaLabel "Statement panel"
+                        , class "statement-line-panel"
+                        , role "toolbar"
+                        ]
+                        [ div
+                            [ ariaLabel "Rate statement"
+                            , role "group"
+                            , class "btn-group-vertical btn-group-xs"
+                            ]
+                            [ button
+                                ([ ariaLabel "Set rating for statement to 1"
+                                , role "button"
+                                , title "Set rating for statement to 1"
+                                , type' "button"
+                                ] ++ positiveRatingAttributes)
+                                [ span
+                                    [ ariaHidden True
+                                    , class "glyphicon glyphicon-triangle-top"
+                                    ]
+                                    []
+                                ]
+                            , button
+                                ([ ariaLabel "Set rating for statement to 0"
+                                , role "button"
+                                , title "Set rating for statement to 0"
+                                , type' "button"
+                                ] ++ zeroRatingAttributes)
+                                [ text "="
+                                ]
+                            , button
+                                ([ ariaLabel "Set rating for statement to -1"
+                                , role "button"
+                                , title "Set rating for statement to -1"
+                                , type' "button"
+                                ] ++ negativeRatingAttributes)
+                                [ span
+                                    [ ariaHidden True
+                                    , class "glyphicon glyphicon-triangle-bottom"
+                                    ]
+                                    []
+                                ]
+                            ]
+                        , div
+                            [ ariaLabel "Manage statement"
+                            , role "group"
+                            , class "btn-group-vertical btn-group-xs"
+                            ]
+                            [ button
+                                ([ ariaLabel "Erase rating for statement"
+                                , role "button"
+                                , title "Delete rating for statement"
+                                , type' "button"
+                                ] ++ deleteRatingAttributes)
+                                [ span
+                                    [ ariaHidden True
+                                    , class "glyphicon glyphicon-erase"
+                                    ]
+                                    []
+                                ]
+                            , button
+                                [ ariaLabel "Sum and count of ratings"
+                                , class "btn btn-default"
+                                , disabled True
+                                -- , role "button"
+                                , title "Sum and count of ratings"
+                                , type' "button"
+                                ]
+                                [ text ((toString statement.ratingSum) ++ " / " ++ (toString statement.ratingCount))
+                                ]
+                            , button
+                                ([ ariaLabel "Set statement rating to -1"
+                                , class "btn btn-default"
+                                , role "button"
+                                , title "Sum and count of ratings"
+                                , type' "button"
+                                ] ++ abuseAttributes)
+                                [ span
+                                    [ ariaHidden True
+                                    , class (if statement.isAbuse
+                                        then "glyphicon glyphicon-trash"
+                                        else "glyphicon glyphicon-warning-sign")
+                                    ]
+                                    []
+                                ]
+                            ]
+                        ]

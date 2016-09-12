@@ -53,6 +53,14 @@ type alias DataIdsBody =
     }
 
 
+type alias ModelFragment a =
+    { a
+    | ballotById : Dict String Ballot
+    , statementById : Dict String Statement
+    , statementIds : List String
+    }
+
+
 type alias FormErrors = Dict String String
 
 
@@ -69,6 +77,9 @@ type alias Statement =
     , deleted : Bool
     , groundIds : List String
     , id : String
+    , isAbuse : Bool
+    , ratingCount : Int
+    , ratingSum : Int
     }
 
 
@@ -92,6 +103,7 @@ type alias StatementForm =
 
 type alias Tag =
     { name : String
+    , statementId : String
     }
 
 
@@ -147,6 +159,7 @@ convertStatementFormToCustom form =
         "Tag" ->
             TagCustom
                 { name = form.name
+                , statementId = form.statementId
                 }
 
         _ ->
@@ -160,11 +173,11 @@ convertStatementFormToCustom form =
 decodeBallot : Decoder Ballot
 decodeBallot =
     succeed Ballot
-        |: oneOf [("deleted" := bool), succeed False]
+        |: oneOf [("rating" := int) `andThen` (\_ -> succeed False), succeed True]
         |: ("id" := string)
-        |: ("rating" := int)
+        |: oneOf [("rating" := int), succeed 0]
         |: ("statementId" := string)
-        |: ("updatedAt" := string)
+        |: oneOf [("updatedAt" := string), succeed ""]
         |: ("voterId" := string)
 
 
@@ -207,6 +220,9 @@ decodeStatement =
         |: oneOf [("deleted" := bool), succeed False]
         |: oneOf [("groundIds" := list string), succeed []]
         |: ("id" := string)
+        |: oneOf [("isAbuse" := bool), succeed False]
+        |: oneOf [("ratingCount" := int), succeed 0]
+        |: oneOf [("ratingSum" := int), succeed 0]
 
 
 decodeStatementFromType : String -> Decoder StatementCustom
@@ -232,6 +248,7 @@ decodeStatementFromType statementType =
         "Tag" ->
             succeed Tag
                 |: ("name" := string)
+                |: ("statementId" := string)
             `andThen` \tag -> succeed (TagCustom tag)
 
         _ ->

@@ -2,14 +2,17 @@ module Statement exposing (init, InternalMsg, Model, Msg, MsgTranslation, MsgTra
 
 import Authenticator.Model
 import Dict exposing (Dict)
-import Html exposing (div, Html, li, node, text, ul)
+import Html exposing (article, div, hr, Html, li, node, text, ul)
 import Html.App
+import Html.Attributes exposing (class)
 import Http
+import Navigation
 import NewGroundArgument
-import Requests exposing (newTaskRateStatement)
+import Requests exposing (newTaskDeleteStatementRating, newTaskFlagAbuse, newTaskRateStatement, updateFromDataId)
+import Routes exposing (makeUrl)
 import Task
 import Types exposing (Ballot, DataIdBody, Statement, StatementCustom(..))
-import Views exposing (aForPath, viewStatementLinePanel)
+import Views exposing (aForPath, viewStatementLine, viewStatementLineBody, viewStatementLinePanel)
 
 
 -- MODEL
@@ -42,10 +45,13 @@ type ExternalMsg
 
 
 type InternalMsg
-    = NewGroundArgumentMsg NewGroundArgument.Msg
+    = FlagAbuse String
+    | FlagAbuseError Http.Error
+    | FlaggedAbuse DataIdBody
+    | NewGroundArgumentMsg NewGroundArgument.Msg
     | Rated DataIdBody
     | RateError Http.Error
-    | RatingChanged Int String
+    | RatingChanged (Maybe Int) String
 
 
 type Msg
@@ -80,6 +86,29 @@ translateMsg {onInternalMsg, onNavigate} msg =
 update : InternalMsg -> Maybe Authenticator.Model.Authentication -> Model -> ( Model, Cmd Msg )
 update msg authenticationMaybe model =
     case msg of
+        FlagAbuse statementId ->
+            let
+                cmd =
+                    case authenticationMaybe of
+                        Just authentication ->
+                            Task.perform
+                                (\err -> ForSelf (FlagAbuseError err))
+                                (\body -> ForSelf (FlaggedAbuse body))
+                                (newTaskFlagAbuse authentication statementId)
+                        Nothing ->
+                            Cmd.none
+            in
+                (model, cmd)
+
+        FlagAbuseError err ->
+            let
+                _ = Debug.log "Flag Abuse Error" err
+            in
+                ( model, Cmd.none )
+
+        FlaggedAbuse body ->
+            ( updateFromDataId body.data model, makeUrl ("/statements/" ++ body.data.id) |> Navigation.newUrl )
+
         NewGroundArgumentMsg childMsg ->
             let
                 newGroundArgumentModel = model.newGroundArgumentModel
@@ -174,16 +203,22 @@ update msg authenticationMaybe model =
             in
                 (model, Cmd.none)
 
-        RatingChanged rating statementId ->
+        RatingChanged ratingMaybe statementId ->
             let
                 cmd =
                     case authenticationMaybe of
                         Just authentication ->
-                            Task.perform
-                                (\err -> ForSelf (RateError err))
-                                (\body -> ForSelf (Rated body))
-                                (newTaskRateStatement authentication rating statementId)
-
+                            case ratingMaybe of
+                                Just rating ->
+                                    Task.perform
+                                        (\err -> ForSelf (RateError err))
+                                        (\body -> ForSelf (Rated body))
+                                        (newTaskRateStatement authentication rating statementId)
+                                Nothing ->
+                                    Task.perform
+                                        (\err -> ForSelf (RateError err))
+                                        (\body -> ForSelf (Rated body))
+                                        (newTaskDeleteStatementRating authentication statementId)
                         Nothing ->
                             Cmd.none
             in
@@ -195,130 +230,67 @@ update msg authenticationMaybe model =
 
 view : Maybe Authenticator.Model.Authentication -> Model -> Html Msg
 view authenticationMaybe model =
-    let
-        statementMaybe = Dict.get model.statementId model.statementById
-    in
-        case statementMaybe of
+    article
+        [ class "statement" ]
+        [ viewStatementLine
+            authenticationMaybe
+            div
+            model.statementId
+            False
+            navigate
+            (\ratingMaybe statementId -> ForSelf (RatingChanged ratingMaybe statementId))
+            (\statementId -> ForSelf (FlagAbuse statementId))
+            model
+        , hr [] []
+        , let
+                statementMaybe =
+                    Dict.get model.statementId model.statementById
+            in
+                case statementMaybe of
+                    Just statement ->
+                        ul
+                            [ class "statements-list list-unstyled" ]
+                            (List.map
+                                (\argumentId ->
+                                    let
+                                        groundArgumentMaybe = Dict.get argumentId model.statementById
+                                    in
+                                        case groundArgumentMaybe of
+                                            Just groundArgument ->
+                                                case groundArgument.custom of
+                                                    ArgumentCustom argument ->
+                                                        li
+                                                            [ class "statement-line" ]
+                                                            [ viewStatementLinePanel
+                                                                authenticationMaybe
+                                                                argumentId
+                                                                (\ratingMaybe statementId ->
+                                                                    ForSelf (RatingChanged ratingMaybe statementId))
+                                                                (\statementId -> ForSelf (FlagAbuse statementId))
+                                                                model
+                                                            , viewStatementLineBody
+                                                                authenticationMaybe
+                                                                argument.groundId
+                                                                True
+                                                                navigate
+                                                                model
+                                                            ]
+                                                    _ ->
+                                                        text "Error: Argument is not of type Argument"
+
+                                            Nothing ->
+                                                text "Error: Missing argument"
+                                    )
+                                statement.groundIds)
+
+                    Nothing ->
+                        text ""
+
+        , case authenticationMaybe of
+            Just authentication ->
+                Html.App.map
+                    (\msg -> ForSelf (NewGroundArgumentMsg msg))
+                    (NewGroundArgument.view model.newGroundArgumentModel)
             Nothing ->
-                div []
-                    [ text model.statementId
-                    , text " "
-                    , text "Missing statement"
-                    ]
-
-            Just statement ->
-                let
-                    ballotMaybe = case statement.ballotIdMaybe of
-                        Just ballotId ->
-                            Dict.get ballotId model.ballotById
-                        Nothing ->
-                            Nothing
-                    statementLinePanelView = viewStatementLinePanel
-                        statement
-                        ballotMaybe
-                        (\rating statementId -> ForSelf (RatingChanged rating statementId))
-                    statementCustomView = case statement.custom of
-                        AbuseCustom abuse ->
-                            div []
-                                [ statementLinePanelView
-                                , text statement.id
-                                , text " abuse "
-                                , text statement.createdAt
-                                ]
-
-                        ArgumentCustom argument ->
-                            div []
-                                [ statementLinePanelView
-                                , text statement.id
-                                , text " argument "
-                                , text statement.createdAt
-                                ]
-
-                        PlainCustom plain ->
-                            div []
-                                [ statementLinePanelView
-                                , text statement.id
-                                , text " plain "
-                                , aForPath navigate ("/statements/" ++ statement.id) [] [ text plain.name ]
-                                ]
-
-                        TagCustom tag ->
-                            div []
-                                [ statementLinePanelView
-                                , text statement.id
-                                , text " tag "
-                                , text tag.name
-                                ]
-                in
-                    node "ui-statement"
-                        []
-                        [ statementCustomView
-                        , ul [] (List.map (\id -> li [] [ viewGroundArgumentLine id model ]) statement.groundIds)
-                        , case authenticationMaybe of
-                            Just authentication ->
-                                Html.App.map
-                                    (\msg -> ForSelf (NewGroundArgumentMsg msg))
-                                    (NewGroundArgument.view model.newGroundArgumentModel)
-                            Nothing ->
-                                text ""
-                        ]
-
-
-viewGroundArgumentLine : String -> Model -> Html Msg
-viewGroundArgumentLine statementId model =
-    let
-        statementMaybe =
-            Dict.get statementId model.statementById
-    in
-        case statementMaybe of
-            Nothing ->
-                div []
-                    [ text statementId
-                    , text " "
-                    , text "Missing statement"
-                    ]
-
-            Just statement ->
-                let
-                    ballotMaybe = case statement.ballotIdMaybe of
-                        Just ballotId ->
-                            Dict.get ballotId model.ballotById
-                        Nothing ->
-                            Nothing
-                    statementLinePanelView = viewStatementLinePanel
-                        statement
-                        ballotMaybe
-                        (\rating statementId -> ForSelf (RatingChanged rating statementId))
-                in
-                    case statement.custom of
-                        AbuseCustom abuse ->
-                            div []
-                                [ statementLinePanelView
-                                , text statement.id
-                                , text " abuse "
-                                , text statement.createdAt
-                                ]
-
-                        ArgumentCustom argument ->
-                            div []
-                                [ statementLinePanelView
-                                , text statement.id
-                                , text " argument "
-                                , text statement.createdAt
-                                ]
-
-                        PlainCustom plain ->
-                            div []
-                                [ statementLinePanelView
-                                , text statement.id
-                                , text " plain "
-                                , aForPath navigate ("/statements/" ++ statement.id) [] [ text plain.name ]
-                                ]
-
-                        TagCustom tag ->
-                            div []
-                                [ statementLinePanelView
-                                , text statement.id
-                                , text " tag "
-                                , text tag.name
-                                ]
+                text ""
+        ]
