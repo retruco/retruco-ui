@@ -38,7 +38,7 @@ newTaskCreateStatement authentication statementCustom =
         Http.fromJson decodeDataIdBody ( Http.send Http.defaultSettings
             { verb = "POST"
             , url = ("http://localhost:3000/statements"
-                ++ "?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=tags")
+                ++ "?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=properties&show=tags")
             , headers =
                 [ ("Accept", "application/json")
                 , ("Content-Type", "application/json")
@@ -53,7 +53,7 @@ newTaskDeleteStatementRating authentication statementId =
     Http.fromJson decodeDataIdBody ( Http.send Http.defaultSettings
         { verb = "DELETE"
         , url = ("http://localhost:3000/statements/" ++ statementId
-            ++ "/rating?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=tags")
+            ++ "/rating?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=properties&show=tags")
         , headers =
             [ ("Accept", "application/json")
             , ("Retruco-API-Key", authentication.apiKey)
@@ -67,7 +67,7 @@ newTaskFlagAbuse authentication statementId =
     Http.fromJson decodeDataIdBody ( Http.send Http.defaultSettings
         { verb = "GET"
         , url = ("http://localhost:3000/statements/" ++ statementId
-            ++ "/abuse?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=tags")
+            ++ "/abuse?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=properties&show=tags")
         , headers =
             [ ("Accept", "application/json")
             , ("Retruco-API-Key", authentication.apiKey)
@@ -89,7 +89,7 @@ newTaskGetStatements authenticationMaybe =
         Http.fromJson decodeDataIdsBody ( Http.send Http.defaultSettings
             { verb = "GET"
             , url = ("http://localhost:3000/statements"
-                ++ "?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=tags")
+                ++ "?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=properties&show=tags")
             , headers =
                 [ ("Accept", "application/json")
                 ] ++ authenticationHeaders
@@ -106,7 +106,7 @@ newTaskRateStatement authentication rating statementId =
         Http.fromJson decodeDataIdBody ( Http.send Http.defaultSettings
             { verb = "POST"
             , url = ("http://localhost:3000/statements/" ++ statementId
-                ++ "/rating?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=tags")
+                ++ "/rating?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=properties&show=tags")
             , headers =
                 [ ("Accept", "application/json")
                 , ("Content-Type", "application/json")

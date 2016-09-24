@@ -138,10 +138,14 @@ view model =
         ([ viewKind model.kind (Dict.get "kind" model.errors) KindChanged ]
         ++
         (case model.kind of
+            "Card" ->
+                []
+
             "PlainStatement" ->
                 [ viewLanguageCode model.languageCode (Dict.get "languageCode" model.errors) LanguageCodeChanged
                 , viewName model.name (Dict.get "name" model.errors) NameInput
                 ]
+
             "Tag" ->
                 [ viewName model.name (Dict.get "name" model.errors) NameInput
                 ]
