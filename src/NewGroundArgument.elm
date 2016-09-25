@@ -47,8 +47,6 @@ type Msg
     | NameInput String
     | ArgumentRated DataIdBody
     | ArgumentRateError Http.Error
-    | GroundRated DataIdBody
-    | GroundRateError Http.Error
     | RatingChanged Int
     | Submit
 
@@ -90,27 +88,7 @@ update msg authenticationMaybe model =
         GroundCreated body ->
             let
                 data = body.data
-                cmd =
-                    case authenticationMaybe of
-                        Just authentication ->
-                            Task.perform
-                                GroundRateError
-                                GroundRated
-                                (newTaskRateStatement authentication 1 data.id)
-
-                        Nothing ->
-                            Cmd.none
-            in
-                ({ model | groundId = data.id }, cmd, Just data)
-
-        GroundCreateError err ->
-            let
-                _ = Debug.log "Ground Statement Create Error" err
-            in
-                (model, Cmd.none, Nothing)
-
-        GroundRated body ->
-            let
+                groundId = data.id
                 cmd =
                     case authenticationMaybe of
                         Just authentication ->
@@ -119,17 +97,17 @@ update msg authenticationMaybe model =
                                 ArgumentCreated
                                 (newTaskCreateStatement authentication (ArgumentCustom
                                     { claimId = model.claimId
-                                    , groundId = model.groundId
+                                    , groundId = groundId
                                     }))
 
                         Nothing ->
                             Cmd.none
             in
-                (model, cmd, Just body.data)
+                ({ model | groundId = groundId }, cmd, Just data)
 
-        GroundRateError err ->
+        GroundCreateError err ->
             let
-                _ = Debug.log "Ground Statement Rate Error" err
+                _ = Debug.log "Ground Statement Create Error" err
             in
                 (model, Cmd.none, Nothing)
 
