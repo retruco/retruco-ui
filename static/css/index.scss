@@ -10,6 +10,11 @@ body {
   display: table;
 }
 
+.statement-line-argument-type {
+  display: table-cell;
+  padding-left: 8px;
+}
+
 .statement-line-body {
   display: table-cell;
   padding-left: 8px;

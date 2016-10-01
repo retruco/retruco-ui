@@ -11,25 +11,25 @@ import String
 import Task
 import Types exposing (convertStatementFormToCustom, DataId, DataIdBody, decodeDataIdBody, initStatementForm,
     StatementCustom(..), StatementForm)
-import Views exposing (viewKind, viewLanguageCode, viewName, viewOption, viewRating)
+import Views exposing (viewArgumentType, viewKind, viewLanguageCode, viewName, viewOption)
 
 
 -- MODEL
 
 
 type alias Model =
-    { claimId : String
+    { argumentType : String
+    , claimId : String
     , groundId : String
-    , rating : Int
     , statementForm : StatementForm
     }
 
 
 init : Model
 init =
-    { claimId = ""
+    { argumentType = ""
+    , claimId = ""
     , groundId = ""
-    , rating = 0
     , statementForm = initStatementForm
     }
 
@@ -40,14 +40,12 @@ init =
 type Msg
     = ArgumentCreated DataIdBody
     | ArgumentCreateError Http.Error
+    | ArgumentTypeChanged String
     | GroundCreated DataIdBody
     | GroundCreateError Http.Error
     | KindChanged String
     | LanguageCodeChanged String
     | NameInput String
-    | ArgumentRated DataIdBody
-    | ArgumentRateError Http.Error
-    | RatingChanged Int
     | Submit
 
 
@@ -55,20 +53,7 @@ update : Msg -> Maybe Authenticator.Model.Authentication -> Model -> ( Model, Cm
 update msg authenticationMaybe model =
     case msg of
         ArgumentCreated body ->
-            let
-                data = body.data
-                cmd =
-                    case authenticationMaybe of
-                        Just authentication ->
-                            Task.perform
-                                ArgumentRateError
-                                ArgumentRated
-                                (newTaskRateStatement authentication model.rating data.id)
-
-                        Nothing ->
-                            Cmd.none
-            in
-                (model, cmd, Just data)
+            (model, Cmd.none, Just body.data)
 
         ArgumentCreateError err ->
             let
@@ -76,14 +61,8 @@ update msg authenticationMaybe model =
             in
                 (model, Cmd.none, Nothing)
 
-        ArgumentRated body ->
-            (model, Cmd.none, Just body.data)
-
-        ArgumentRateError err ->
-            let
-                _ = Debug.log "Argumenet Rate Error" err
-            in
-                (model, Cmd.none, Nothing)
+        ArgumentTypeChanged argumentType ->
+            ({ model | argumentType = argumentType }, Cmd.none, Nothing)
 
         GroundCreated body ->
             let
@@ -95,8 +74,11 @@ update msg authenticationMaybe model =
                             Task.perform
                                 ArgumentCreateError
                                 ArgumentCreated
-                                (newTaskCreateStatement authentication (ArgumentCustom
-                                    { claimId = model.claimId
+                                (newTaskCreateStatement authentication (convertStatementFormToCustom
+                                    { initStatementForm
+                                    | argumentType = model.argumentType
+                                    , claimId = model.claimId
+                                    , kind = "Argument"
                                     , groundId = groundId
                                     }))
 
@@ -141,9 +123,6 @@ update msg authenticationMaybe model =
             in
                 ({ model | statementForm = statementForm' }, Cmd.none, Nothing)
 
-        RatingChanged rating ->
-            ({ model | rating = rating }, Cmd.none, Nothing)
-
         Submit ->
             let
                 statementForm = model.statementForm
@@ -156,6 +135,12 @@ update msg authenticationMaybe model =
                                 Nothing
                     )
                     [
+                        ( "argumentType"
+                        , if String.isEmpty model.argumentType
+                            then Just "Missing argument type"
+                            else Nothing
+                        )
+                    ,
                         ( "kind"
                         , if String.isEmpty statementForm.kind
                             then Just "Missing type"
@@ -207,7 +192,7 @@ view model =
         statementForm = model.statementForm
     in
         Html.form [ onSubmit Submit ]
-            ([ viewRating model.rating (Dict.get "rating" statementForm.errors) RatingChanged
+            ([ viewArgumentType model.argumentType (Dict.get "argumentType" statementForm.errors) ArgumentTypeChanged
                 , viewKind statementForm.kind (Dict.get "kind" statementForm.errors) KindChanged
                 ]
             ++
