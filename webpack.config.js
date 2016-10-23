@@ -24,8 +24,14 @@ var commonConfig = {
     noParse: /\.elm$/,
     loaders: [
       {
-        test: /\.(eot|ttf|woff|woff2|svg)$/,
-        loader: 'file-loader'
+        test: /\.(ttf|eot|svg)(\?[\s\S]+)?$/,
+        loader: 'file'
+      },
+      {
+        test: /\.woff2?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+        // Limiting the size of the woff fonts breaks font-awesome ONLY for the extract text plugin
+        // loader: 'url?limit=10000'
+        loader: 'url'
       }
     ]
   },
@@ -34,6 +40,25 @@ var commonConfig = {
       template: 'static/index.html',
       inject: 'body',
       filename: 'index.html'
+    }),
+    new webpack.ProvidePlugin({
+      $: "jquery",
+      jQuery: "jquery",
+      "window.jQuery": "jquery",
+      Tether: "tether",
+      "window.Tether": "tether",
+      Tooltip: "exports?Tooltip!bootstrap/js/dist/tooltip",
+      Alert: "exports?Alert!bootstrap/js/dist/alert",
+      Button: "exports?Button!bootstrap/js/dist/button",
+      Carousel: "exports?Carousel!bootstrap/js/dist/carousel",
+      Collapse: "exports?Collapse!bootstrap/js/dist/collapse",
+      Dropdown: "exports?Dropdown!bootstrap/js/dist/dropdown",
+      Modal: "exports?Modal!bootstrap/js/dist/modal",
+      Popover: "exports?Popover!bootstrap/js/dist/popover",
+      Scrollspy: "exports?Scrollspy!bootstrap/js/dist/scrollspy",
+      Tab: "exports?Tab!bootstrap/js/dist/tab",
+      Tooltip: "exports?Tooltip!bootstrap/js/dist/tooltip",
+      Util: "exports?Util!bootstrap/js/dist/util"
     })
   ],
   postcss: [ autoprefixer( { browsers: ['last 2 versions'] } ) ],
@@ -45,6 +70,7 @@ if (TARGET_ENV === 'development') {
   module.exports = merge(commonConfig, {
     entry: [
       'webpack-dev-server/client?http://localhost:3001',
+      'font-awesome-loader!./static/font-awesome/font-awesome.config.js',
       'bootstrap-loader',
       path.join(__dirname, 'static/index.js')
     ],
@@ -73,7 +99,8 @@ if (TARGET_ENV === 'production') {
   console.log('Building for prod...');
   module.exports = merge(commonConfig, {
     entry: [
-      'bootstrap-loader',
+      'font-awesome-loader',
+      'font-awesome-loader!./static/font-awesome/font-awesome.config.js',
       path.join(__dirname, 'static/index.js')
     ],
     module: {

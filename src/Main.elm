@@ -1,13 +1,13 @@
-module Main exposing (..)
+module Main exposing (main)
 
 import Authenticator.Model
 import Authenticator.Update
 import Authenticator.View
 import Hop.Types
-import Html exposing (..)
+import Html exposing (button, div, form, Html, img, input, li, nav, p, span, text, ul)
 import Html.App
-import Html.Attributes exposing (..)
-import Html.Attributes.Aria exposing (..)
+import Html.Attributes exposing (attribute, class, id, placeholder, src, type')
+-- import Html.Attributes.Aria exposing ()
 import Navigation
 import Routes exposing (makeUrl, Route(..), urlParser)
 import Statements
@@ -156,60 +156,67 @@ view model =
     let
         profileNavItem = case model.authenticationMaybe of
             Just authentication ->
-                li [] [ aForPath Navigate "/profile" [] [ text authentication.name ] ]
+                li [ class "nav-item" ]
+                    [ aForPath Navigate "/profile" [ class "nav-link" ] [ text authentication.name ] ]
             Nothing ->
                 text ""
         signInOrOutNavItem = case model.authenticationMaybe of
             Just authentication ->
-                li [] [ aForPath Navigate "/sign_out" [] [ text "Sign Out" ] ]
+                li [ class "nav-item" ]
+                    [ aForPath Navigate "/sign_out" [ class "nav-link" ] [ text "Sign Out" ] ]
             Nothing ->
-                li [] [ aForPath Navigate "/sign_in" [] [ text "Sign In" ] ]
+                li [ class "nav-item" ]
+                    [ aForPath Navigate "/sign_in" [ class "nav-link" ] [ text "Sign In" ] ]
         signUpNavItem = case model.authenticationMaybe of
             Just authentication ->
                 text ""
             Nothing ->
-                li [] [ aForPath Navigate "/sign_up" [] [ text "Sign Up" ] ]
+                li [ class "nav-item" ]
+                    [ aForPath Navigate "/sign_up" [ class "nav-link" ] [ text "Sign Up" ] ]
     in
         div
             [ class "container-fluid" ]
-            (
-                [ nav [class "navbar navbar-fixed-top navbar-inverse"]
-                    [ div
-                        [ class "container-fluid" ]
-                        [ div
-                            [ class "navbar-header" ]
-                            [ button
-                                [ ariaExpanded "false"
-                                , class "navbar-toggle collapsed"
-                                , attribute "data-target" "#navbar-collapse"
-                                , attribute "data-toggle" "collapse"
-                                , type' "button"
-                                ]
-                                [ span [ class "sr-only" ] [ text "Toggle navigation" ]
-                                , span [ class "icon-bar" ] []
-                                , span [ class "icon-bar" ] []
-                                , span [ class "icon-bar" ] []
-                                ]
-                            , aForPath Navigate "/" [ class "navbar-brand"] [ text "Retruco" ]
-                            ]
-                        , div
-                            [ class "collapse navbar-collapse"
-                            , id "navbar-collapse"
-                            ]
-                            [ ul [ class "nav navbar-nav" ]
-                                [ li [] [ aForPath Navigate "/about" [] [ text "About" ] ]
-                                , li [] [ aForPath Navigate "/statements" [] [ text "Statements" ] ]
-                                ]
-                            , ul [ class "nav navbar-nav navbar-right" ]
-                                [ profileNavItem
-                                , signInOrOutNavItem
-                                , signUpNavItem
+            ( [ nav [class "navbar navbar-fixed-top navbar-dark bg-inverse"]
+                [ aForPath Navigate "/" [ class "navbar-brand"] [ text "Retruco.org" ]
+                , button
+                    [ attribute "aria-controls" "collapsable-navbar"
+                    , attribute "aria-expanded" "false"
+                    , attribute "aria-label" "Toggle navigation"
+                    , class "navbar-toggler float-xs-right hidden-lg-up"
+                    , attribute "data-target" "#collapsable-navbar"
+                    , attribute "data-toggle" "collapse"
+                    , type' "button"
+                    ]
+                    []
+                , div [ class "collapse navbar-toggleable-md", id "collapsable-navbar" ]
+                    [ ul [ class "nav navbar-nav" ]
+                        [ li [ class "nav-item" ]
+                            [ aForPath Navigate "/" [ class "nav-link" ]
+                                [ text "Search "
+                                , span [ class "fa fa-search" ] []
                                 ]
                             ]
+                        , li [ class "nav-item" ]
+                            [ aForPath Navigate "/about" [ class "nav-link" ] [ text "About" ] ]
+                        , li [ class "nav-item" ]
+                            [ aForPath Navigate "/statements" [ class "nav-link" ] [ text "Statements" ] ]
+                        ]
+                    , ul [ class "nav navbar-nav float-xs-right" ]
+                        [ profileNavItem
+                        , signInOrOutNavItem
+                        , signUpNavItem
+                        ]
+                    , span [ class "navbar-text float-xs-right"] [ text "   " ]
+                    , form [ class "form-inline float-xs-right" ]
+                        [ input [ class "form-control", placeholder "Search", type' "text" ]
+                            []
+                        , button [ class "btn btn-outline-success", type' "submit" ]
+                            [ text "Search" ]
                         ]
                     ]
                 ]
-                ++ [ viewContent model ]
+            ]
+            ++ [ viewContent model ]
             )
 
 
