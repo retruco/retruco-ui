@@ -10,6 +10,7 @@ import Html.Attributes exposing (attribute, class, id, placeholder, src, type')
 -- import Html.Attributes.Aria exposing ()
 import Navigation
 import Routes exposing (makeUrl, Route(..), urlParser)
+import Search
 import Statements
 import Views exposing (aForPath, viewNotFound)
 
@@ -34,6 +35,7 @@ type alias Model =
     , location : Hop.Types.Location
     , page : String
     , route : Route
+    , searchModel : Search.Model
     , statementsModel : Statements.Model
     }
 
@@ -45,6 +47,7 @@ init ( route, location ) =
     , location = location
     , page = "reference"
     , route = route
+    , searchModel = Search.init
     , statementsModel = Statements.init
     }
         |> urlUpdate ( route, location )
@@ -73,10 +76,10 @@ urlUpdate (route, location) model =
             -- DocumentationPage page ->
             --   Cmd.map Docs (Documentation.load page)
 
-            HomeRoute ->
+            NotFoundRoute ->
                 (model', Cmd.none)
 
-            NotFoundRoute ->
+            SearchRoute ->
                 (model', Cmd.none)
 
             StatementsRoute childRoute ->
@@ -93,7 +96,15 @@ urlUpdate (route, location) model =
 type Msg
     = AuthenticatorMsg Authenticator.Update.Msg
     | Navigate String
+    | SearchMsg Search.InternalMsg
     | StatementsMsg Statements.InternalMsg
+
+
+searchMsgTranslation : Search.MsgTranslation Msg
+searchMsgTranslation =
+    { onInternalMsg = SearchMsg
+    , onNavigate = Navigate
+    }
 
 
 statementsMsgTranslation : Statements.MsgTranslation Msg
@@ -101,6 +112,10 @@ statementsMsgTranslation =
     { onInternalMsg = StatementsMsg
     , onNavigate = Navigate
     }
+
+
+translateSearchMsg : Search.MsgTranslator Msg
+translateSearchMsg = Search.translateMsg searchMsgTranslation
 
 
 translateStatementsMsg : Statements.MsgTranslator Msg
@@ -139,6 +154,13 @@ update msg model =
                         (model', Cmd.none)
             in
                 model'' ! [Cmd.map AuthenticatorMsg childEffect, effect'']
+
+        SearchMsg childMsg ->
+            let
+                ( searchModel, childEffect ) =
+                    Search.update childMsg model.authenticationMaybe model.searchModel
+            in
+                ( { model | searchModel = searchModel }, Cmd.map translateSearchMsg childEffect )
 
         StatementsMsg childMsg ->
             let
@@ -233,15 +255,12 @@ viewContent model =
         AuthenticatorRoute subRoute ->
             Html.App.map AuthenticatorMsg (Authenticator.View.view subRoute model.authenticatorModel)
 
-        HomeRoute ->
-            p
-                []
-                [ img [ src "./img/elm.png" ] []
-                , text "Hello Retruco user"
-                ]
-
         NotFoundRoute ->
             viewNotFound
+
+        SearchRoute ->
+            Html.App.map translateSearchMsg
+                (Search.view model.authenticationMaybe model.searchModel)
 
         StatementsRoute nestedRoute ->
             Html.App.map translateStatementsMsg (Statements.view model.authenticationMaybe model.statementsModel)

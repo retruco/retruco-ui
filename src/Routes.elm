@@ -11,8 +11,8 @@ import Navigation
 type Route
     = AboutRoute
     | AuthenticatorRoute Authenticator.Model.Route
-    | HomeRoute
     | NotFoundRoute
+    | SearchRoute
     | StatementsRoute StatementsNestedRoute
 
 
@@ -28,7 +28,7 @@ makeUrl path = Hop.makeUrl routerConfig path
 
 matchers : List (Hop.Types.PathMatcher Route)
 matchers =
-    [ match1 HomeRoute ""
+    [ match1 SearchRoute ""
     , match1 AboutRoute "/about"
     , match1 (AuthenticatorRoute Authenticator.Model.SignInRoute) "/sign_in"
     , match1 (AuthenticatorRoute Authenticator.Model.SignOutRoute) "/sign_out"
