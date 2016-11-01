@@ -1,4 +1,4 @@
-module Statements exposing (..)
+module Statements exposing (init, InternalMsg(Load), load, Model, MsgTranslation, MsgTranslator, translateMsg, update, urlUpdate, view, viewIndex)
 
 import Authenticator.Model
 import Dict exposing (Dict)
@@ -14,7 +14,8 @@ import Requests exposing (newTaskDeleteStatementRating, newTaskFlagAbuse, newTas
 import Routes exposing (makeUrl, StatementsNestedRoute(..))
 import Statement
 import Task
-import Types exposing (Ballot, DataId, DataIdBody, DataIdsBody, decodeDataIdsBody, Statement, StatementCustom(..))
+import Types exposing (Ballot, DataId, DataIdBody, DataIdsBody, decodeDataIdsBody, SearchCriteria, Statement,
+    StatementCustom(..))
 import Views exposing (aForPath, viewNotFound, viewStatementLine)
 
 
@@ -52,7 +53,7 @@ init =
 urlUpdate : (StatementsNestedRoute, Hop.Types.Location) -> Model -> (Model, Cmd Msg)
 urlUpdate (route, location) model =
     let
-        model' = { model
+        model1 = { model
             -- | location = location
             | route = route
             }
@@ -60,22 +61,22 @@ urlUpdate (route, location) model =
         case route of
             StatementRoute statementId ->
                 let
-                    statementModel = model'.statementModel
-                    model'' =
-                        { model'
+                    statementModel = model1.statementModel
+                    model2 =
+                        { model1
                         | statementModel =
                             { statementModel
                             | statementId = statementId
                             }
                         }
                 in
-                    (model'', load)
+                    (model2, load)
 
             StatementsIndexRoute ->
-                (model', load)
+                (model1, load)
 
             StatementsNotFoundRoute ->
-                (model', Cmd.none)
+                (model1, Cmd.none)
 
 
 -- UPDATE
@@ -144,8 +145,8 @@ translateMsg {onInternalMsg, onNavigate} msg =
             onInternalMsg internalMsg
 
 
-update : InternalMsg -> Maybe Authenticator.Model.Authentication -> Model -> ( Model, Cmd Msg )
-update msg authenticationMaybe model =
+update : InternalMsg -> Maybe Authenticator.Model.Authentication -> SearchCriteria -> Model -> ( Model, Cmd Msg )
+update msg authenticationMaybe searchCriteria model =
     case msg of
         Error err ->
             let
@@ -178,14 +179,18 @@ update msg authenticationMaybe model =
 
         Load ->
             let
-                cmd = if model.loaded
-                    then
-                        Cmd.none
-                    else
-                        Task.perform
-                            (\msg -> ForSelf (Error msg))
-                            (\msg -> ForSelf (Loaded msg))
-                            (newTaskGetStatements authenticationMaybe)
+                -- cmd = if model.loaded
+                --     then
+                --         Cmd.none
+                --     else
+                --         Task.perform
+                --             (\msg -> ForSelf (Error msg))
+                --             (\msg -> ForSelf (Loaded msg))
+                --             (newTaskGetStatements authenticationMaybe searchCriteria)
+                cmd = Task.perform
+                    (\msg -> ForSelf (Error msg))
+                    (\msg -> ForSelf (Loaded msg))
+                    (newTaskGetStatements authenticationMaybe searchCriteria)
             in
                 ( model, cmd )
 
@@ -203,13 +208,13 @@ update msg authenticationMaybe model =
             let
                 (newStatementModel, childEffect, dataMaybe) =
                     NewStatement.update childMsg authenticationMaybe model.newStatementModel
-                model' = case dataMaybe of
+                model1 = case dataMaybe of
                     Just data ->
                         updateFromDataId data model
                     Nothing ->
                         model
             in
-                ( { model' | newStatementModel = newStatementModel }
+                ( { model1 | newStatementModel = newStatementModel }
                 , Cmd.map (\msg -> ForSelf (NewStatementMsg msg)) childEffect
                 )
 
@@ -246,22 +251,22 @@ update msg authenticationMaybe model =
         StatementMsg childMsg ->
             let
                 statementModel = model.statementModel
-                statementModel' =
+                statementmodel1 =
                     { statementModel
                     | ballotById = model.ballotById
                     , statementById = model.statementById
                     , statementIds = model.statementIds
                     }
-                (statementModel'', childEffect) = Statement.update childMsg authenticationMaybe statementModel'
-                model' =
+                (statementmodel2, childEffect) = Statement.update childMsg authenticationMaybe statementmodel1
+                model1 =
                     { model
-                    | ballotById = statementModel''.ballotById
-                    , statementById = statementModel''.statementById
-                    , statementIds = statementModel''.statementIds
-                    , statementModel = statementModel''
+                    | ballotById = statementmodel2.ballotById
+                    , statementById = statementmodel2.statementById
+                    , statementIds = statementmodel2.statementIds
+                    , statementModel = statementmodel2
                     }
             in
-                (model', Cmd.map translateStatementMsg childEffect)
+                (model1, Cmd.map translateStatementMsg childEffect)
 
 
 -- VIEW
@@ -273,38 +278,43 @@ view authenticationMaybe model =
         StatementRoute statementId ->
             let
                 statementModel = model.statementModel
-                statementModel' =
+                statementmodel1 =
                     { statementModel
                     | ballotById = model.ballotById
                     , statementById = model.statementById
                     , statementIds = model.statementIds
                     }
             in
-                Html.App.map translateStatementMsg (Statement.view authenticationMaybe statementModel')
+                Html.App.map translateStatementMsg (Statement.view authenticationMaybe statementmodel1)
 
         StatementsIndexRoute ->
-            article
-                [ class "statements" ]
-                [ h1 [] [ text "Statements" ]
-                , ul
-                    [ class "list-unstyled statements-list" ]
-                    (List.map
-                        (\statementId -> viewStatementLine
-                            authenticationMaybe
-                            li
-                            statementId
-                            True
-                            navigate
-                            (\ratingMaybe statementId -> ForSelf (RatingChanged ratingMaybe statementId))
-                            (\statementId -> ForSelf (FlagAbuse statementId))
-                            model)
-                        model.statementIds)
-                , case authenticationMaybe of
-                    Just authentication ->
-                        Html.App.map (\msg -> ForSelf (NewStatementMsg msg)) (NewStatement.view model.newStatementModel)
-                    Nothing ->
-                        text ""
-                ]
+            viewIndex authenticationMaybe model
 
         StatementsNotFoundRoute ->
             viewNotFound
+
+
+viewIndex : Maybe Authenticator.Model.Authentication -> Model -> Html Msg
+viewIndex authenticationMaybe model =
+    article
+        [ class "statements" ]
+        [ h1 [] [ text "Statements" ]
+        , ul
+            [ class "list-unstyled statements-list" ]
+            (List.map
+                (\statementId -> viewStatementLine
+                    authenticationMaybe
+                    li
+                    statementId
+                    True
+                    navigate
+                    (\ratingMaybe statementId -> ForSelf (RatingChanged ratingMaybe statementId))
+                    (\statementId -> ForSelf (FlagAbuse statementId))
+                    model)
+                model.statementIds)
+        , case authenticationMaybe of
+            Just authentication ->
+                Html.App.map (\msg -> ForSelf (NewStatementMsg msg)) (NewStatement.view model.newStatementModel)
+            Nothing ->
+                text ""
+        ]

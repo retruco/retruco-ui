@@ -11,7 +11,7 @@ import String
 import Task
 import Types exposing (convertStatementFormToCustom, DataId, DataIdBody, decodeDataIdBody, initStatementForm,
     StatementForm)
-import Views exposing (viewKind, viewLanguageCode, viewName, viewOption)
+import Views exposing (viewKind, viewLanguageCode, viewName, viewOption, viewTwitterName)
 
 
 -- MODEL
@@ -32,8 +32,9 @@ type Msg
     | CreateError Http.Error
     | KindChanged String
     | LanguageCodeChanged String
-    | NameInput String
+    | NameChanged String
     | Submit
+    | TwitterNameChanged String
 
 
 update : Msg -> Maybe Authenticator.Model.Authentication -> Model -> ( Model, Cmd Msg, Maybe DataId )
@@ -54,7 +55,7 @@ update msg authenticationMaybe model =
         LanguageCodeChanged languageCode ->
             ({ model | languageCode = languageCode }, Cmd.none, Nothing)
 
-        NameInput name ->
+        NameChanged name ->
             ({ model | name = name }, Cmd.none, Nothing)
 
         Submit ->
@@ -81,7 +82,8 @@ update msg authenticationMaybe model =
                         )
                     ,
                         ( "name"
-                        , if List.member model.kind ["PlainStatement", "Tag"] && String.isEmpty model.name
+                        , if List.member model.kind ["Event", "Person", "PlainStatement", "Tag"]
+                            && String.isEmpty model.name
                             then Just "Missing name"
                             else Nothing
                         )
@@ -104,6 +106,9 @@ update msg authenticationMaybe model =
             in
                 ({ model | errors = Dict.fromList errorsList }, cmd, Nothing)
 
+        TwitterNameChanged twitterName ->
+            ({ model | twitterName = twitterName }, Cmd.none, Nothing)
+
 
 -- VIEW
 
@@ -117,13 +122,21 @@ view model =
             "Card" ->
                 []
 
+            "Event" ->
+                [ viewName model.name (Dict.get "name" model.errors) NameChanged
+                ]
+
+            "Person" ->
+                [ viewName model.name (Dict.get "name" model.errors) NameChanged
+                , viewTwitterName model.name (Dict.get "twitterName" model.errors) TwitterNameChanged
+                ]
             "PlainStatement" ->
                 [ viewLanguageCode model.languageCode (Dict.get "languageCode" model.errors) LanguageCodeChanged
-                , viewName model.name (Dict.get "name" model.errors) NameInput
+                , viewName model.name (Dict.get "name" model.errors) NameChanged
                 ]
 
             "Tag" ->
-                [ viewName model.name (Dict.get "name" model.errors) NameInput
+                [ viewName model.name (Dict.get "name" model.errors) NameChanged
                 ]
 
             _ ->

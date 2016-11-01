@@ -6,9 +6,9 @@ import Configuration exposing (apiUrl)
 import Dict exposing (Dict)
 import Http
 import Json.Encode
-import Types exposing (Ballot, convertArgumentTypeToString, convertStatementCustomToKind, DataId, DataIdBody,
-    DataIdsBody, decodeDataIdBody, decodeDataIdsBody, ModelFragment, Statement, StatementCustom(..))
 import Task exposing (Task)
+import Types exposing (Ballot, convertArgumentTypeToString, convertStatementCustomToKind, DataId, DataIdBody,
+    DataIdsBody, decodeDataIdBody, decodeDataIdsBody, ModelFragment, SearchCriteria, Statement, StatementCustom(..))
 
 
 newTaskCreateStatement : Authenticator.Model.Authentication -> StatementCustom -> Task Http.Error DataIdBody
@@ -25,6 +25,21 @@ newTaskCreateStatement authentication statementCustom =
                     [ ("argumentType", Json.Encode.string (convertArgumentTypeToString argument.argumentType))
                     , ("claimId", Json.Encode.string argument.claimId)
                     , ("groundId", Json.Encode.string argument.groundId)
+                    ]
+
+                CitationCustom citation ->
+                    [ ("citedId", Json.Encode.string citation.citedId)
+                    , ("eventId", Json.Encode.string citation.eventId)
+                    , ("personId", Json.Encode.string citation.personId)
+                    ]
+
+                EventCustom event ->
+                    [ ("name", Json.Encode.string event.name)
+                    ]
+
+                PersonCustom person ->
+                    [ ("name", Json.Encode.string person.name)
+                    , ("twitterName", Json.Encode.string person.twitterName)
                     ]
 
                 PlainCustom plain ->
@@ -78,8 +93,8 @@ newTaskFlagAbuse authentication statementId =
         } )
 
 
-newTaskGetStatements : Maybe Authenticator.Model.Authentication -> Task Http.Error DataIdsBody
-newTaskGetStatements authenticationMaybe =
+newTaskGetStatements : Maybe Authenticator.Model.Authentication -> SearchCriteria -> Task Http.Error DataIdsBody
+newTaskGetStatements authenticationMaybe searchCriteria =
     let
         authenticationHeaders = case authenticationMaybe of
             Just authentication ->
@@ -90,8 +105,27 @@ newTaskGetStatements authenticationMaybe =
     in
         Http.fromJson decodeDataIdsBody ( Http.send Http.defaultSettings
             { verb = "GET"
-            , url = (apiUrl ++ "statements"
-                ++ "?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=properties&show=tags")
+            , url = Http.url (apiUrl ++ "statements")
+                ( [ ("depth", "1")
+                , ("show", "abuse")
+                , ("show", "author")
+                , ("show", "ballot")
+                , ("show", "grounds")
+                , ("show", "properties")
+                , ("show", "tags")
+                ]
+                ++ (case searchCriteria.languageCodeMaybe of
+                    Just languageCode ->
+                        [ ("languageCode", languageCode) ]
+                    Nothing ->
+                        [])
+                ++ (case searchCriteria.termMaybe of
+                    Just term ->
+                        [ ("term", term) ]
+                    Nothing ->
+                        [])
+                ++ List.map (\kind -> ("type", kind)) searchCriteria.kinds
+                )
             , headers =
                 [ ("Accept", "application/json")
                 ] ++ authenticationHeaders

@@ -35,6 +35,13 @@ type alias Ballot =
     }
 
 
+type alias Citation =
+    { citedId : String
+    , eventId : String
+    , personId : String
+    }
+
+
 type alias DataId =
     { ballots : Dict String Ballot
     , id : String
@@ -61,6 +68,11 @@ type alias DataIdsBody =
     }
 
 
+type alias Event =
+    { name : String
+    }
+
+
 type alias ModelFragment a =
     { a
     | ballotById : Dict String Ballot
@@ -72,9 +84,23 @@ type alias ModelFragment a =
 type alias FormErrors = Dict String String
 
 
+type alias Person =
+    { name : String
+    , twitterName : String
+    }
+
+
 type alias Plain =
     { languageCode : String
     , name : String
+    }
+
+
+type alias SearchCriteria =
+    { kinds : List String
+    , languageCodeMaybe : Maybe String
+    , sort : String
+    , termMaybe : Maybe String
     }
 
 
@@ -94,19 +120,26 @@ type alias Statement =
 type StatementCustom
     = AbuseCustom Abuse
     | ArgumentCustom Argument
+    | CitationCustom Citation
+    | EventCustom Event
+    | PersonCustom Person
     | PlainCustom Plain
     | TagCustom Tag
 
 
 type alias StatementForm =
     { argumentType: String
+    , citedId : String
     , claimId : String
     , errors : FormErrors
+    , eventId : String
     , groundId : String
     , kind : String
     , languageCode : String
     , name : String
+    , personId : String
     , statementId : String
+    , twitterName : String
     }
 
 
@@ -154,6 +187,15 @@ convertStatementCustomToKind statementCustom =
         ArgumentCustom argument ->
             "Argument"
 
+        CitationCustom plain ->
+            "Citation"
+
+        EventCustom plain ->
+            "Event"
+
+        PersonCustom plain ->
+            "Person"
+
         PlainCustom plain ->
             "PlainStatement"
 
@@ -188,6 +230,24 @@ convertStatementFormToCustom form =
                         Comment
                 , claimId = form.claimId
                 , groundId = form.groundId
+                }
+
+        "Citation" ->
+            CitationCustom
+                { citedId = form.citedId
+                , eventId = form.eventId
+                , personId = form.personId
+                }
+
+        "Event" ->
+            EventCustom
+                { name = form.name
+                }
+
+        "Person" ->
+            PersonCustom
+                { name = form.name
+                , twitterName = form.twitterName
                 }
 
         "PlainStatement" ->
@@ -300,6 +360,24 @@ decodeStatementFromType statementType =
                 |: ("groundId" := string)
             `andThen` \argument -> succeed (ArgumentCustom argument)
 
+        "Citation" ->
+            succeed Citation
+                |: ("citedId" := string)
+                |: ("eventId" := string)
+                |: ("personId" := string)
+            `andThen` \citation -> succeed (CitationCustom citation)
+
+        "Event" ->
+            succeed Event
+                |: ("name" := string)
+            `andThen` \event -> succeed (EventCustom event)
+
+        "Person" ->
+            succeed Person
+                |: ("name" := string)
+                |: ("twitterName" := string)
+            `andThen` \person -> succeed (PersonCustom person)
+
         "PlainStatement" ->
             succeed Plain
                 |: ("languageCode" := string)
@@ -334,11 +412,15 @@ decodeUserBody =
 initStatementForm : StatementForm
 initStatementForm =
     { argumentType = ""
+    , citedId = ""
     , claimId = ""
     , errors = Dict.empty
+    , eventId = ""
     , groundId = ""
     , kind = "PlainStatement"
     , languageCode = "en"
     , name = ""
+    , personId = ""
     , statementId = ""
+    , twitterName = ""
     }

@@ -1,5 +1,6 @@
-module Views exposing (aForPath, viewArgumentType, viewKind, viewLanguageCode, viewName, viewNotFound, viewOption,
-    viewStatementLine, viewStatementLineBody, viewStatementLinePanel)
+module Views exposing (aForPath, viewArgumentType, viewInlineSearchLanguageCode, viewInlineSearchSort,
+    viewInlineSearchTerm, viewInlineSearchType, viewKind, viewLanguageCode, viewName, viewNotFound, viewOption,
+    viewStatementLine, viewStatementLineBody, viewStatementLinePanel, viewTwitterName)
 
 import Authenticator.Model
 import Dict
@@ -29,7 +30,9 @@ argumentTypes = List.map (\(item, label) -> item) argumentTypeLabelCouples
 
 kindLabelCouples : List (String, String)
 kindLabelCouples =
-    [ ("PlainStatement", "Plain")
+    [ ("Event", "Event")
+    , ("Person", "Person")
+    , ("PlainStatement", "Plain")
     , ("Tag", "Tag")
     ]
 
@@ -41,12 +44,48 @@ kinds = List.map (\(item, label) -> item) kindLabelCouples
 languageCodeLabelCouples : List (String, String)
 languageCodeLabelCouples =
     [ ("en", "English")
-    , ("fr", "Français")
+    , ("es", "Spanish")
+    , ("fr", "French")
     ]
 
 
 languageCodes : List String
 languageCodes = List.map (\(item, label) -> item) languageCodeLabelCouples
+
+
+searchLanguageCodeLabelCouples : List (String, String)
+searchLanguageCodeLabelCouples =
+    [ ("", "Any language") ] ++ languageCodeLabelCouples
+
+
+searchLanguageCodes : List String
+searchLanguageCodes = List.map (\(item, label) -> item) searchLanguageCodeLabelCouples
+
+
+searchSortLabelCouples : List (String, String)
+searchSortLabelCouples =
+    [ ("Popular", "Popular")
+    , ("Recent", "Recent")
+    , ("Trending", "Trending")
+    ]
+
+
+searchSorts : List String
+searchSorts = List.map (\(item, label) -> item) searchSortLabelCouples
+
+
+searchTypeLabelCouples : List (String, String)
+searchTypeLabelCouples =
+    [ ("", "Everything")
+    , ("Citation", "Citations")
+    , ("Event", "Events")
+    , ("Person", "Persons")
+    , ("PlainStatement", "Statements")
+    ]
+
+
+searchTypes : List String
+searchTypes = List.map (\(item, label) -> item) searchTypeLabelCouples
 
 
 aForPath : (String -> msg) -> String -> List (Attribute msg) -> List (Html msg) -> Html msg
@@ -101,6 +140,30 @@ decodeLanguageCode value =
 --     Json.Decode.customDecoder targetValue (Json.Decode.decodeString Json.Decode.int) `Json.Decode.andThen` decodeRating
 
 
+decodeSearchLanguageCode : String -> Json.Decode.Decoder String
+decodeSearchLanguageCode value =
+    if List.member value searchLanguageCodes then
+        Json.Decode.succeed value
+    else
+        Json.Decode.fail ("Unknown search language: " ++ value)
+
+
+decodeSearchSort : String -> Json.Decode.Decoder String
+decodeSearchSort value =
+    if List.member value searchSorts then
+        Json.Decode.succeed value
+    else
+        Json.Decode.fail ("Unknown search sort: " ++ value)
+
+
+decodeSearchType : String -> Json.Decode.Decoder String
+decodeSearchType value =
+    if List.member value searchTypes then
+        Json.Decode.succeed value
+    else
+        Json.Decode.fail ("Unknown search type: " ++ value)
+
+
 hasBallotRating : Int -> Maybe Ballot -> Bool
 hasBallotRating rating ballotMaybe =
     case ballotMaybe of
@@ -141,6 +204,127 @@ viewArgumentType argumentType errorMaybe argumentTypeChanged =
             ] ++ errorBlock )
 
 
+viewInlineSearchLanguageCode : String -> Maybe String -> (String -> msg) -> Html msg
+viewInlineSearchLanguageCode searchLanguageCode errorMaybe searchLanguageCodeChanged =
+    let
+        ( errorClass, errorAttributes, errorBlock ) = case errorMaybe of
+            Just error ->
+                ( " has-error"
+                , [ ariaDescribedby "search-language-code-error" ]
+                , [ span
+                    [ class "help-block"
+                    , id "search-language-code-error"
+                    ]
+                    [ text error ] ]
+                )
+            Nothing ->
+                ("", [] , [])
+    in
+        div [ class ("form-group" ++ errorClass) ]
+            ( [ label [ class "sr-only", for "search-language-code" ] [ text "Type" ]
+            , select
+                ( [ class "form-control"
+                , id "search-language-code"
+                , on "change" (Json.Decode.map searchLanguageCodeChanged
+                    (targetValue `Json.Decode.andThen` decodeSearchLanguageCode))
+                ] ++ errorAttributes )
+                ( List.map
+                    (viewOption searchLanguageCode)
+                    searchLanguageCodeLabelCouples
+                )
+            ] ++ errorBlock )
+
+
+viewInlineSearchSort : String -> Maybe String -> (String -> msg) -> Html msg
+viewInlineSearchSort searchSort errorMaybe searchSortChanged =
+    let
+        ( errorClass, errorAttributes, errorBlock ) = case errorMaybe of
+            Just error ->
+                ( " has-error"
+                , [ ariaDescribedby "search-sort-error" ]
+                , [ span
+                    [ class "help-block"
+                    , id "search-sort-error"
+                    ]
+                    [ text error ] ]
+                )
+            Nothing ->
+                ("", [] , [])
+    in
+        div [ class ("form-group" ++ errorClass) ]
+            ( [ label [ class "sr-only", for "search-sort" ] [ text "Type" ]
+            , select
+                ( [ class "form-control"
+                , id "search-sort"
+                , on "change" (Json.Decode.map searchSortChanged (targetValue `Json.Decode.andThen` decodeSearchSort))
+                ] ++ errorAttributes )
+                ( List.map
+                    (viewOption searchSort)
+                    searchSortLabelCouples
+                )
+            ] ++ errorBlock )
+
+
+viewInlineSearchTerm : String -> Maybe String -> (String -> msg) -> Html msg
+viewInlineSearchTerm searchTerm errorMaybe searchTermChanged =
+    let
+        ( errorClass, errorAttributes, errorBlock ) = case errorMaybe of
+            Just error ->
+                ( " has-error"
+                , [ ariaDescribedby "search-term-error" ]
+                , [ span
+                    [ class "help-block"
+                    , id "search-term-error"
+                    ]
+                    [ text error ] ]
+                )
+            Nothing ->
+                ("", [] , [])
+    in
+        div [ class ( "form-group" ++ errorClass) ]
+            ( [ label [ class "sr-only", for "search-term" ] [ text "Search term" ]
+            , input
+                ( [ class "form-control"
+                , id "search-term"
+                , placeholder "Search term"
+                , type' "text"
+                , value searchTerm
+                , onInput searchTermChanged
+                ] ++ errorAttributes )
+                []
+            ] ++ errorBlock )
+
+
+viewInlineSearchType : String -> Maybe String -> (String -> msg) -> Html msg
+viewInlineSearchType searchType errorMaybe searchTypeChanged =
+    let
+        ( errorClass, errorAttributes, errorBlock ) = case errorMaybe of
+            Just error ->
+                ( " has-error"
+                , [ ariaDescribedby "search-type-error" ]
+                , [ span
+                    [ class "help-block"
+                    , id "search-type-error"
+                    ]
+                    [ text error ] ]
+                )
+            Nothing ->
+                ("", [] , [])
+    in
+        div [ class ("form-group" ++ errorClass) ]
+            ( [ label [ class "sr-only", for "search-type" ] [ text "Type" ]
+            , select
+                ( [ class "form-control"
+                , id "search-type"
+                , on "change" (Json.Decode.map searchTypeChanged (targetValue `Json.Decode.andThen` decodeSearchType))
+                ] ++ errorAttributes )
+                ( List.map
+                    (viewOption searchType)
+                    searchTypeLabelCouples
+                )
+            ] ++ errorBlock )
+
+
 viewKind : String -> Maybe String -> (String -> msg) -> Html msg
 viewKind kind errorMaybe kindChanged =
     let
@@ -177,10 +361,10 @@ viewLanguageCode languageCode errorMaybe languageCodeChanged =
         ( errorClass, errorAttributes, errorBlock ) = case errorMaybe of
             Just error ->
                 ( " has-error"
-                , [ ariaDescribedby "language-error" ]
+                , [ ariaDescribedby "language-code-error" ]
                 , [ span
                     [ class "help-block"
-                    , id "language-error"
+                    , id "language-code-error"
                     ]
                     [ text error ] ]
                 )
@@ -188,10 +372,10 @@ viewLanguageCode languageCode errorMaybe languageCodeChanged =
                 ("", [] , [])
     in
         div [ class ( "form-group" ++ errorClass) ]
-            ( [ label [ class "control-label", for "language" ] [ text "Language" ]
+            ( [ label [ class "control-label", for "language-code" ] [ text "Language" ]
             , select
                 ( [ class "form-control"
-                , id "language"
+                , id "language-code"
                 , on "change" (Json.Decode.map languageCodeChanged
                     (targetValue `Json.Decode.andThen` decodeLanguageCode))
                 ] ++ errorAttributes )
@@ -328,6 +512,66 @@ viewStatementLineBody authenticationMaybe statementId link navigate model =
                                     , dd []
                                         [ viewStatementLineBody authenticationMaybe argument.groundId True navigate
                                             model ]
+                                    ]
+                                ]
+
+                    CitationCustom citation ->
+                        let
+                            content = "Citation"
+                        in
+                            div
+                                [ class "statement-line-body" ]
+                                [ h4
+                                    [ class "statement-line-title" ]
+                                    [ if link then
+                                            aForPath navigate ("/statements/" ++ statement.id) [] [ text content ]
+                                        else
+                                            text content
+                                    , text " for "
+                                    ]
+                                , dl
+                                    []
+                                    [ dt [] [ text "Person:"]
+                                    , dd []
+                                        [ viewStatementLineBody authenticationMaybe citation.personId True navigate
+                                            model ]
+                                    , dt [] [ text "Quote:"]
+                                    , dd []
+                                        [ viewStatementLineBody authenticationMaybe citation.citedId True navigate
+                                            model ]
+                                    , dt [] [ text "Event:"]
+                                    , dd []
+                                        [ viewStatementLineBody authenticationMaybe citation.eventId True navigate
+                                            model ]
+                                    ]
+                                ]
+
+                    EventCustom event ->
+                        div
+                            [ class "statement-line-body" ]
+                            [ h4
+                                [ class "statement-line-title" ]
+                                [ if link then
+                                        aForPath navigate ("/statements/" ++ statement.id) [] [ text event.name ]
+                                    else
+                                        text event.name
+                                ]
+                            ]
+
+                    PersonCustom person ->
+                        let
+                            title = if String.isEmpty person.twitterName
+                                then person.name
+                                else person.name ++ " (" ++ person.twitterName ++ ")"
+                        in
+                            div
+                                [ class "statement-line-body" ]
+                                [ h4
+                                    [ class "statement-line-title" ]
+                                    [ if link then
+                                            aForPath navigate ("/statements/" ++ statement.id) [][ text title ]
+                                        else
+                                            text title
                                     ]
                                 ]
 
@@ -526,3 +770,33 @@ viewStatementLinePanel authenticationMaybe statementId ratingChanged flagAbuse m
                                 ]
                             ]
                         ]
+
+
+viewTwitterName : String -> Maybe String -> (String -> msg) -> Html msg
+viewTwitterName twitterName errorMaybe twitterNameChanged =
+    let
+        ( errorClass, errorAttributes, errorBlock ) = case errorMaybe of
+            Just error ->
+                ( " has-error"
+                , [ ariaDescribedby "twitter-name-error" ]
+                , [ span
+                    [ class "help-block"
+                    , id "twitter-name-error"
+                    ]
+                    [ text error ] ]
+                )
+            Nothing ->
+                ("", [] , [])
+    in
+        div [ class ( "form-group" ++ errorClass) ]
+            ( [ label [ class "control-label", for "twitter-name" ] [ text "Twitter name" ]
+            , input
+                ( [ class "form-control"
+                , id "twitter-name"
+                , placeholder "To be or not to be"
+                , type' "text"
+                , value twitterName
+                , onInput twitterNameChanged
+                ] ++ errorAttributes )
+                []
+            ] ++ errorBlock )

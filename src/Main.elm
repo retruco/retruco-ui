@@ -12,6 +12,7 @@ import Navigation
 import Routes exposing (makeUrl, Route(..), urlParser)
 import Search
 import Statements
+import Types exposing (SearchCriteria)
 import Views exposing (aForPath, viewNotFound)
 
 
@@ -35,6 +36,7 @@ type alias Model =
     , location : Hop.Types.Location
     , page : String
     , route : Route
+    , searchCriteria : SearchCriteria
     , searchModel : Search.Model
     , statementsModel : Statements.Model
     }
@@ -42,15 +44,19 @@ type alias Model =
 
 init : ( Route, Hop.Types.Location ) -> ( Model, Cmd Msg )
 init ( route, location ) =
-    { authenticationMaybe = Nothing
-    , authenticatorModel = Authenticator.Model.init
-    , location = location
-    , page = "reference"
-    , route = route
-    , searchModel = Search.init
-    , statementsModel = Statements.init
-    }
-        |> urlUpdate ( route, location )
+    let
+        searchModel = Search.init
+    in
+        { authenticationMaybe = Nothing
+        , authenticatorModel = Authenticator.Model.init
+        , location = location
+        , page = "reference"
+        , route = route
+        , searchCriteria = searchModel.searchCriteria
+        , searchModel = searchModel
+        , statementsModel = Statements.init
+        }
+            |> urlUpdate ( route, location )
 
 
 -- ROUTING
@@ -59,35 +65,30 @@ init ( route, location ) =
 urlUpdate : (Route, Hop.Types.Location) -> Model -> (Model, Cmd Msg)
 urlUpdate (route, location) model =
     let
-        model' = { model
+        model1 = { model
             | location = location
             , route = route
             }
     in
         case route of
             AboutRoute ->
-                (model', Cmd.none)
+                (model1, Cmd.none)
 
             AuthenticatorRoute _ ->
-                (model', Cmd.none)
-
-            -- Documentation ->
-            --   Cmd.map Docs (Documentation.load "index")
-            -- DocumentationPage page ->
-            --   Cmd.map Docs (Documentation.load page)
+                (model1, Cmd.none)
 
             NotFoundRoute ->
-                (model', Cmd.none)
+                (model1, Cmd.none)
 
             SearchRoute ->
-                (model', Cmd.none)
+                (model1, Cmd.map translateStatementsMsg (Statements.load))
 
             StatementsRoute childRoute ->
                 let
                     -- Cmd.map translateStatementsMsg Statements.load
-                    (statementsModel, childEffect) = Statements.urlUpdate (childRoute, location) model'.statementsModel
+                    (statementsModel, childEffect) = Statements.urlUpdate (childRoute, location) model1.statementsModel
                 in
-                    ({ model' | statementsModel = statementsModel }, Cmd.map translateStatementsMsg childEffect)
+                    ({ model1 | statementsModel = statementsModel }, Cmd.map translateStatementsMsg childEffect)
 
 
 -- UPDATE
@@ -138,7 +139,7 @@ update msg model =
                 ( authenticatorModel, childEffect ) =
                     Authenticator.Update.update childMsg model.authenticatorModel
                 changed = authenticatorModel.authenticationMaybe /= model.authenticationMaybe
-                model' = { model
+                model1 = { model
                     | authenticationMaybe = authenticatorModel.authenticationMaybe
                     , authenticatorModel = authenticatorModel
                     , statementsModel = if changed
@@ -147,25 +148,35 @@ update msg model =
                         else
                             model.statementsModel
                     }
-                (model'', effect'') = if changed
+                (model2, effect2) = if changed
                     then
-                        update (Navigate "/") model'
+                        update (Navigate "/") model1
                     else
-                        (model', Cmd.none)
+                        (model1, Cmd.none)
             in
-                model'' ! [Cmd.map AuthenticatorMsg childEffect, effect'']
+                model2 ! [Cmd.map AuthenticatorMsg childEffect, effect2]
 
         SearchMsg childMsg ->
             let
                 ( searchModel, childEffect ) =
                     Search.update childMsg model.authenticationMaybe model.searchModel
+                searchCriteria = searchModel.searchCriteria
+                ( statementsModel, statementsEffect ) = if searchCriteria /= model.searchCriteria
+                    then
+                        Statements.update Statements.Load model.authenticationMaybe searchCriteria model.statementsModel
+                    else
+                        (model.statementsModel, Cmd.none)
             in
-                ( { model | searchModel = searchModel }, Cmd.map translateSearchMsg childEffect )
+                { model
+                | searchCriteria = searchCriteria
+                , searchModel = searchModel
+                , statementsModel = statementsModel
+                } ! [Cmd.map translateSearchMsg childEffect, Cmd.map translateStatementsMsg statementsEffect]
 
         StatementsMsg childMsg ->
             let
                 ( statementsModel, childEffect ) =
-                    Statements.update childMsg model.authenticationMaybe model.statementsModel
+                    Statements.update childMsg model.authenticationMaybe model.searchCriteria model.statementsModel
             in
                 ( { model | statementsModel = statementsModel }, Cmd.map translateStatementsMsg childEffect )
 
@@ -214,8 +225,9 @@ view model =
                     [ ul [ class "nav navbar-nav" ]
                         [ li [ class "nav-item" ]
                             [ aForPath Navigate "/" [ class "nav-link" ]
-                                [ text "Search "
-                                , span [ class "fa fa-search" ] []
+                                [ span [ class "fa fa-search" ] []
+                                , text " "
+                                , text "Search"
                                 ]
                             ]
                         , li [ class "nav-item" ]
@@ -259,8 +271,13 @@ viewContent model =
             viewNotFound
 
         SearchRoute ->
-            Html.App.map translateSearchMsg
-                (Search.view model.authenticationMaybe model.searchModel)
+            div []
+                [ Html.App.map translateSearchMsg
+                    (Search.view model.authenticationMaybe model.searchModel)
+                , Html.App.map
+                    translateStatementsMsg
+                    (Statements.viewIndex model.authenticationMaybe model.statementsModel)
+                ]
 
         StatementsRoute nestedRoute ->
             Html.App.map translateStatementsMsg (Statements.view model.authenticationMaybe model.statementsModel)
