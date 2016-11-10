@@ -131,12 +131,14 @@ view model =
                 case errorMaybe of
                     Just error ->
                         div [ class "form-group has-error"]
-                            [ label [ class "control-label", for "username" ] [ text "Username" ]
+                            [ label [ class "control-label", for "username" ] [ text "Email" ]
                             , input
                                 [ ariaDescribedby "username-error"
                                 , class "form-control"
                                 , id "username"
-                                , placeholder "John Doe"
+                                , placeholder "john.doe@retruco.org"
+                                , required True
+                                , title "Please enter you email"
                                 , type' "text"
                                 , value model.username
                                 , onInput UsernameInput
@@ -150,11 +152,13 @@ view model =
                             ]
                     Nothing ->
                         div [ class "form-group"]
-                            [ label [ class "control-label", for "username" ] [ text "Username" ]
+                            [ label [ class "control-label", for "username" ] [ text "Email" ]
                             , input
                                 [ class "form-control"
                                 , id "username"
-                                , placeholder "John Doe"
+                                , placeholder "john.doe@retruco.org"
+                                , required True
+                                , title "Please enter you email"
                                 , type' "text"
                                 , value model.username
                                 , onInput UsernameInput
@@ -174,6 +178,8 @@ view model =
                                 , class "form-control"
                                 , id "password"
                                 , placeholder "John Doe"
+                                , required True
+                                , title "Please enter you password"
                                 , type' "password"
                                 , value model.password
                                 , onInput PasswordInput
@@ -192,6 +198,8 @@ view model =
                                 [ class "form-control"
                                 , id "password"
                                 , placeholder "Your secret password"
+                                , required True
+                                , title "Please enter you password"
                                 , type' "password"
                                 , value model.password
                                 , onInput PasswordInput
