@@ -1,4 +1,4 @@
-module NewStatement exposing (init, Msg, Model, update, view)
+module NewStatement exposing (init, Msg, Model, subscriptions, update, view)
 
 import Authenticator.Model
 import Dict exposing (Dict)
@@ -6,12 +6,12 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
-import Requests exposing (newTaskCreateStatement, newTaskRateStatement)
+import Person.Embed as PersonEmbed
+import Requests exposing (..)
 import String
 import Task
-import Types exposing (convertStatementFormToCustom, DataId, DataIdBody, decodeDataIdBody, initStatementForm,
-    StatementForm)
-import Views exposing (viewKind, viewLanguageCode, viewName, viewOption, viewTwitterName)
+import Types exposing (..)
+import Views exposing (..)
 
 
 -- MODEL
@@ -28,11 +28,14 @@ init = initStatementForm
 
 
 type Msg
-    = Created DataIdBody
+    = CitedMsg PlainEmbed
+    | Created DataIdBody
     | CreateError Http.Error
+    | EventMsg EventEmbed
     | KindChanged String
     | LanguageCodeChanged String
     | NameChanged String
+    | PersonMsg PersonEmbed.Msg
     | Submit
     | TwitterNameChanged String
 
@@ -40,6 +43,9 @@ type Msg
 update : Msg -> Maybe Authenticator.Model.Authentication -> Model -> ( Model, Cmd Msg, Maybe DataId )
 update msg authenticationMaybe model =
     case msg of
+        CitedMsg plainEmbed ->
+            ({ model | cited = plainEmbed }, Cmd.none, Nothing)
+
         Created body ->
             (model, Cmd.none, Just body.data)
 
@@ -49,6 +55,9 @@ update msg authenticationMaybe model =
             in
                 (model, Cmd.none, Nothing)
 
+        EventMsg eventEmbed ->
+            ({ model | event = eventEmbed }, Cmd.none, Nothing)
+
         KindChanged kind ->
             ({ model | kind = kind }, Cmd.none, Nothing)
 
@@ -57,6 +66,12 @@ update msg authenticationMaybe model =
 
         NameChanged name ->
             ({ model | name = name }, Cmd.none, Nothing)
+
+        PersonMsg childMsg ->
+            let
+                (childModel, childEffect) = PersonEmbed.update childMsg "person" model.person
+            in
+            ({ model | person = childModel }, Cmd.map PersonMsg childEffect, Nothing)
 
         Submit ->
             let
@@ -122,21 +137,30 @@ view model =
             "Card" ->
                 []
 
+            "Citation" ->
+                -- [ viewPlain model.cited (filterPrefix "cited." model.errors) CitedMsg
+                -- , PersonEmbed.view "Person" "person" model.person model.errors PersonMsg
+                -- , viewEvent model.event (filterPrefix "eventCited." model.errors) EventMsg
+                -- ]
+                [ PersonEmbed.view "Person" "person" model.person model.errors PersonMsg
+                ]
+
             "Event" ->
-                [ viewName model.name (Dict.get "name" model.errors) NameChanged
+                [ viewName "Name" "name" model.name (Dict.get "name" model.errors) NameChanged
                 ]
 
             "Person" ->
-                [ viewName model.name (Dict.get "name" model.errors) NameChanged
-                , viewTwitterName model.name (Dict.get "twitterName" model.errors) TwitterNameChanged
+                [ viewName "Name" "name" model.name (Dict.get "name" model.errors) NameChanged
+                , viewTwitterName "Twitter Name" "twitter-name" model.twitterName (Dict.get "twitterName" model.errors)
+                    TwitterNameChanged
                 ]
             "PlainStatement" ->
                 [ viewLanguageCode model.languageCode (Dict.get "languageCode" model.errors) LanguageCodeChanged
-                , viewName model.name (Dict.get "name" model.errors) NameChanged
+                , viewName "Name" "name" model.name (Dict.get "name" model.errors) NameChanged
                 ]
 
             "Tag" ->
-                [ viewName model.name (Dict.get "name" model.errors) NameChanged
+                [ viewName "Name" "name" model.name (Dict.get "name" model.errors) NameChanged
                 ]
 
             _ ->
@@ -147,3 +171,13 @@ view model =
             [ class "btn btn-primary", type' "submit" ]
             [ text "Create" ]
         ])
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.batch
+        [ Sub.map PersonMsg (PersonEmbed.subscriptions model.person)
+        ]

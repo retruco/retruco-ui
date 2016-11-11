@@ -157,7 +157,7 @@ update msg authenticationMaybe model =
                         | newGroundArgumentModel = newGroundArgumentModel''
                         }
             in
-                (model', Cmd.map (\msg -> ForSelf (NewGroundArgumentMsg msg)) childEffect)
+                (model', Cmd.map (ForSelf << NewGroundArgumentMsg) childEffect)
 
         Rated body ->
             let
@@ -294,7 +294,7 @@ view authenticationMaybe model =
         , case authenticationMaybe of
             Just authentication ->
                 Html.App.map
-                    (\msg -> ForSelf (NewGroundArgumentMsg msg))
+                    (ForSelf << NewGroundArgumentMsg)
                     (NewGroundArgument.view model.newGroundArgumentModel)
             Nothing ->
                 text ""

@@ -1,18 +1,18 @@
-module Views exposing (aForPath, viewArgumentType, viewInlineSearchLanguageCode, viewInlineSearchSort,
+module Views exposing (aForPath, viewArgumentType, viewEvent, viewInlineSearchLanguageCode, viewInlineSearchSort,
     viewInlineSearchTerm, viewInlineSearchType, viewKind, viewLanguageCode, viewName, viewNotFound, viewOption,
-    viewStatementLine, viewStatementLineBody, viewStatementLinePanel, viewTwitterName)
+    viewPlain, viewStatementLine, viewStatementLineBody, viewStatementLinePanel, viewTwitterName)
 
 import Authenticator.Model
 import Dict
 import Json.Decode
-import Html exposing (a, Attribute, button, dd, div, dl, dt, h4, Html, img, input, label, option, p, select, span, text)
-import Html.Attributes exposing (attribute, class, disabled, for, href, id, placeholder, selected, src, title, type',
-    value)
-import Html.Attributes.Aria exposing (ariaDescribedby, ariaHidden, ariaLabel, ariaPressed, role)
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Attributes.Aria exposing (..)
 import Html.Events exposing (on, onClick, onInput, onWithOptions, targetValue)
 import Routes exposing (makeUrl)
 import String
-import Types exposing (Ballot, convertArgumentTypeToString, ModelFragment, Statement, StatementCustom(..))
+import Types exposing (Ballot, convertArgumentTypeToString, EventForm, FormErrors, ModelFragment, PlainForm,
+    Statement, StatementCustom(..))
 
 
 argumentTypeLabelCouples : List (String, String)
@@ -30,7 +30,8 @@ argumentTypes = List.map (\(item, label) -> item) argumentTypeLabelCouples
 
 kindLabelCouples : List (String, String)
 kindLabelCouples =
-    [ ("Event", "Event")
+    [ ("Citation", "Citation")
+    , ("Event", "Event")
     , ("Person", "Person")
     , ("PlainStatement", "Plain")
     , ("Tag", "Tag")
@@ -202,6 +203,11 @@ viewArgumentType argumentType errorMaybe argumentTypeChanged =
                     ([("", "")] ++ argumentTypeLabelCouples)
                 )
             ] ++ errorBlock )
+
+
+viewEvent : EventForm -> FormErrors -> (EventForm -> msg) -> Html msg
+viewEvent eventForm errors eventChanged =
+    div [] [ text "TODO: Event"]
 
 
 viewInlineSearchLanguageCode : String -> Maybe String -> (String -> msg) -> Html msg
@@ -386,16 +392,17 @@ viewLanguageCode languageCode errorMaybe languageCodeChanged =
             ] ++ errorBlock )
 
 
-viewName : String -> Maybe String -> (String -> msg) -> Html msg
-viewName name errorMaybe nameChanged =
+viewName : String -> String -> String -> Maybe String -> (String -> msg) -> Html msg
+viewName fieldLabel fieldId fieldValue errorMaybe valueChanged =
     let
+        errorId = fieldId ++ "-error"
         ( errorClass, errorAttributes, errorBlock ) = case errorMaybe of
             Just error ->
                 ( " has-error"
-                , [ ariaDescribedby "name-error" ]
+                , [ ariaDescribedby errorId ]
                 , [ span
                     [ class "help-block"
-                    , id "name-error"
+                    , id errorId
                     ]
                     [ text error ] ]
                 )
@@ -403,14 +410,14 @@ viewName name errorMaybe nameChanged =
                 ("", [] , [])
     in
         div [ class ( "form-group" ++ errorClass) ]
-            ( [ label [ class "control-label", for "name" ] [ text "Name" ]
+            ( [ label [ class "control-label", for fieldId ] [ text fieldLabel ]
             , input
                 ( [ class "form-control"
-                , id "name"
+                , id fieldId
                 , placeholder "To be or not to be"
                 , type' "text"
-                , value name
-                , onInput nameChanged
+                , value fieldValue
+                , onInput valueChanged
                 ] ++ errorAttributes )
                 []
             ] ++ errorBlock )
@@ -439,6 +446,11 @@ viewOption selectedItem (item, label) =
             , value itemString'
             ]
             [ text label ]
+
+
+viewPlain : PlainForm -> FormErrors -> (PlainForm -> msg) -> Html msg
+viewPlain citedForm errors citedChanged =
+    div [] [ text "TODO: PlainStatement"]
 
 
 viewStatementLine : Maybe Authenticator.Model.Authentication -> (List (Attribute msg) -> List (Html msg) -> Html msg)
@@ -772,16 +784,17 @@ viewStatementLinePanel authenticationMaybe statementId ratingChanged flagAbuse m
                         ]
 
 
-viewTwitterName : String -> Maybe String -> (String -> msg) -> Html msg
-viewTwitterName twitterName errorMaybe twitterNameChanged =
+viewTwitterName : String -> String -> String -> Maybe String -> (String -> msg) -> Html msg
+viewTwitterName fieldLabel fieldId fieldValue errorMaybe valueChanged =
     let
+        errorId = fieldId ++ "-error"
         ( errorClass, errorAttributes, errorBlock ) = case errorMaybe of
             Just error ->
                 ( " has-error"
-                , [ ariaDescribedby "twitter-name-error" ]
+                , [ ariaDescribedby errorId ]
                 , [ span
                     [ class "help-block"
-                    , id "twitter-name-error"
+                    , id errorId
                     ]
                     [ text error ] ]
                 )
@@ -789,14 +802,14 @@ viewTwitterName twitterName errorMaybe twitterNameChanged =
                 ("", [] , [])
     in
         div [ class ( "form-group" ++ errorClass) ]
-            ( [ label [ class "control-label", for "twitter-name" ] [ text "Twitter name" ]
+            ( [ label [ class "control-label", for fieldId ] [ text fieldLabel ]
             , input
                 ( [ class "form-control"
-                , id "twitter-name"
-                , placeholder "To be or not to be"
+                , id fieldId
+                , placeholder "@JohnDoe"
                 , type' "text"
-                , value twitterName
-                , onInput twitterNameChanged
+                , value fieldValue
+                , onInput valueChanged
                 ] ++ errorAttributes )
                 []
             ] ++ errorBlock )

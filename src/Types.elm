@@ -1,9 +1,27 @@
 module Types exposing (..)
 
+import Autocomplete
 import Dict exposing (Dict)
-import Json.Decode exposing ((:=), andThen, bool, customDecoder, Decoder, dict, fail, int, list, map, maybe, null,
-    oneOf, string, succeed)
+import Json.Decode
+    exposing
+        ( (:=)
+        , andThen
+        , bool
+        , customDecoder
+        , Decoder
+        , dict
+        , fail
+        , int
+        , list
+        , map
+        , maybe
+        , null
+        , oneOf
+        , string
+        , succeed
+        )
 import Json.Decode.Extra as Json exposing ((|:))
+import String
 
 
 type alias Abuse =
@@ -12,7 +30,7 @@ type alias Abuse =
 
 
 type alias Argument =
-    { argumentType: ArgumentType
+    { argumentType : ArgumentType
     , claimId : String
     , groundId : String
     }
@@ -73,15 +91,36 @@ type alias Event =
     }
 
 
-type alias ModelFragment a =
-    { a
-    | ballotById : Dict String Ballot
-    , statementById : Dict String Statement
-    , statementIds : List String
+type alias EventAutocompletion =
+    { autocomplete : String
+    , id : String
+    , name : String
     }
 
 
-type alias FormErrors = Dict String String
+type alias EventEmbed =
+    { autocomplete : String
+    , autocompleter : Autocomplete.State
+    , autocompletions : List EventAutocompletion
+    , editedMaybe : Maybe EventForm
+    , selectedMaybe : Maybe EventAutocompletion
+    , showAutocompleteMenu : Bool
+    }
+
+
+type alias EventForm = Event
+
+
+type alias ModelFragment a =
+    { a
+        | ballotById : Dict String Ballot
+        , statementById : Dict String Statement
+        , statementIds : List String
+    }
+
+
+type alias FormErrors =
+    Dict String String
 
 
 type alias Person =
@@ -90,10 +129,52 @@ type alias Person =
     }
 
 
+type alias PersonAutocompletion =
+    { autocomplete : String
+    , id : String
+    , name : String
+    , twitterName : String
+    }
+
+
+type alias PersonEmbed =
+    { autocomplete : String
+    , autocompleter : Autocomplete.State
+    , autocompletions : List PersonAutocompletion
+    , editedMaybe :  Maybe PersonForm
+    , selectedMaybe : Maybe PersonAutocompletion
+    , showAutocompleteMenu : Bool
+    }
+
+
+type alias PersonForm = Person
+
+
 type alias Plain =
     { languageCode : String
     , name : String
     }
+
+
+type alias PlainAutocompletion =
+    { autocomplete : String
+    , id : String
+    , languageCode : String
+    , name : String
+    }
+
+
+type alias PlainEmbed =
+    { autocomplete : String
+    , autocompleter : Autocomplete.State
+    , autocompletions : List PlainAutocompletion
+    , editedMaybe :  Maybe PlainForm
+    , selectedMaybe : Maybe PlainAutocompletion
+    , showAutocompleteMenu : Bool
+    }
+
+
+type alias PlainForm = Plain
 
 
 type alias SearchCriteria =
@@ -128,15 +209,18 @@ type StatementCustom
 
 
 type alias StatementForm =
-    { argumentType: String
+    { argumentType : String
+    , cited : PlainEmbed
     , citedId : String
     , claimId : String
     , errors : FormErrors
+    , event : EventEmbed
     , eventId : String
     , groundId : String
     , kind : String
     , languageCode : String
     , name : String
+    , person : PersonEmbed
     , personId : String
     , statementId : String
     , twitterName : String
@@ -163,7 +247,7 @@ type alias UserBody =
 
 
 convertArgumentTypeToString : ArgumentType -> String
-convertArgumentTypeToString argumentType = 
+convertArgumentTypeToString argumentType =
     case argumentType of
         Because ->
             "because"
@@ -213,21 +297,22 @@ convertStatementFormToCustom form =
 
         "Argument" ->
             ArgumentCustom
-                { argumentType = case form.argumentType of
-                    "because" ->
-                        Because
+                { argumentType =
+                    case form.argumentType of
+                        "because" ->
+                            Because
 
-                    "but" ->
-                        But
+                        "but" ->
+                            But
 
-                    "comment" ->
-                        Comment
+                        "comment" ->
+                            Comment
 
-                    "example" ->
-                        Example
+                        "example" ->
+                            Example
 
-                    _ ->
-                        Comment
+                        _ ->
+                            Comment
                 , claimId = form.claimId
                 , groundId = form.groundId
                 }
@@ -271,52 +356,54 @@ convertStatementFormToCustom form =
 
 
 decodeArgumentType : Decoder ArgumentType
-decodeArgumentType = customDecoder string (\argumentType ->
-    case argumentType of
-        "because" ->
-            Ok Because
+decodeArgumentType =
+    customDecoder string
+        (\argumentType ->
+            case argumentType of
+                "because" ->
+                    Ok Because
 
-        "but" ->
-            Ok But
+                "but" ->
+                    Ok But
 
-        "comment" ->
-            Ok Comment
+                "comment" ->
+                    Ok Comment
 
-        "example" ->
-            Ok Example
+                "example" ->
+                    Ok Example
 
-        _ ->
-            Err ("Unkown argument type: " ++ argumentType)
-    )
+                _ ->
+                    Err ("Unkown argument type: " ++ argumentType)
+        )
 
 
 decodeBallot : Decoder Ballot
 decodeBallot =
     succeed Ballot
-        |: oneOf [("rating" := int) `andThen` (\_ -> succeed False), succeed True]
+        |: oneOf [ ("rating" := int) `andThen` (\_ -> succeed False), succeed True ]
         |: ("id" := string)
-        |: oneOf [("rating" := int), succeed 0]
+        |: oneOf [ ("rating" := int), succeed 0 ]
         |: ("statementId" := string)
-        |: oneOf [("updatedAt" := string), succeed ""]
+        |: oneOf [ ("updatedAt" := string), succeed "" ]
         |: ("voterId" := string)
 
 
 decodeDataId : Decoder DataId
 decodeDataId =
     succeed DataId
-        |: oneOf [("ballots" := dict decodeBallot), succeed Dict.empty]
+        |: oneOf [ ("ballots" := dict decodeBallot), succeed Dict.empty ]
         |: ("id" := string)
-        |: oneOf [("statements" := dict decodeStatement), succeed Dict.empty]
-        |: oneOf [("users" := dict decodeUser), succeed Dict.empty]
+        |: oneOf [ ("statements" := dict decodeStatement), succeed Dict.empty ]
+        |: oneOf [ ("users" := dict decodeUser), succeed Dict.empty ]
 
 
 decodeDataIds : Decoder DataIds
 decodeDataIds =
     succeed DataIds
-        |: oneOf [("ballots" := dict decodeBallot), succeed Dict.empty]
+        |: oneOf [ ("ballots" := dict decodeBallot), succeed Dict.empty ]
         |: ("ids" := list string)
-        |: oneOf [("statements" := dict decodeStatement), succeed Dict.empty]
-        |: oneOf [("users" := dict decodeUser), succeed Dict.empty]
+        |: oneOf [ ("statements" := dict decodeStatement), succeed Dict.empty ]
+        |: oneOf [ ("users" := dict decodeUser), succeed Dict.empty ]
 
 
 decodeDataIdBody : Decoder DataIdBody
@@ -337,12 +424,12 @@ decodeStatement =
         |: maybe ("ballotId" := string)
         |: ("createdAt" := string)
         |: (("type" := string) `andThen` decodeStatementFromType)
-        |: oneOf [("deleted" := bool), succeed False]
-        |: oneOf [("groundIds" := list string), succeed []]
+        |: oneOf [ ("deleted" := bool), succeed False ]
+        |: oneOf [ ("groundIds" := list string), succeed [] ]
         |: ("id" := string)
-        |: oneOf [("isAbuse" := bool), succeed False]
-        |: oneOf [("ratingCount" := int), succeed 0]
-        |: oneOf [("ratingSum" := int), succeed 0]
+        |: oneOf [ ("isAbuse" := bool), succeed False ]
+        |: oneOf [ ("ratingCount" := int), succeed 0 ]
+        |: oneOf [ ("ratingSum" := int), succeed 0 ]
 
 
 decodeStatementFromType : String -> Decoder StatementCustom
@@ -351,44 +438,44 @@ decodeStatementFromType statementType =
         "Abuse" ->
             succeed Abuse
                 |: ("statementId" := string)
-            `andThen` \abuse -> succeed (AbuseCustom abuse)
+                `andThen` \abuse -> succeed (AbuseCustom abuse)
 
         "Argument" ->
             succeed Argument
                 |: ("argumentType" := decodeArgumentType)
                 |: ("claimId" := string)
                 |: ("groundId" := string)
-            `andThen` \argument -> succeed (ArgumentCustom argument)
+                `andThen` \argument -> succeed (ArgumentCustom argument)
 
         "Citation" ->
             succeed Citation
                 |: ("citedId" := string)
                 |: ("eventId" := string)
                 |: ("personId" := string)
-            `andThen` \citation -> succeed (CitationCustom citation)
+                `andThen` \citation -> succeed (CitationCustom citation)
 
         "Event" ->
             succeed Event
                 |: ("name" := string)
-            `andThen` \event -> succeed (EventCustom event)
+                `andThen` \event -> succeed (EventCustom event)
 
         "Person" ->
             succeed Person
                 |: ("name" := string)
                 |: ("twitterName" := string)
-            `andThen` \person -> succeed (PersonCustom person)
+                `andThen` \person -> succeed (PersonCustom person)
 
         "PlainStatement" ->
             succeed Plain
                 |: ("languageCode" := string)
                 |: ("name" := string)
-            `andThen` \plain -> succeed (PlainCustom plain)
+                `andThen` \plain -> succeed (PlainCustom plain)
 
         "Tag" ->
             succeed Tag
                 |: ("name" := string)
                 |: ("statementId" := string)
-            `andThen` \tag -> succeed (TagCustom tag)
+                `andThen` \tag -> succeed (TagCustom tag)
 
         _ ->
             fail ("Unkown statement type: " ++ statementType)
@@ -409,17 +496,85 @@ decodeUserBody =
         |: ("data" := decodeUser)
 
 
+filterPrefix : String -> Dict String value -> Dict String value
+filterPrefix prefix dict =
+    let
+        prefixLength =
+            String.length prefix
+    in
+        Dict.filter (\key value -> String.startsWith prefix key) dict
+            |> Dict.toList
+            |> List.map (\( key, value ) -> ( String.dropLeft prefixLength key, value ))
+            |> Dict.fromList
+
+
+initEventEmbed : EventEmbed
+initEventEmbed =
+    { autocomplete = ""
+    , autocompleter = Autocomplete.empty
+    , autocompletions = []
+    , editedMaybe = Nothing
+    , selectedMaybe = Nothing
+    , showAutocompleteMenu = False
+    }
+
+
+initEventForm : EventForm
+initEventForm =
+    { name = ""
+    }
+
+
+initPersonEmbed : PersonEmbed
+initPersonEmbed =
+    { autocomplete = ""
+    , autocompleter = Autocomplete.empty
+    , autocompletions = []
+    , editedMaybe = Nothing
+    , selectedMaybe = Nothing
+    , showAutocompleteMenu = False
+    }
+
+
+initPersonForm : PersonForm
+initPersonForm =
+    { name = ""
+    , twitterName = ""
+    }
+
+
+initPlainEmbed : PlainEmbed
+initPlainEmbed =
+    { autocomplete = ""
+    , autocompleter = Autocomplete.empty
+    , autocompletions = []
+    , editedMaybe = Nothing
+    , selectedMaybe = Nothing
+    , showAutocompleteMenu = False
+    }
+
+
+initPlainForm : PlainForm
+initPlainForm =
+    { languageCode = "en"
+    , name = ""
+    }
+
+
 initStatementForm : StatementForm
 initStatementForm =
     { argumentType = ""
+    , cited = initPlainEmbed
     , citedId = ""
     , claimId = ""
     , errors = Dict.empty
+    , event = initEventEmbed
     , eventId = ""
     , groundId = ""
     , kind = "PlainStatement"
     , languageCode = "en"
     , name = ""
+    , person = initPersonEmbed
     , personId = ""
     , statementId = ""
     , twitterName = ""

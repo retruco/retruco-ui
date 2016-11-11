@@ -288,8 +288,10 @@ viewContent model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
     -- Sub.batch
     --     -- [ Emitter.listenString "navigation" Navigate
     --     -- , Sub.map Reference (Reference.subscriptions model.reference)
     --     ]
+    Sub.batch
+        [ Sub.map StatementsMsg (Statements.subscriptions model.statementsModel)
+        ]

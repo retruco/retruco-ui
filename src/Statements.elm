@@ -1,4 +1,5 @@
-module Statements exposing (init, InternalMsg(Load), load, Model, MsgTranslation, MsgTranslator, translateMsg, update, urlUpdate, view, viewIndex)
+module Statements exposing (init, InternalMsg(Load), load, Model, MsgTranslation, MsgTranslator, subscriptions,
+    translateMsg, update, urlUpdate, view, viewIndex)
 
 import Authenticator.Model
 import Dict exposing (Dict)
@@ -184,12 +185,12 @@ update msg authenticationMaybe searchCriteria model =
                 --         Cmd.none
                 --     else
                 --         Task.perform
-                --             (\msg -> ForSelf (Error msg))
-                --             (\msg -> ForSelf (Loaded msg))
+                --             (ForSelf << Error)
+                --             (ForSelf << Loaded)
                 --             (newTaskGetStatements authenticationMaybe searchCriteria)
                 cmd = Task.perform
-                    (\msg -> ForSelf (Error msg))
-                    (\msg -> ForSelf (Loaded msg))
+                    (ForSelf << Error)
+                    (ForSelf << Loaded)
                     (newTaskGetStatements authenticationMaybe searchCriteria)
             in
                 ( model, cmd )
@@ -215,7 +216,7 @@ update msg authenticationMaybe searchCriteria model =
                         model
             in
                 ( { model1 | newStatementModel = newStatementModel }
-                , Cmd.map (\msg -> ForSelf (NewStatementMsg msg)) childEffect
+                , Cmd.map (ForSelf << NewStatementMsg) childEffect
                 )
 
         Rated body ->
@@ -314,7 +315,17 @@ viewIndex authenticationMaybe model =
                 model.statementIds)
         , case authenticationMaybe of
             Just authentication ->
-                Html.App.map (\msg -> ForSelf (NewStatementMsg msg)) (NewStatement.view model.newStatementModel)
+                Html.App.map (ForSelf << NewStatementMsg) (NewStatement.view model.newStatementModel)
             Nothing ->
                 text ""
+        ]
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub InternalMsg
+subscriptions model =
+    Sub.batch
+        [ Sub.map NewStatementMsg (NewStatement.subscriptions model.newStatementModel)
         ]

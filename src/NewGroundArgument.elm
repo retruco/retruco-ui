@@ -200,10 +200,10 @@ view model =
                 "PlainStatement" ->
                     [ viewLanguageCode statementForm.languageCode (Dict.get "languageCode" statementForm.errors)
                         LanguageCodeChanged
-                    , viewName statementForm.name (Dict.get "name" statementForm.errors) NameInput
+                    , viewName "Name" "name" statementForm.name (Dict.get "name" statementForm.errors) NameInput
                     ]
                 "Tag" ->
-                    [ viewName statementForm.name (Dict.get "name" statementForm.errors) NameInput
+                    [ viewName "Name" "name" statementForm.name (Dict.get "name" statementForm.errors) NameInput
                     ]
 
                 _ ->
