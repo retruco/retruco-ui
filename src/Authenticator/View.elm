@@ -14,7 +14,9 @@ view route model =
     case route of
         SignInRoute ->
             Html.App.map SignInMsg (SignIn.view model.signIn)
+
         SignOutRoute ->
             Html.App.map SignOutMsg (SignOut.view model.signOut)
+
         SignUpRoute ->
             Html.App.map SignUpMsg (SignUp.view model.signUp)

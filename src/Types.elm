@@ -108,7 +108,8 @@ type alias EventEmbed =
     }
 
 
-type alias EventForm = Event
+type alias EventForm =
+    Event
 
 
 type alias ModelFragment a =
@@ -141,13 +142,14 @@ type alias PersonEmbed =
     { autocomplete : String
     , autocompleter : Autocomplete.State
     , autocompletions : List PersonAutocompletion
-    , editedMaybe :  Maybe PersonForm
+    , editedMaybe : Maybe PersonForm
     , selectedMaybe : Maybe PersonAutocompletion
     , showAutocompleteMenu : Bool
     }
 
 
-type alias PersonForm = Person
+type alias PersonForm =
+    Person
 
 
 type alias Plain =
@@ -168,13 +170,14 @@ type alias PlainEmbed =
     { autocomplete : String
     , autocompleter : Autocomplete.State
     , autocompletions : List PlainAutocompletion
-    , editedMaybe :  Maybe PlainForm
+    , editedMaybe : Maybe PlainForm
     , selectedMaybe : Maybe PlainAutocompletion
     , showAutocompleteMenu : Bool
     }
 
 
-type alias PlainForm = Plain
+type alias PlainForm =
+    Plain
 
 
 type alias SearchCriteria =

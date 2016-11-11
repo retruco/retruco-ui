@@ -17,11 +17,14 @@ import Views exposing (..)
 -- MODEL
 
 
-type alias Model = StatementForm
+type alias Model =
+    StatementForm
 
 
 init : Model
-init = initStatementForm
+init =
+    initStatementForm
+
 
 
 -- UPDATE
@@ -44,65 +47,72 @@ update : Msg -> Maybe Authenticator.Model.Authentication -> Model -> ( Model, Cm
 update msg authenticationMaybe model =
     case msg of
         CitedMsg plainEmbed ->
-            ({ model | cited = plainEmbed }, Cmd.none, Nothing)
+            ( { model | cited = plainEmbed }, Cmd.none, Nothing )
 
         Created body ->
-            (model, Cmd.none, Just body.data)
+            ( model, Cmd.none, Just body.data )
 
         CreateError err ->
             let
-                _ = Debug.log "New Statement Create Error" err
+                _ =
+                    Debug.log "New Statement Create Error" err
             in
-                (model, Cmd.none, Nothing)
+                ( model, Cmd.none, Nothing )
 
         EventMsg eventEmbed ->
-            ({ model | event = eventEmbed }, Cmd.none, Nothing)
+            ( { model | event = eventEmbed }, Cmd.none, Nothing )
 
         KindChanged kind ->
-            ({ model | kind = kind }, Cmd.none, Nothing)
+            ( { model | kind = kind }, Cmd.none, Nothing )
 
         LanguageCodeChanged languageCode ->
-            ({ model | languageCode = languageCode }, Cmd.none, Nothing)
+            ( { model | languageCode = languageCode }, Cmd.none, Nothing )
 
         NameChanged name ->
-            ({ model | name = name }, Cmd.none, Nothing)
+            ( { model | name = name }, Cmd.none, Nothing )
 
         PersonMsg childMsg ->
             let
-                (childModel, childEffect) = PersonEmbed.update childMsg "person" model.person
+                ( childModel, childEffect ) =
+                    PersonEmbed.update childMsg "person" model.person
             in
-            ({ model | person = childModel }, Cmd.map PersonMsg childEffect, Nothing)
+                ( { model | person = childModel }, Cmd.map PersonMsg childEffect, Nothing )
 
         Submit ->
             let
-                errorsList = ( List.filterMap (
-                    \(name, errorMaybe) ->
-                        case errorMaybe of
-                            Just error ->
-                                Just (name, error)
-                            Nothing ->
+                errorsList =
+                    (List.filterMap
+                        (\( name, errorMaybe ) ->
+                            case errorMaybe of
+                                Just error ->
+                                    Just ( name, error )
+
+                                Nothing ->
+                                    Nothing
+                        )
+                        [ ( "kind"
+                          , if String.isEmpty model.kind then
+                                Just "Missing type"
+                            else
                                 Nothing
+                          )
+                        , ( "languageCpde"
+                          , if model.kind == "PlainStatement" && String.isEmpty model.languageCode then
+                                Just "Missing language"
+                            else
+                                Nothing
+                          )
+                        , ( "name"
+                          , if
+                                List.member model.kind [ "Event", "Person", "PlainStatement", "Tag" ]
+                                    && String.isEmpty model.name
+                            then
+                                Just "Missing name"
+                            else
+                                Nothing
+                          )
+                        ]
                     )
-                    [
-                        ( "kind"
-                        , if String.isEmpty model.kind
-                            then Just "Missing type"
-                            else Nothing
-                        )
-                    ,
-                        ( "languageCpde"
-                        , if  model.kind == "PlainStatement" && String.isEmpty model.languageCode
-                            then Just "Missing language"
-                            else Nothing
-                        )
-                    ,
-                        ( "name"
-                        , if List.member model.kind ["Event", "Person", "PlainStatement", "Tag"]
-                            && String.isEmpty model.name
-                            then Just "Missing name"
-                            else Nothing
-                        )
-                    ] )
 
                 cmd =
                     if List.isEmpty errorsList then
@@ -113,16 +123,19 @@ update msg authenticationMaybe model =
                                     Created
                                     (newTaskCreateStatement
                                         authentication
-                                        (convertStatementFormToCustom model))
+                                        (convertStatementFormToCustom model)
+                                    )
+
                             Nothing ->
                                 Cmd.none
                     else
                         Cmd.none
             in
-                ({ model | errors = Dict.fromList errorsList }, cmd, Nothing)
+                ( { model | errors = Dict.fromList errorsList }, cmd, Nothing )
 
         TwitterNameChanged twitterName ->
-            ({ model | twitterName = twitterName }, Cmd.none, Nothing)
+            ( { model | twitterName = twitterName }, Cmd.none, Nothing )
+
 
 
 -- VIEW
@@ -132,45 +145,49 @@ view : Model -> Html Msg
 view model =
     Html.form [ onSubmit Submit ]
         ([ viewKind model.kind (Dict.get "kind" model.errors) KindChanged ]
-        ++
-        (case model.kind of
-            "Card" ->
-                []
+            ++ (case model.kind of
+                    "Card" ->
+                        []
 
-            "Citation" ->
-                -- [ viewPlain model.cited (filterPrefix "cited." model.errors) CitedMsg
-                -- , PersonEmbed.view "Person" "person" model.person model.errors PersonMsg
-                -- , viewEvent model.event (filterPrefix "eventCited." model.errors) EventMsg
-                -- ]
-                [ PersonEmbed.view "Person" "person" model.person model.errors PersonMsg
-                ]
+                    "Citation" ->
+                        -- [ viewPlain model.cited (filterPrefix "cited." model.errors) CitedMsg
+                        -- , PersonEmbed.view "Person" "person" model.person model.errors PersonMsg
+                        -- , viewEvent model.event (filterPrefix "eventCited." model.errors) EventMsg
+                        -- ]
+                        [ PersonEmbed.view "Person" "person" model.person model.errors PersonMsg
+                        ]
 
-            "Event" ->
-                [ viewName "Name" "name" model.name (Dict.get "name" model.errors) NameChanged
-                ]
+                    "Event" ->
+                        [ viewName "Name" "name" model.name (Dict.get "name" model.errors) NameChanged
+                        ]
 
-            "Person" ->
-                [ viewName "Name" "name" model.name (Dict.get "name" model.errors) NameChanged
-                , viewTwitterName "Twitter Name" "twitter-name" model.twitterName (Dict.get "twitterName" model.errors)
-                    TwitterNameChanged
-                ]
-            "PlainStatement" ->
-                [ viewLanguageCode model.languageCode (Dict.get "languageCode" model.errors) LanguageCodeChanged
-                , viewName "Name" "name" model.name (Dict.get "name" model.errors) NameChanged
-                ]
+                    "Person" ->
+                        [ viewName "Name" "name" model.name (Dict.get "name" model.errors) NameChanged
+                        , viewTwitterName "Twitter Name"
+                            "twitter-name"
+                            model.twitterName
+                            (Dict.get "twitterName" model.errors)
+                            TwitterNameChanged
+                        ]
 
-            "Tag" ->
-                [ viewName "Name" "name" model.name (Dict.get "name" model.errors) NameChanged
-                ]
+                    "PlainStatement" ->
+                        [ viewLanguageCode model.languageCode (Dict.get "languageCode" model.errors) LanguageCodeChanged
+                        , viewName "Name" "name" model.name (Dict.get "name" model.errors) NameChanged
+                        ]
 
-            _ ->
-                []
+                    "Tag" ->
+                        [ viewName "Name" "name" model.name (Dict.get "name" model.errors) NameChanged
+                        ]
+
+                    _ ->
+                        []
+               )
+            ++ [ button
+                    [ class "btn btn-primary", type' "submit" ]
+                    [ text "Create" ]
+               ]
         )
-        ++
-        [ button
-            [ class "btn btn-primary", type' "submit" ]
-            [ text "Create" ]
-        ])
+
 
 
 -- SUBSCRIPTIONS

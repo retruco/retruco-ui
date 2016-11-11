@@ -7,7 +7,10 @@ import Hop.Types
 import Html exposing (button, div, form, Html, img, input, li, nav, p, span, text, ul)
 import Html.App
 import Html.Attributes exposing (attribute, class, id, placeholder, src, type')
+
+
 -- import Html.Attributes.Aria exposing ()
+
 import Navigation
 import Routes exposing (makeUrl, Route(..), urlParser)
 import Search
@@ -25,6 +28,7 @@ main =
         , view = view
         , subscriptions = subscriptions
         }
+
 
 
 -- MODEL
@@ -45,7 +49,8 @@ type alias Model =
 init : ( Route, Hop.Types.Location ) -> ( Model, Cmd Msg )
 init ( route, location ) =
     let
-        searchModel = Search.init
+        searchModel =
+            Search.init
     in
         { authenticationMaybe = Nothing
         , authenticatorModel = Authenticator.Model.init
@@ -59,36 +64,40 @@ init ( route, location ) =
             |> urlUpdate ( route, location )
 
 
+
 -- ROUTING
 
 
-urlUpdate : (Route, Hop.Types.Location) -> Model -> (Model, Cmd Msg)
-urlUpdate (route, location) model =
+urlUpdate : ( Route, Hop.Types.Location ) -> Model -> ( Model, Cmd Msg )
+urlUpdate ( route, location ) model =
     let
-        model1 = { model
-            | location = location
-            , route = route
+        model1 =
+            { model
+                | location = location
+                , route = route
             }
     in
         case route of
             AboutRoute ->
-                (model1, Cmd.none)
+                ( model1, Cmd.none )
 
             AuthenticatorRoute _ ->
-                (model1, Cmd.none)
+                ( model1, Cmd.none )
 
             NotFoundRoute ->
-                (model1, Cmd.none)
+                ( model1, Cmd.none )
 
             SearchRoute ->
-                (model1, Cmd.map translateStatementsMsg (Statements.load))
+                ( model1, Cmd.map translateStatementsMsg (Statements.load) )
 
             StatementsRoute childRoute ->
                 let
                     -- Cmd.map translateStatementsMsg Statements.load
-                    (statementsModel, childEffect) = Statements.urlUpdate (childRoute, location) model1.statementsModel
+                    ( statementsModel, childEffect ) =
+                        Statements.urlUpdate ( childRoute, location ) model1.statementsModel
                 in
-                    ({ model1 | statementsModel = statementsModel }, Cmd.map translateStatementsMsg childEffect)
+                    ( { model1 | statementsModel = statementsModel }, Cmd.map translateStatementsMsg childEffect )
+
 
 
 -- UPDATE
@@ -116,11 +125,13 @@ statementsMsgTranslation =
 
 
 translateSearchMsg : Search.MsgTranslator Msg
-translateSearchMsg = Search.translateMsg searchMsgTranslation
+translateSearchMsg =
+    Search.translateMsg searchMsgTranslation
 
 
 translateStatementsMsg : Statements.MsgTranslator Msg
-translateStatementsMsg = Statements.translateMsg statementsMsgTranslation
+translateStatementsMsg =
+    Statements.translateMsg statementsMsgTranslation
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -138,40 +149,49 @@ update msg model =
             let
                 ( authenticatorModel, childEffect ) =
                     Authenticator.Update.update childMsg model.authenticatorModel
-                changed = authenticatorModel.authenticationMaybe /= model.authenticationMaybe
-                model1 = { model
-                    | authenticationMaybe = authenticatorModel.authenticationMaybe
-                    , authenticatorModel = authenticatorModel
-                    , statementsModel = if changed
-                        then
-                            Statements.init
-                        else
-                            model.statementsModel
+
+                changed =
+                    authenticatorModel.authenticationMaybe /= model.authenticationMaybe
+
+                model1 =
+                    { model
+                        | authenticationMaybe = authenticatorModel.authenticationMaybe
+                        , authenticatorModel = authenticatorModel
+                        , statementsModel =
+                            if changed then
+                                Statements.init
+                            else
+                                model.statementsModel
                     }
-                (model2, effect2) = if changed
-                    then
+
+                ( model2, effect2 ) =
+                    if changed then
                         update (Navigate "/") model1
                     else
-                        (model1, Cmd.none)
+                        ( model1, Cmd.none )
             in
-                model2 ! [Cmd.map AuthenticatorMsg childEffect, effect2]
+                model2 ! [ Cmd.map AuthenticatorMsg childEffect, effect2 ]
 
         SearchMsg childMsg ->
             let
                 ( searchModel, childEffect ) =
                     Search.update childMsg model.authenticationMaybe model.searchModel
-                searchCriteria = searchModel.searchCriteria
-                ( statementsModel, statementsEffect ) = if searchCriteria /= model.searchCriteria
-                    then
+
+                searchCriteria =
+                    searchModel.searchCriteria
+
+                ( statementsModel, statementsEffect ) =
+                    if searchCriteria /= model.searchCriteria then
                         Statements.update Statements.Load model.authenticationMaybe searchCriteria model.statementsModel
                     else
-                        (model.statementsModel, Cmd.none)
+                        ( model.statementsModel, Cmd.none )
             in
                 { model
-                | searchCriteria = searchCriteria
-                , searchModel = searchModel
-                , statementsModel = statementsModel
-                } ! [Cmd.map translateSearchMsg childEffect, Cmd.map translateStatementsMsg statementsEffect]
+                    | searchCriteria = searchCriteria
+                    , searchModel = searchModel
+                    , statementsModel = statementsModel
+                }
+                    ! [ Cmd.map translateSearchMsg childEffect, Cmd.map translateStatementsMsg statementsEffect ]
 
         StatementsMsg childMsg ->
             let
@@ -181,36 +201,45 @@ update msg model =
                 ( { model | statementsModel = statementsModel }, Cmd.map translateStatementsMsg childEffect )
 
 
+
 -- VIEW
 
 
 view : Model -> Html Msg
 view model =
     let
-        profileNavItem = case model.authenticationMaybe of
-            Just authentication ->
-                li [ class "nav-item" ]
-                    [ aForPath Navigate "/profile" [ class "nav-link" ] [ text authentication.name ] ]
-            Nothing ->
-                text ""
-        signInOrOutNavItem = case model.authenticationMaybe of
-            Just authentication ->
-                li [ class "nav-item" ]
-                    [ aForPath Navigate "/sign_out" [ class "nav-link" ] [ text "Sign Out" ] ]
-            Nothing ->
-                li [ class "nav-item" ]
-                    [ aForPath Navigate "/sign_in" [ class "nav-link" ] [ text "Sign In" ] ]
-        signUpNavItem = case model.authenticationMaybe of
-            Just authentication ->
-                text ""
-            Nothing ->
-                li [ class "nav-item" ]
-                    [ aForPath Navigate "/sign_up" [ class "nav-link" ] [ text "Sign Up" ] ]
+        profileNavItem =
+            case model.authenticationMaybe of
+                Just authentication ->
+                    li [ class "nav-item" ]
+                        [ aForPath Navigate "/profile" [ class "nav-link" ] [ text authentication.name ] ]
+
+                Nothing ->
+                    text ""
+
+        signInOrOutNavItem =
+            case model.authenticationMaybe of
+                Just authentication ->
+                    li [ class "nav-item" ]
+                        [ aForPath Navigate "/sign_out" [ class "nav-link" ] [ text "Sign Out" ] ]
+
+                Nothing ->
+                    li [ class "nav-item" ]
+                        [ aForPath Navigate "/sign_in" [ class "nav-link" ] [ text "Sign In" ] ]
+
+        signUpNavItem =
+            case model.authenticationMaybe of
+                Just authentication ->
+                    text ""
+
+                Nothing ->
+                    li [ class "nav-item" ]
+                        [ aForPath Navigate "/sign_up" [ class "nav-link" ] [ text "Sign Up" ] ]
     in
         div
             [ class "container-fluid" ]
-            ( [ nav [class "navbar navbar-fixed-top navbar-dark bg-inverse"]
-                [ aForPath Navigate "/" [ class "navbar-brand"] [ text "Retruco.org" ]
+            ([ nav [ class "navbar navbar-fixed-top navbar-dark bg-inverse" ]
+                [ aForPath Navigate "/" [ class "navbar-brand" ] [ text "Retruco.org" ]
                 , button
                     [ attribute "aria-controls" "collapsable-navbar"
                     , attribute "aria-expanded" "false"
@@ -224,7 +253,9 @@ view model =
                 , div [ class "collapse navbar-toggleable-md", id "collapsable-navbar" ]
                     [ ul [ class "nav navbar-nav" ]
                         [ li [ class "nav-item" ]
-                            [ aForPath Navigate "/" [ class "nav-link" ]
+                            [ aForPath Navigate
+                                "/"
+                                [ class "nav-link" ]
                                 [ span [ class "fa fa-search" ] []
                                 , text " "
                                 , text "Search"
@@ -240,7 +271,7 @@ view model =
                         , signInOrOutNavItem
                         , signUpNavItem
                         ]
-                    , span [ class "navbar-text float-xs-right"] [ text "   " ]
+                    , span [ class "navbar-text float-xs-right" ] [ text "   " ]
                     , form [ class "form-inline float-xs-right" ]
                         [ input [ class "form-control", placeholder "Search", type' "text" ]
                             []
@@ -249,8 +280,8 @@ view model =
                         ]
                     ]
                 ]
-            ]
-            ++ [ viewContent model ]
+             ]
+                ++ [ viewContent model ]
             )
 
 
@@ -281,6 +312,7 @@ viewContent model =
 
         StatementsRoute nestedRoute ->
             Html.App.map translateStatementsMsg (Statements.view model.authenticationMaybe model.statementsModel)
+
 
 
 -- SUBSCRIPTIONS

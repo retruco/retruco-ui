@@ -6,7 +6,8 @@ import Authenticator.SignUp as SignUp
 import Types exposing (User)
 
 
-type alias Authentication = User
+type alias Authentication =
+    User
 
 
 type alias Model =
@@ -21,7 +22,6 @@ type Route
     = SignInRoute
     | SignOutRoute
     | SignUpRoute
-
 
 
 init : Model

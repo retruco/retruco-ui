@@ -39,6 +39,7 @@ init =
     }
 
 
+
 -- UPDATE
 
 
@@ -65,47 +66,59 @@ type alias MsgTranslation parentMsg =
     }
 
 
-type alias MsgTranslator parentMsg = Msg -> parentMsg
+type alias MsgTranslator parentMsg =
+    Msg -> parentMsg
 
 
 convertModelToSearchCriteria : Model -> Result FormErrors SearchCriteria
 convertModelToSearchCriteria model =
     let
-        errorsList = ( List.filterMap (
-            \(name, errorMaybe) ->
-                case errorMaybe of
-                    Just error ->
-                        Just (name, error)
-                    Nothing ->
+        errorsList =
+            (List.filterMap
+                (\( name, errorMaybe ) ->
+                    case errorMaybe of
+                        Just error ->
+                            Just ( name, error )
+
+                        Nothing ->
+                            Nothing
+                )
+                [ ( "searchLanguageCode"
+                  , Nothing
+                  )
+                , ( "searchSort"
+                  , if String.isEmpty model.searchSort then
+                        Just "Missing sort criteria"
+                    else
                         Nothing
+                  )
+                , ( "searchTerm"
+                  , Nothing
+                  )
+                , ( "searchType"
+                  , Nothing
+                  )
+                ]
             )
-            [ ( "searchLanguageCode"
-                , Nothing
-                )
-            , ( "searchSort"
-                , if String.isEmpty model.searchSort
-                    then Just "Missing sort criteria"
-                    else Nothing
-                )
-            , ( "searchTerm"
-                , Nothing
-                )
-            , ( "searchType"
-                , Nothing
-                )
-            ] )
     in
         if List.isEmpty errorsList then
-            Ok { kinds = if String.isEmpty model.searchType
-                    then [ "Citation", "Event", "Person", "PlainStatement" ]
-                    else [ model.searchType ]
-                , languageCodeMaybe = if String.isEmpty model.searchLanguageCode
-                    then Nothing
-                    else Just model.searchLanguageCode
+            Ok
+                { kinds =
+                    if String.isEmpty model.searchType then
+                        [ "Citation", "Event", "Person", "PlainStatement" ]
+                    else
+                        [ model.searchType ]
+                , languageCodeMaybe =
+                    if String.isEmpty model.searchLanguageCode then
+                        Nothing
+                    else
+                        Just model.searchLanguageCode
                 , sort = model.searchSort
-                , termMaybe = if String.isEmpty model.searchTerm
-                    then Nothing
-                    else Just model.searchTerm
+                , termMaybe =
+                    if String.isEmpty model.searchTerm then
+                        Nothing
+                    else
+                        Just model.searchTerm
                 }
         else
             Err (Dict.fromList errorsList)
@@ -117,7 +130,7 @@ navigate path =
 
 
 translateMsg : MsgTranslation parentMsg -> MsgTranslator parentMsg
-translateMsg {onInternalMsg, onNavigate} msg =
+translateMsg { onInternalMsg, onNavigate } msg =
     case msg of
         ForParent (Navigate path) ->
             onNavigate path
@@ -130,23 +143,25 @@ update : InternalMsg -> Maybe Authenticator.Model.Authentication -> Model -> ( M
 update msg authenticationMaybe model =
     case msg of
         SearchLanguageCodeChanged searchLanguageCode ->
-            ({ model | searchLanguageCode = searchLanguageCode }, Cmd.none)
+            ( { model | searchLanguageCode = searchLanguageCode }, Cmd.none )
 
         SearchSortChanged searchSort ->
-            ({ model | searchSort = searchSort }, Cmd.none)
+            ( { model | searchSort = searchSort }, Cmd.none )
 
         SearchTermChanged searchTerm ->
-            ({ model | searchTerm = searchTerm }, Cmd.none)
+            ( { model | searchTerm = searchTerm }, Cmd.none )
 
         SearchTypeChanged searchType ->
-            ({ model | searchType = searchType }, Cmd.none)
+            ( { model | searchType = searchType }, Cmd.none )
 
         Submit ->
             case (convertModelToSearchCriteria model) of
                 Err errors ->
-                    ({model | errors = errors}, Cmd.none)
+                    ( { model | errors = errors }, Cmd.none )
+
                 Ok searchCriteria ->
-                    ({model | errors = Dict.empty, searchCriteria = searchCriteria}, Cmd.none)
+                    ( { model | errors = Dict.empty, searchCriteria = searchCriteria }, Cmd.none )
+
 
 
 -- VIEW
@@ -154,7 +169,7 @@ update msg authenticationMaybe model =
 
 view : Maybe Authenticator.Model.Authentication -> Model -> Html Msg
 view authenticationMaybe model =
-    nav [class "navbar navbar-light bg-faded"]
+    nav [ class "navbar navbar-light bg-faded" ]
         [ form [ class "form-inline", onSubmit (ForSelf Submit) ]
             [ viewInlineSearchType
                 model.searchType

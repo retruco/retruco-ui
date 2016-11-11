@@ -23,7 +23,8 @@ type StatementsNestedRoute
 
 
 makeUrl : String -> String
-makeUrl path = Hop.makeUrl routerConfig path
+makeUrl path =
+    Hop.makeUrl routerConfig path
 
 
 matchers : List (Hop.Types.PathMatcher Route)
@@ -33,7 +34,8 @@ matchers =
     , match1 (AuthenticatorRoute Authenticator.Model.SignInRoute) "/sign_in"
     , match1 (AuthenticatorRoute Authenticator.Model.SignOutRoute) "/sign_out"
     , match1 (AuthenticatorRoute Authenticator.Model.SignUpRoute) "/sign_up"
-    , nested1 StatementsRoute "/statements"
+    , nested1 StatementsRoute
+        "/statements"
         [ match1 StatementsIndexRoute ""
         , match2 StatementRoute "/" statementIdParser
         ]
