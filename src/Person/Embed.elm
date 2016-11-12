@@ -1,6 +1,7 @@
 module Person.Embed exposing (..)
 
 import Autocomplete
+import Basics.Extra exposing (never)
 import Dict
 import Dom
 import Html exposing (..)
@@ -8,27 +9,33 @@ import Html.App
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Html.Events exposing (keyCode, onFocus, onInput, onWithOptions)
+import Http
 import Json.Decode
+import Process
+import Requests exposing (..)
 import String
 import Task
+import Time exposing (millisecond)
 import Types exposing (..)
 
 
 type alias Model =
-    PersonEmbed
+    StatementEmbed
 
 
 type Msg
-    = AutocompleteChanged String
-    | AutocompleteFocus
-    | AutocompleteMsg Autocomplete.Msg
-      --
+    = AutocompleteMsg Autocomplete.Msg
+    | Focus
     | HandleEscape
+    | InputChanged String
+    | KeyboardSelect String
+    | LoadMenu
+    | LoadMenuErr Http.Error
+    | LoadMenuOk StatementsAutocompletionBody
+    | MouseSelect String
     | NoOp
-    | PreviewPerson String
+    | Preview String
     | Reset
-    | SelectPersonKeyboard String
-    | SelectPersonMouse String
     | Wrap Bool
 
 
@@ -37,55 +44,7 @@ autocompleterSize =
     5
 
 
-presidents : List PersonAutocompletion
-presidents =
-    [ PersonAutocompletion "George Washington" "1732" "Westmoreland County" "Virginia"
-    , PersonAutocompletion "John Adams" "1735" "Braintree" "Massachusetts"
-    , PersonAutocompletion "Thomas Jefferson" "1743" "Shadwell" "Virginia"
-    , PersonAutocompletion "James Madison" "1751" "Port Conway" "Virginia"
-    , PersonAutocompletion "James Monroe" "1758" "Monroe Hall" "Virginia"
-    , PersonAutocompletion "Andrew Jackson" "1767" "Waxhaws Region" "South/North Carolina"
-    , PersonAutocompletion "John Quincy Adams" "1768" "Braintree" "Massachusetts"
-    , PersonAutocompletion "William Henry Harrison" "1773" "Charles City County" "Virginia"
-    , PersonAutocompletion "Martin Van Buren" "1782" "Kinderhook" "New York"
-    , PersonAutocompletion "Zachary Taylor" "1784" "Barboursville" "Virginia"
-    , PersonAutocompletion "John Tyler" "1790" "Charles City County" "Virginia"
-    , PersonAutocompletion "James Buchanan" "1791" "Cove Gap" "Pennsylvania"
-    , PersonAutocompletion "James K. Polk" "1795" "Pineville" "North Carolina"
-    , PersonAutocompletion "Millard Fillmore" "1800" "Summerhill" "New York"
-    , PersonAutocompletion "Franklin Pierce" "1804" "Hillsborough" "New Hampshire"
-    , PersonAutocompletion "Andrew Johnson" "1808" "Raleigh" "North Carolina"
-    , PersonAutocompletion "Abraham Lincoln" "1809" "Sinking spring" "Kentucky"
-    , PersonAutocompletion "Ulysses S. Grant" "1822" "Point Pleasant" "Ohio"
-    , PersonAutocompletion "Rutherford B. Hayes" "1823" "Delaware" "Ohio"
-    , PersonAutocompletion "Chester A. Arthur" "1829" "Fairfield" "Vermont"
-    , PersonAutocompletion "James A. Garfield" "1831" "Moreland Hills" "Ohio"
-    , PersonAutocompletion "Benjamin Harrison" "1833" "North Bend" "Ohio"
-    , PersonAutocompletion "Grover Cleveland" "1837" "Caldwell" "New Jersey"
-    , PersonAutocompletion "William McKinley" "1843" "Niles" "Ohio"
-    , PersonAutocompletion "Woodrow Wilson" "1856" "Staunton" "Virginia"
-    , PersonAutocompletion "William Howard Taft" "1857" "Cincinnati" "Ohio"
-    , PersonAutocompletion "Theodore Roosevelt" "1858" "New York City" "New York"
-    , PersonAutocompletion "Warren G. Harding" "1865" "Blooming Grove" "Ohio"
-    , PersonAutocompletion "Calvin Coolidge" "1872" "Plymouth" "Vermont"
-    , PersonAutocompletion "Herbert Hoover" "1874" "West Branch" "Iowa"
-    , PersonAutocompletion "Franklin D. Roosevelt" "1882" "Hyde Park" "New York"
-    , PersonAutocompletion "Harry S. Truman" "1884" "Lamar" "Missouri"
-    , PersonAutocompletion "Dwight D. Eisenhower" "1890" "Denison" "Texas"
-    , PersonAutocompletion "Lyndon B. Johnson" "1908" "Stonewall" "Texas"
-    , PersonAutocompletion "Ronald Reagan" "1911" "Tampico" "Illinois"
-    , PersonAutocompletion "Richard M. Nixon" "1913" "Yorba Linda" "California"
-    , PersonAutocompletion "Gerald R. Ford" "1914" "Omaha" "Nebraska"
-    , PersonAutocompletion "John F. Kennedy" "1917" "Brookline" "Massachusetts"
-    , PersonAutocompletion "George H. W. Bush" "1924" "Milton" "Massachusetts"
-    , PersonAutocompletion "Jimmy Carter" "1925" "Plains" "Georgia"
-    , PersonAutocompletion "George W. Bush" "1946" "New Haven" "Connecticut"
-    , PersonAutocompletion "Bill Clinton" "1946" "Hope" "Arkansas"
-    , PersonAutocompletion "Barack Obama" "1961" "Honolulu" "Hawaii"
-    ]
-
-
-acceptablePeople : String -> List PersonAutocompletion -> List PersonAutocompletion
+acceptablePeople : String -> List StatementAutocompletion -> List StatementAutocompletion
 acceptablePeople query people =
     let
         lowerQuery =
@@ -94,26 +53,26 @@ acceptablePeople query people =
         List.filter (String.contains lowerQuery << String.toLower << .autocomplete) people
 
 
-getPersonAtId : List PersonAutocompletion -> String -> Maybe PersonAutocompletion
-getPersonAtId people id =
-    List.filter (\person -> person.id == id) people
+getAutocompletionFromId : String -> Model -> Maybe StatementAutocompletion
+getAutocompletionFromId id model =
+    List.filter (\autocompletion -> autocompletion.statement.id == id) model.autocompletions
         |> List.head
 
 
 init : Model
 init =
-    initPersonEmbed
+    initStatementEmbed
 
 
 resetAutocompleteMenu : Model -> Model
 resetAutocompleteMenu model =
     { model
         | autocompleter = Autocomplete.empty
-        , showAutocompleteMenu = False
+        , autocompleteMenuState = AutocompleteMenuHidden
     }
 
 
-setModelFromSelectedMaybe : Maybe PersonAutocompletion -> Model -> Model
+setModelFromSelectedMaybe : Maybe StatementAutocompletion -> Model -> Model
 setModelFromSelectedMaybe selectedMaybe model =
     let
         autocomplete =
@@ -130,9 +89,17 @@ setModelFromSelectedMaybe selectedMaybe model =
         }
 
 
-setModelFromPersonId : String -> Model -> Model
-setModelFromPersonId id model =
-    setModelFromSelectedMaybe (getPersonAtId presidents id) model
+setModelFromStatementId : String -> Model -> Model
+setModelFromStatementId id model =
+    setModelFromSelectedMaybe (getAutocompletionFromId id model) model
+
+
+sleepAndThenLoadAutocompleteMenu : Model -> ( Model, Cmd Msg )
+sleepAndThenLoadAutocompleteMenu model =
+    ( { model | autocompleteMenuState = AutocompleteMenuSleeping }
+    , Process.sleep (300 * millisecond)
+        |> Task.perform never (\() -> LoadMenu)
+    )
 
 
 subscriptions : Model -> Sub Msg
@@ -140,43 +107,9 @@ subscriptions model =
     Sub.map AutocompleteMsg Autocomplete.subscription
 
 
-updateAutocompleteConfig : Autocomplete.UpdateConfig Msg PersonAutocompletion
-updateAutocompleteConfig =
-    { onFocus = \id -> Just <| PreviewPerson id
-    , onKeyDown =
-        \code maybeId ->
-            if code == 38 || code == 40 then
-                Maybe.map PreviewPerson maybeId
-            else if code == 13 then
-                Maybe.map SelectPersonKeyboard maybeId
-            else
-                Just <| Reset
-    , onMouseEnter = \id -> Just <| PreviewPerson id
-    , onMouseClick = \id -> Just <| SelectPersonMouse id
-    , onMouseLeave = \_ -> Just <| PreviewPerson ""
-    , onTooHigh = Just <| Wrap True
-    , onTooLow = Just <| Wrap False
-    , separateSelections = False
-    , toId = .id
-    }
-
-
 update : Msg -> String -> Model -> ( Model, Cmd Msg )
 update msg fieldId model =
-    case (Debug.log "Person.Embed.msg" msg) of
-        AutocompleteChanged fieldValue ->
-            let
-                showAutocompleteMenu =
-                    not << List.isEmpty <| (acceptablePeople fieldValue presidents)
-            in
-                ( { model
-                    | autocomplete = fieldValue
-                    , selectedMaybe = Nothing
-                    , showAutocompleteMenu = showAutocompleteMenu
-                  }
-                , Cmd.none
-                )
-
+    case msg of
         AutocompleteMsg childMsg ->
             let
                 ( newAutocompleter, newMsgMaybe ) =
@@ -185,7 +118,7 @@ update msg fieldId model =
                         childMsg
                         autocompleterSize
                         model.autocompleter
-                        (acceptablePeople model.autocomplete presidents)
+                        model.autocompletions
 
                 newModel =
                     { model | autocompleter = newAutocompleter }
@@ -197,7 +130,7 @@ update msg fieldId model =
                     Just newMsg ->
                         update newMsg fieldId newModel
 
-        AutocompleteFocus ->
+        Focus ->
             model ! []
 
         HandleEscape ->
@@ -206,11 +139,89 @@ update msg fieldId model =
             , Cmd.none
             )
 
+        KeyboardSelect id ->
+            let
+                newModel =
+                    setModelFromStatementId id model
+                        |> resetAutocompleteMenu
+            in
+                newModel ! []
+
+        InputChanged fieldValue ->
+            let
+                ( newModel, cmd ) =
+                    case model.autocompleteMenuState of
+                        AutocompleteMenuHidden ->
+                            sleepAndThenLoadAutocompleteMenu model
+
+                        AutocompleteMenuSleeping ->
+                            ( model, Cmd.none )
+
+                        AutocompleteMenuLoading ->
+                            ( { model | autocompleteMenuState = AutocompleteMenuSleeping }, Cmd.none )
+
+                        AutocompleteMenuVisible ->
+                            sleepAndThenLoadAutocompleteMenu model
+            in
+                ( { newModel
+                    | autocomplete = fieldValue
+                    , selectedMaybe = Nothing
+                  }
+                , cmd
+                )
+
+        LoadMenu ->
+            ( { model | autocompleteMenuState = AutocompleteMenuLoading }
+            , Task.perform
+                LoadMenuErr
+                LoadMenuOk
+                (newTaskAutocompleteStatements Nothing "Person" model.autocomplete autocompleterSize)
+            )
+
+        LoadMenuErr err ->
+            let
+                _ =
+                    Debug.log "PersonEmbed LoadMenuErr" err
+            in
+                case model.autocompleteMenuState of
+                    AutocompleteMenuSleeping ->
+                        ( { model | autocompleteMenuState = AutocompleteMenuLoading }
+                        , Task.perform
+                            LoadMenuErr
+                            LoadMenuOk
+                            (newTaskAutocompleteStatements Nothing "Person" model.autocomplete autocompleterSize)
+                        )
+
+                    _ ->
+                        ( { model | autocompleteMenuState = AutocompleteMenuHidden }, Cmd.none )
+
+        LoadMenuOk statementsAutocompletionBody ->
+            ( { model
+                | autocompleteMenuState = AutocompleteMenuVisible
+                , autocompletions = statementsAutocompletionBody.data
+              }
+            , Cmd.none
+            )
+
+        MouseSelect id ->
+            let
+                prefix =
+                    if String.isEmpty fieldId then
+                        fieldId
+                    else
+                        fieldId ++ "."
+
+                newModel =
+                    setModelFromStatementId id model
+                        |> resetAutocompleteMenu
+            in
+                ( newModel, Task.perform (\err -> NoOp) (\_ -> NoOp) (Dom.focus (prefix ++ "autocomplete")) )
+
         NoOp ->
             model ! []
 
-        PreviewPerson id ->
-            ( { model | selectedMaybe = getPersonAtId presidents id }
+        Preview id ->
+            ( { model | selectedMaybe = getAutocompletionFromId id model }
             , Cmd.none
             )
 
@@ -221,28 +232,6 @@ update msg fieldId model =
               }
             , Cmd.none
             )
-
-        SelectPersonKeyboard id ->
-            let
-                newModel =
-                    setModelFromPersonId id model
-                        |> resetAutocompleteMenu
-            in
-                newModel ! []
-
-        SelectPersonMouse id ->
-            let
-                prefix =
-                    if String.isEmpty fieldId then
-                        fieldId
-                    else
-                        fieldId ++ "."
-
-                newModel =
-                    setModelFromPersonId id model
-                        |> resetAutocompleteMenu
-            in
-                ( newModel, Task.perform (\err -> NoOp) (\_ -> NoOp) (Dom.focus (prefix ++ "autocomplete")) )
 
         Wrap toTop ->
             case model.selectedMaybe of
@@ -255,23 +244,18 @@ update msg fieldId model =
                             if toTop then
                                 ( Autocomplete.resetToLastItem
                                     updateAutocompleteConfig
-                                    (acceptablePeople model.autocomplete presidents)
+                                    model.autocompletions
                                     autocompleterSize
                                     model.autocompleter
-                                , List.head <|
-                                    List.reverse <|
-                                        List.take autocompleterSize <|
-                                            acceptablePeople model.autocomplete presidents
+                                , List.head <| List.reverse <| model.autocompletions
                                 )
                             else
                                 ( Autocomplete.resetToFirstItem
                                     updateAutocompleteConfig
-                                    (acceptablePeople model.autocomplete presidents)
+                                    model.autocompletions
                                     autocompleterSize
                                     model.autocompleter
-                                , List.head <|
-                                    List.take autocompleterSize <|
-                                        acceptablePeople model.autocomplete presidents
+                                , List.head <| model.autocompletions
                                 )
                     in
                         ( { model
@@ -280,6 +264,27 @@ update msg fieldId model =
                           }
                         , Cmd.none
                         )
+
+
+updateAutocompleteConfig : Autocomplete.UpdateConfig Msg StatementAutocompletion
+updateAutocompleteConfig =
+    { onFocus = \id -> Just <| Preview id
+    , onKeyDown =
+        \code maybeId ->
+            if code == 38 || code == 40 then
+                Maybe.map Preview maybeId
+            else if code == 13 then
+                Maybe.map KeyboardSelect maybeId
+            else
+                Just <| Reset
+    , onMouseEnter = \id -> Just <| Preview id
+    , onMouseClick = \id -> Just <| MouseSelect id
+    , onMouseLeave = \_ -> Just <| Preview ""
+    , onTooHigh = Just <| Wrap True
+    , onTooLow = Just <| Wrap False
+    , separateSelections = False
+    , toId = .statement >> .id
+    }
 
 
 view : String -> String -> Model -> FormErrors -> (Msg -> parentMsg) -> Html parentMsg
@@ -294,18 +299,12 @@ view fieldLabel fieldId model errors changed =
         fieldset [ class "form-group" ]
             [ legend [] [ text fieldLabel ]
             , Html.App.map changed (viewAutocomplete fieldId model errors)
-            , button
-                [ class "btn btn-primary", type' "submit" ]
-                [ text "Show" ]
-            , button
-                [ class "btn btn-primary", type' "submit" ]
-                [ text "New" ]
             ]
 
 
-viewAutocompleteItemContent : PersonAutocompletion -> List (Html Never)
-viewAutocompleteItemContent personAutocompletion =
-    [ Html.text personAutocompletion.autocomplete ]
+viewAutocompleteItemContent : StatementAutocompletion -> List (Html Never)
+viewAutocompleteItemContent statementAutocompletion =
+    [ Html.text statementAutocompletion.autocomplete ]
 
 
 viewAutocomplete : String -> Model -> FormErrors -> Html Msg
@@ -359,16 +358,24 @@ viewAutocomplete parentId model errors =
                 Nothing ->
                     ( "", [], [] )
 
+        showAutocompleteMenu =
+            case model.autocompleteMenuState of
+                AutocompleteMenuVisible ->
+                    True
+
+                _ ->
+                    False
+
         menu =
-            if model.showAutocompleteMenu then
+            if showAutocompleteMenu then
                 [ Html.App.map AutocompleteMsg
                     (Autocomplete.view
-                        { toId = .id
+                        { toId = .statement >> .id
                         , viewItemContent = viewAutocompleteItemContent
                         }
                         autocompleterSize
                         model.autocompleter
-                        (acceptablePeople model.autocomplete presidents)
+                        model.autocompletions
                     )
                 ]
             else
@@ -381,34 +388,102 @@ viewAutocomplete parentId model errors =
                         , text " "
                         , text "Search"
                         ]
-                  , input
-                        (List.concat
-                            [ [ attribute "aria-autocomplete" "list"
-                              , ariaExpanded <| String.toLower <| toString model.showAutocompleteMenu
-                              , attribute "aria-haspopup" <| String.toLower <| toString model.showAutocompleteMenu
-                              , attribute "aria-owns" "list-of-presidents"
-                              , autocomplete False
-                              , class "form-control"
-                              , id fieldId
-                              , onFocus AutocompleteFocus
-                              , onInput AutocompleteChanged
-                              , onWithOptions "keydown" { preventDefault = True, stopPropagation = False } decodeKeyCode
-                              , placeholder "John Doe (@JohnDoe)"
-                              , attribute "role" "combobox"
-                              , type' "text"
-                              , value query
-                              ]
-                            , (case model.selectedMaybe of
-                                Just selected ->
-                                    [ ariaActiveDescendant selected.autocomplete ]
+                  , div [ class "input-group" ]
+                        [ input
+                            (List.concat
+                                [ [ attribute "aria-autocomplete" "list"
+                                  , ariaExpanded <| String.toLower <| toString showAutocompleteMenu
+                                  , attribute "aria-haspopup" <| String.toLower <| toString showAutocompleteMenu
+                                  , attribute "aria-owns" "list-of-presidents"
+                                  , autocomplete False
+                                  , class "form-control"
+                                  , id fieldId
+                                  , onFocus Focus
+                                  , onInput InputChanged
+                                  , onWithOptions "keydown" { preventDefault = True, stopPropagation = False } decodeKeyCode
+                                  , placeholder "John Doe (@JohnDoe)"
+                                  , attribute "role" "combobox"
+                                  , type' "text"
+                                  , value query
+                                  ]
+                                , (case model.selectedMaybe of
+                                    Just selected ->
+                                        [ ariaActiveDescendant selected.autocomplete ]
 
-                                Nothing ->
-                                    []
-                              )
-                            , errorAttributes
+                                    Nothing ->
+                                        []
+                                  )
+                                , errorAttributes
+                                ]
+                            )
+                            []
+                        , (case model.selectedMaybe of
+                            Just selected ->
+                                span [ class "input-group-addon" ]
+                                    [ span
+                                        [ ariaHidden True
+                                        , class "text-success fa fa-check fa-fw"
+                                        ]
+                                        []
+                                    , span
+                                        [ class "sr-only" ]
+                                        [ text "Person found" ]
+                                    ]
+
+                            Nothing ->
+                                (case model.autocompleteMenuState of
+                                    AutocompleteMenuHidden ->
+                                        span [ class "input-group-addon" ]
+                                            [ span
+                                                [ ariaHidden True
+                                                , class "fa fa-caret-down fa-fw"
+                                                ]
+                                                []
+                                            , span
+                                                [ class "sr-only" ]
+                                                [ text "Type some characters to find a person" ]
+                                            ]
+
+                                    AutocompleteMenuVisible ->
+                                        span [ class "bg-inverse text-white input-group-addon" ]
+                                            [ span
+                                                [ ariaHidden True
+                                                , class "fa fa-caret-down fa-fw"
+                                                ]
+                                                []
+                                            , span
+                                                [ class "sr-only" ]
+                                                [ text "Select a person or type more characters" ]
+                                            ]
+
+                                    _ ->
+                                        span [ class "input-group-addon" ]
+                                            [ span [ ariaHidden True, class "fa fa-fw fa-refresh fa-spin" ] []
+                                            , span [ class "sr-only" ] [ text "Loading menu..." ]
+                                            ]
+                                )
+                          )
+                        , span [ class "input-group-btn" ]
+                            [ button
+                                [ class "btn btn-primary"
+                                , disabled
+                                    (case model.selectedMaybe of
+                                        Just selected ->
+                                            False
+
+                                        Nothing ->
+                                            True
+                                    )
+                                ]
+                                [ text "Show" ]
                             ]
-                        )
-                        []
+                        , span [ class "input-group-btn" ]
+                            [ button
+                                [ class "btn btn-primary" ]
+                                [ text "New" ]
+                            ]
+                        ]
+                  , span [ class "sr-only" ] [ text "Loading menu..." ]
                   ]
                 , menu
                 , errorBlock

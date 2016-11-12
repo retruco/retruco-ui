@@ -1,6 +1,7 @@
 module Requests
     exposing
-        ( newTaskCreateStatement
+        ( newTaskAutocompleteStatements
+        , newTaskCreateStatement
         , newTaskDeleteStatementRating
         , newTaskFlagAbuse
         , newTaskGetStatements
@@ -24,11 +25,45 @@ import Types
         , DataIdsBody
         , decodeDataIdBody
         , decodeDataIdsBody
+        , decodeStatementsAutocompletionBody
         , ModelFragment
         , SearchCriteria
         , Statement
         , StatementCustom(..)
+        , StatementsAutocompletionBody
         )
+
+
+newTaskAutocompleteStatements :
+    Maybe Authenticator.Model.Authentication
+    -> String
+    -> String
+    -> Int
+    -> Task Http.Error StatementsAutocompletionBody
+newTaskAutocompleteStatements authenticationMaybe statementType term limit =
+    let
+        authenticationHeaders =
+            case authenticationMaybe of
+                Just authentication ->
+                    [ ( "Retruco-API-Key", authentication.apiKey )
+                    ]
+
+                Nothing ->
+                    []
+    in
+        Http.fromJson decodeStatementsAutocompletionBody
+            (Http.send Http.defaultSettings
+                { verb = "GET"
+                , url =
+                    Http.url (apiUrl ++ "statements/autocomplete")
+                        [ ( "limit", toString limit )
+                        , ( "term", term )
+                        , ( "type", statementType )
+                        ]
+                , headers = ( "Accept", "application/json" ) :: authenticationHeaders
+                , body = Http.empty
+                }
+            )
 
 
 newTaskCreateStatement : Authenticator.Model.Authentication -> StatementCustom -> Task Http.Error DataIdBody

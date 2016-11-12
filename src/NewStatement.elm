@@ -31,10 +31,10 @@ init =
 
 
 type Msg
-    = CitedMsg PlainEmbed
+    = CitedMsg StatementEmbed
     | Created DataIdBody
     | CreateError Http.Error
-    | EventMsg EventEmbed
+    | EventMsg StatementEmbed
     | KindChanged String
     | LanguageCodeChanged String
     | NameChanged String

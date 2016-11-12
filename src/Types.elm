@@ -11,6 +11,7 @@ import Json.Decode
         , Decoder
         , dict
         , fail
+        , float
         , int
         , list
         , map
@@ -41,6 +42,13 @@ type ArgumentType
     | But
     | Comment
     | Example
+
+
+type AutocompleteMenuState
+    = AutocompleteMenuHidden
+    | AutocompleteMenuSleeping
+    | AutocompleteMenuLoading
+    | AutocompleteMenuVisible
 
 
 type alias Ballot =
@@ -91,23 +99,6 @@ type alias Event =
     }
 
 
-type alias EventAutocompletion =
-    { autocomplete : String
-    , id : String
-    , name : String
-    }
-
-
-type alias EventEmbed =
-    { autocomplete : String
-    , autocompleter : Autocomplete.State
-    , autocompletions : List EventAutocompletion
-    , editedMaybe : Maybe EventForm
-    , selectedMaybe : Maybe EventAutocompletion
-    , showAutocompleteMenu : Bool
-    }
-
-
 type alias EventForm =
     Event
 
@@ -130,24 +121,6 @@ type alias Person =
     }
 
 
-type alias PersonAutocompletion =
-    { autocomplete : String
-    , id : String
-    , name : String
-    , twitterName : String
-    }
-
-
-type alias PersonEmbed =
-    { autocomplete : String
-    , autocompleter : Autocomplete.State
-    , autocompletions : List PersonAutocompletion
-    , editedMaybe : Maybe PersonForm
-    , selectedMaybe : Maybe PersonAutocompletion
-    , showAutocompleteMenu : Bool
-    }
-
-
 type alias PersonForm =
     Person
 
@@ -155,24 +128,6 @@ type alias PersonForm =
 type alias Plain =
     { languageCode : String
     , name : String
-    }
-
-
-type alias PlainAutocompletion =
-    { autocomplete : String
-    , id : String
-    , languageCode : String
-    , name : String
-    }
-
-
-type alias PlainEmbed =
-    { autocomplete : String
-    , autocompleter : Autocomplete.State
-    , autocompletions : List PlainAutocompletion
-    , editedMaybe : Maybe PlainForm
-    , selectedMaybe : Maybe PlainAutocompletion
-    , showAutocompleteMenu : Bool
     }
 
 
@@ -201,6 +156,13 @@ type alias Statement =
     }
 
 
+type alias StatementAutocompletion =
+    { autocomplete : String
+    , distance : Float
+    , statement : Statement
+    }
+
+
 type StatementCustom
     = AbuseCustom Abuse
     | ArgumentCustom Argument
@@ -211,22 +173,37 @@ type StatementCustom
     | TagCustom Tag
 
 
+type alias StatementEmbed =
+    { autocomplete : String
+    , autocompleteMenuState : AutocompleteMenuState
+    , autocompleter : Autocomplete.State
+    , autocompletions : List StatementAutocompletion
+    , editedMaybe : Maybe PersonForm
+    , selectedMaybe : Maybe StatementAutocompletion
+    }
+
+
 type alias StatementForm =
     { argumentType : String
-    , cited : PlainEmbed
+    , cited : StatementEmbed
     , citedId : String
     , claimId : String
     , errors : FormErrors
-    , event : EventEmbed
+    , event : StatementEmbed
     , eventId : String
     , groundId : String
     , kind : String
     , languageCode : String
     , name : String
-    , person : PersonEmbed
+    , person : StatementEmbed
     , personId : String
     , statementId : String
     , twitterName : String
+    }
+
+
+type alias StatementsAutocompletionBody =
+    { data : List StatementAutocompletion
     }
 
 
@@ -435,6 +412,14 @@ decodeStatement =
         |: oneOf [ ("ratingSum" := int), succeed 0 ]
 
 
+decodeStatementAutocompletion : Decoder StatementAutocompletion
+decodeStatementAutocompletion =
+    succeed StatementAutocompletion
+        |: ("autocomplete" := string)
+        |: ("distance" := float)
+        |: ("statement" := decodeStatement)
+
+
 decodeStatementFromType : String -> Decoder StatementCustom
 decodeStatementFromType statementType =
     case statementType of
@@ -484,6 +469,12 @@ decodeStatementFromType statementType =
             fail ("Unkown statement type: " ++ statementType)
 
 
+decodeStatementsAutocompletionBody : Decoder StatementsAutocompletionBody
+decodeStatementsAutocompletionBody =
+    succeed StatementsAutocompletionBody
+        |: ("data" := list decodeStatementAutocompletion)
+
+
 decodeUser : Decoder User
 decodeUser =
     succeed User
@@ -511,31 +502,9 @@ filterPrefix prefix dict =
             |> Dict.fromList
 
 
-initEventEmbed : EventEmbed
-initEventEmbed =
-    { autocomplete = ""
-    , autocompleter = Autocomplete.empty
-    , autocompletions = []
-    , editedMaybe = Nothing
-    , selectedMaybe = Nothing
-    , showAutocompleteMenu = False
-    }
-
-
 initEventForm : EventForm
 initEventForm =
     { name = ""
-    }
-
-
-initPersonEmbed : PersonEmbed
-initPersonEmbed =
-    { autocomplete = ""
-    , autocompleter = Autocomplete.empty
-    , autocompletions = []
-    , editedMaybe = Nothing
-    , selectedMaybe = Nothing
-    , showAutocompleteMenu = False
     }
 
 
@@ -546,17 +515,6 @@ initPersonForm =
     }
 
 
-initPlainEmbed : PlainEmbed
-initPlainEmbed =
-    { autocomplete = ""
-    , autocompleter = Autocomplete.empty
-    , autocompletions = []
-    , editedMaybe = Nothing
-    , selectedMaybe = Nothing
-    , showAutocompleteMenu = False
-    }
-
-
 initPlainForm : PlainForm
 initPlainForm =
     { languageCode = "en"
@@ -564,20 +522,31 @@ initPlainForm =
     }
 
 
+initStatementEmbed : StatementEmbed
+initStatementEmbed =
+    { autocomplete = ""
+    , autocompleteMenuState = AutocompleteMenuHidden
+    , autocompleter = Autocomplete.empty
+    , autocompletions = []
+    , editedMaybe = Nothing
+    , selectedMaybe = Nothing
+    }
+
+
 initStatementForm : StatementForm
 initStatementForm =
     { argumentType = ""
-    , cited = initPlainEmbed
+    , cited = initStatementEmbed
     , citedId = ""
     , claimId = ""
     , errors = Dict.empty
-    , event = initEventEmbed
+    , event = initStatementEmbed
     , eventId = ""
     , groundId = ""
     , kind = "PlainStatement"
     , languageCode = "en"
     , name = ""
-    , person = initPersonEmbed
+    , person = initStatementEmbed
     , personId = ""
     , statementId = ""
     , twitterName = ""
