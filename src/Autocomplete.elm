@@ -16,6 +16,7 @@ module Autocomplete
         , ViewConfig
         )
 
+import Basics.Extra exposing (never)
 import Char exposing (KeyCode)
 import Html exposing (Html, Attribute)
 import Html.App
@@ -62,7 +63,7 @@ resetToFirst config data state =
             config
 
         setFirstItem datum newState =
-            { newState | key = Just <| toId <| Debug.log "resetToFirst datum" datum }
+            { newState | key = Just <| toId datum }
     in
         case List.head data of
             Nothing ->
@@ -101,7 +102,6 @@ type Msg
     | MouseEnter String
     | MouseLeave String
     | MouseClick String
-    | NoOp
 
 
 type alias UpdateConfig msg data =
@@ -205,9 +205,6 @@ update config msg howManyToShow state data =
             , config.onMouseLeave id
             )
 
-        NoOp ->
-            ( state, Nothing )
-
 
 
 -- VIEW
@@ -262,7 +259,7 @@ viewItem { toId, viewItemContent } { key, mouse } data =
             , Html.Events.onMouseLeave (MouseLeave id)
             , Html.Events.onClick (MouseClick id)
             ]
-            (List.map (Html.App.map (\html -> NoOp)) (viewItemContent data))
+            (List.map (Html.App.map never) (viewItemContent data))
 
 
 viewList : ViewConfig data -> Int -> State -> List data -> Html Msg
