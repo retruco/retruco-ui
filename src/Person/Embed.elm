@@ -46,6 +46,18 @@ autocompleterSize =
     5
 
 
+getAutocompletionFromAutocomplete : String -> Model -> Maybe StatementAutocompletion
+getAutocompletionFromAutocomplete autocomplete model =
+    let
+        simplified =
+            String.toLower <| String.trim autocomplete
+    in
+        List.filter
+            (\autocompletion -> String.toLower autocompletion.autocomplete == simplified)
+            model.autocompletions
+            |> List.head
+
+
 getAutocompletionFromId : String -> Model -> Maybe StatementAutocompletion
 getAutocompletionFromId id model =
     List.filter (\autocompletion -> autocompletion.statement.id == id) model.autocompletions
@@ -143,7 +155,7 @@ update msg fieldId model =
             model ! []
 
         HandleEscape ->
-            ( { model | selectedMaybe = Nothing }
+            ( { model | selectedMaybe = getAutocompletionFromAutocomplete model.autocomplete model }
                 |> resetAutocompleteMenu
             , Cmd.none
             )
@@ -163,7 +175,7 @@ update msg fieldId model =
             in
                 ( { newModel
                     | autocomplete = fieldValue
-                    , selectedMaybe = Nothing
+                    , selectedMaybe = getAutocompletionFromAutocomplete fieldValue newModel
                   }
                 , cmd
                 )
@@ -250,7 +262,7 @@ update msg fieldId model =
         Reset ->
             ( { model
                 | autocompleter = Autocomplete.reset updateAutocompleteConfig model.autocompleter
-                , selectedMaybe = Nothing
+                , selectedMaybe = getAutocompletionFromAutocomplete model.autocomplete model
               }
             , Cmd.none
             )
