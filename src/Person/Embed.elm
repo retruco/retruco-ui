@@ -46,15 +46,6 @@ autocompleterSize =
     5
 
 
-acceptablePeople : String -> List StatementAutocompletion -> List StatementAutocompletion
-acceptablePeople query people =
-    let
-        lowerQuery =
-            String.toLower query
-    in
-        List.filter (String.contains lowerQuery << String.toLower << .autocomplete) people
-
-
 getAutocompletionFromId : String -> Model -> Maybe StatementAutocompletion
 getAutocompletionFromId id model =
     List.filter (\autocompletion -> autocompletion.statement.id == id) model.autocompletions
