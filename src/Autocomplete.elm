@@ -59,11 +59,11 @@ reset { separateSelections } { key, mouse } =
 resetToFirst : UpdateConfig msg data -> List data -> State -> State
 resetToFirst config data state =
     let
-        { toId, separateSelections } =
+        { getItemId, separateSelections } =
             config
 
         setFirstItem datum newState =
-            { newState | key = Just <| toId datum }
+            { newState | key = Just <| getItemId datum }
     in
         case List.head data of
             Nothing ->
@@ -105,7 +105,8 @@ type Msg
 
 
 type alias UpdateConfig msg data =
-    { onFocus : String -> Maybe msg
+    { getItemId : data -> String
+    , onFocus : String -> Maybe msg
     , onKeyDown : KeyCode -> Maybe String -> Maybe msg
     , onMouseClick : String -> Maybe msg
     , onMouseEnter : String -> Maybe msg
@@ -113,7 +114,6 @@ type alias UpdateConfig msg data =
     , onTooHigh : Maybe msg
     , onTooLow : Maybe msg
     , separateSelections : Bool
-    , toId : data -> String
     }
 
 
@@ -167,7 +167,7 @@ update config msg howManyToShow state data =
         KeyDown keyCode ->
             let
                 boundedList =
-                    List.map config.toId data
+                    List.map config.getItemId data
                         |> List.take howManyToShow
 
                 newKey =
@@ -217,7 +217,8 @@ type alias HtmlDetails msg =
 
 
 type alias ViewConfig data =
-    { toId : data -> String
+    { getItemId : data -> String
+    , menuId : String
     , viewItemContent : data -> List (Html Never)
     }
 
@@ -229,15 +230,15 @@ keyedDiv attributes children =
 
 view : ViewConfig data -> Int -> State -> List data -> Html Msg
 view config howManyToShow state data =
-    Html.div [ Html.Attributes.class "dropdown open" ]
+    Html.div [ Html.Attributes.class "dropdown open", Html.Attributes.id config.menuId ]
         [ viewList config howManyToShow state data ]
 
 
 viewItem : ViewConfig data -> State -> data -> Html Msg
-viewItem { toId, viewItemContent } { key, mouse } data =
+viewItem { getItemId, viewItemContent } { key, mouse } data =
     let
         id =
-            toId data
+            getItemId data
 
         isSelected maybeId =
             case maybeId of
@@ -266,7 +267,7 @@ viewList : ViewConfig data -> Int -> State -> List data -> Html Msg
 viewList config howManyToShow state data =
     let
         getKeyedItems datum =
-            ( config.toId datum, viewItem config state datum )
+            ( config.getItemId datum, viewItem config state datum )
     in
         keyedDiv [ Html.Attributes.class "dropdown-menu" ]
             (List.take howManyToShow data

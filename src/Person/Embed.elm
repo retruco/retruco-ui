@@ -268,7 +268,8 @@ update msg fieldId model =
 
 updateAutocompleteConfig : Autocomplete.UpdateConfig Msg StatementAutocompletion
 updateAutocompleteConfig =
-    { onFocus = \id -> Just <| Preview id
+    { getItemId = .statement >> .id
+    , onFocus = \id -> Just <| Preview id
     , onKeyDown =
         \code maybeId ->
             if code == 38 || code == 40 then
@@ -283,7 +284,6 @@ updateAutocompleteConfig =
     , onTooHigh = Just <| Wrap True
     , onTooLow = Just <| Wrap False
     , separateSelections = False
-    , toId = .statement >> .id
     }
 
 
@@ -322,25 +322,17 @@ viewAutocomplete parentId model errors =
                 )
             )
 
-        query =
-            case model.selectedMaybe of
-                Just selected ->
-                    selected.autocomplete
-
-                Nothing ->
-                    model.autocomplete
-
-        fieldId =
+        inputId =
             if String.isEmpty parentId then
                 "autocomplete"
             else
                 parentId ++ ".autocomplete"
 
         errorId =
-            fieldId ++ "-error"
+            inputId ++ "-error"
 
         errorMaybe =
-            (Dict.get fieldId errors)
+            (Dict.get inputId errors)
 
         ( errorClass, errorAttributes, errorBlock ) =
             case errorMaybe of
@@ -358,6 +350,17 @@ viewAutocomplete parentId model errors =
                 Nothing ->
                     ( "", [], [] )
 
+        menuId =
+            inputId ++ "-menu"
+
+        query =
+            case model.selectedMaybe of
+                Just selected ->
+                    selected.autocomplete
+
+                Nothing ->
+                    model.autocomplete
+
         showAutocompleteMenu =
             case model.autocompleteMenuState of
                 AutocompleteMenuVisible ->
@@ -370,7 +373,8 @@ viewAutocomplete parentId model errors =
             if showAutocompleteMenu then
                 [ Html.App.map AutocompleteMsg
                     (Autocomplete.view
-                        { toId = .statement >> .id
+                        { getItemId = .statement >> .id
+                        , menuId = menuId
                         , viewItemContent = viewAutocompleteItemContent
                         }
                         autocompleterSize
@@ -383,7 +387,7 @@ viewAutocomplete parentId model errors =
     in
         div [ class ("form-group" ++ errorClass) ]
             (List.concat
-                [ [ label [ class "control-label", for fieldId ]
+                [ [ label [ class "control-label", for inputId ]
                         [ span [ class "fa fa-search" ] []
                         , text " "
                         , text "Search"
@@ -394,10 +398,10 @@ viewAutocomplete parentId model errors =
                                 [ [ attribute "aria-autocomplete" "list"
                                   , ariaExpanded <| String.toLower <| toString showAutocompleteMenu
                                   , attribute "aria-haspopup" <| String.toLower <| toString showAutocompleteMenu
-                                  , attribute "aria-owns" "list-of-presidents"
+                                  , attribute "aria-owns" menuId
                                   , autocomplete False
                                   , class "form-control"
-                                  , id fieldId
+                                  , id inputId
                                   , onFocus Focus
                                   , onInput InputChanged
                                   , onWithOptions "keydown" { preventDefault = True, stopPropagation = False } decodeKeyCode
