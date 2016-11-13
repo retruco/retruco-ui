@@ -32,6 +32,8 @@ type Msg
     | LoadMenu
     | LoadMenuErr Http.Error
     | LoadMenuOk StatementsAutocompletionBody
+    | MouseClose
+    | MouseOpen
     | MouseSelect String
     | NoOp
     | Preview String
@@ -62,6 +64,22 @@ getAutocompletionFromId id model =
 init : Model
 init =
     initStatementEmbed
+
+
+requestToLoadAutocompleteMenu : Model -> ( Model, Cmd Msg )
+requestToLoadAutocompleteMenu model =
+    case model.autocompleteMenuState of
+        AutocompleteMenuHidden ->
+            sleepAndThenLoadAutocompleteMenu model
+
+        AutocompleteMenuSleeping ->
+            ( model, Cmd.none )
+
+        AutocompleteMenuLoading ->
+            ( { model | autocompleteMenuState = AutocompleteMenuSleeping }, Cmd.none )
+
+        AutocompleteMenuVisible ->
+            sleepAndThenLoadAutocompleteMenu model
 
 
 resetAutocompleteMenu : Model -> Model
@@ -150,18 +168,7 @@ update msg fieldId model =
         InputChanged fieldValue ->
             let
                 ( newModel, cmd ) =
-                    case model.autocompleteMenuState of
-                        AutocompleteMenuHidden ->
-                            sleepAndThenLoadAutocompleteMenu model
-
-                        AutocompleteMenuSleeping ->
-                            ( model, Cmd.none )
-
-                        AutocompleteMenuLoading ->
-                            ( { model | autocompleteMenuState = AutocompleteMenuSleeping }, Cmd.none )
-
-                        AutocompleteMenuVisible ->
-                            sleepAndThenLoadAutocompleteMenu model
+                    requestToLoadAutocompleteMenu model
             in
                 ( { newModel
                     | autocomplete = fieldValue
@@ -202,6 +209,30 @@ update msg fieldId model =
               }
             , Cmd.none
             )
+
+        MouseClose ->
+            let
+                prefix =
+                    if String.isEmpty fieldId then
+                        fieldId
+                    else
+                        fieldId ++ "."
+            in
+                ( { model
+                    | autocomplete =
+                        case model.selectedMaybe of
+                            Just selected ->
+                                selected.autocomplete
+
+                            Nothing ->
+                                model.autocomplete
+                  }
+                    |> resetAutocompleteMenu
+                , Task.perform (\err -> NoOp) (\_ -> NoOp) (Dom.focus (prefix ++ "autocomplete"))
+                )
+
+        MouseOpen ->
+            requestToLoadAutocompleteMenu model
 
         MouseSelect id ->
             let
@@ -421,69 +452,71 @@ viewAutocomplete parentId model errors =
                                 ]
                             )
                             []
-                        , (case model.selectedMaybe of
-                            Just selected ->
-                                span [ class "input-group-addon" ]
-                                    [ span
-                                        [ ariaHidden True
-                                        , class "text-success fa fa-check fa-fw"
-                                        ]
-                                        []
-                                    , span
-                                        [ class "sr-only" ]
-                                        [ text "Person found" ]
-                                    ]
-
-                            Nothing ->
-                                (case model.autocompleteMenuState of
-                                    AutocompleteMenuHidden ->
-                                        span [ class "input-group-addon" ]
-                                            [ span
-                                                [ ariaHidden True
-                                                , class "fa fa-caret-down fa-fw"
-                                                ]
-                                                []
-                                            , span
-                                                [ class "sr-only" ]
-                                                [ text "Type some characters to find a person" ]
-                                            ]
-
-                                    AutocompleteMenuVisible ->
-                                        span [ class "bg-inverse text-white input-group-addon" ]
-                                            [ span
-                                                [ ariaHidden True
-                                                , class "fa fa-caret-down fa-fw"
-                                                ]
-                                                []
-                                            , span
-                                                [ class "sr-only" ]
-                                                [ text "Select a person or type more characters" ]
-                                            ]
-
-                                    _ ->
-                                        span [ class "input-group-addon" ]
-                                            [ span [ ariaHidden True, class "fa fa-fw fa-refresh fa-spin" ] []
-                                            , span [ class "sr-only" ] [ text "Loading menu..." ]
-                                            ]
-                                )
-                          )
                         , span [ class "input-group-btn" ]
-                            [ button
-                                [ class "btn btn-primary"
-                                , disabled
-                                    (case model.selectedMaybe of
-                                        Just selected ->
-                                            False
+                            [ (case model.autocompleteMenuState of
+                                AutocompleteMenuHidden ->
+                                    button
+                                        [ class "btn btn-secondary"
+                                        , onWithOptions "click"
+                                            { preventDefault = True, stopPropagation = False }
+                                            (Json.Decode.succeed MouseOpen)
+                                        ]
+                                        (case model.selectedMaybe of
+                                            Just selected ->
+                                                [ span
+                                                    [ ariaHidden True
+                                                    , class "text-success fa fa-check fa-fw"
+                                                    ]
+                                                    []
+                                                , span
+                                                    [ class "sr-only" ]
+                                                    [ text "Find another person" ]
+                                                ]
 
-                                        Nothing ->
-                                            True
-                                    )
-                                ]
-                                [ text "Show" ]
+                                            Nothing ->
+                                                [ span
+                                                    [ ariaHidden True
+                                                    , class "fa fa-caret-down fa-fw"
+                                                    ]
+                                                    []
+                                                , span
+                                                    [ class "sr-only" ]
+                                                    [ text "Find a person" ]
+                                                ]
+                                        )
+
+                                AutocompleteMenuVisible ->
+                                    button
+                                        [ class "active btn btn-secondary"
+                                        , onWithOptions "click"
+                                            { preventDefault = True, stopPropagation = False }
+                                            (Json.Decode.succeed MouseClose)
+                                        ]
+                                        [ span
+                                            [ ariaHidden True
+                                            , class "fa fa-caret-down fa-fw"
+                                            ]
+                                            []
+                                        , span
+                                            [ class "sr-only" ]
+                                            [ text "Select a person or type more characters" ]
+                                        ]
+
+                                _ ->
+                                    button
+                                        [ class "btn btn-secondary"
+                                        , disabled True
+                                        , onWithOptions "click"
+                                            { preventDefault = True, stopPropagation = False }
+                                            (Json.Decode.succeed NoOp)
+                                        ]
+                                        [ span [ ariaHidden True, class "fa fa-fw fa-refresh fa-spin" ] []
+                                        , span [ class "sr-only" ] [ text "Loading menu..." ]
+                                        ]
+                              )
                             ]
                         , span [ class "input-group-btn" ]
-                            [ button
-                                [ class "btn btn-primary" ]
+                            [ button [ class "btn btn-secondary" ]
                                 [ text "New" ]
                             ]
                         ]
