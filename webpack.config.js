@@ -103,6 +103,7 @@ if (TARGET_ENV === 'production') {
     entry: [
       'font-awesome-loader',
       'font-awesome-loader!./static/font-awesome/font-awesome.config.js',
+      'bootstrap-loader/extractStyles',
       path.join(__dirname, 'static/index.js')
     ],
     module: {
