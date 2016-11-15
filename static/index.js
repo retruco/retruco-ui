@@ -1,6 +1,7 @@
 
 // pull in desired CSS/SASS files
-require('./css/index.scss');
+// Note: index.scss is already imported by bootstrap-loader (see .bootstraprc).
+// require('./css/index.scss');
 
 // inject bundled Elm app into div#main
 
