@@ -114,7 +114,8 @@ newTaskCreateStatement authentication statementCustom =
                 , url =
                     (apiUrl
                         ++ "statements"
-                        ++ "?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=properties&show=tags"
+                        ++ "?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=properties&show=references"
+                        ++ "&show=tags"
                     )
                 , headers =
                     [ ( "Accept", "application/json" )
@@ -135,7 +136,8 @@ newTaskDeleteStatementRating authentication statementId =
                 (apiUrl
                     ++ "statements/"
                     ++ statementId
-                    ++ "/rating?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=properties&show=tags"
+                    ++ "/rating?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=properties&show=references"
+                    ++ "&show=tags"
                 )
             , headers =
                 [ ( "Accept", "application/json" )
@@ -155,7 +157,8 @@ newTaskFlagAbuse authentication statementId =
                 (apiUrl
                     ++ "statements/"
                     ++ statementId
-                    ++ "/abuse?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=properties&show=tags"
+                    ++ "/abuse?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=properties&show=references"
+                    ++ "&show=tags"
                 )
             , headers =
                 [ ( "Accept", "application/json" )
@@ -230,7 +233,8 @@ newTaskRateStatement authentication rating statementId =
                     (apiUrl
                         ++ "statements/"
                         ++ statementId
-                        ++ "/rating?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=properties&show=tags"
+                        ++ "/rating?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=properties"
+                        ++ "&show=references&show=tags"
                     )
                 , headers =
                     [ ( "Accept", "application/json" )
