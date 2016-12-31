@@ -1,25 +1,16 @@
 module NewGroundArgument exposing (init, Msg, Model, update, view)
 
-import Authenticator.Model
+import Authenticator.Types
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
-import Requests exposing (newTaskCreateStatement, newTaskRateStatement)
+import Requests exposing (..)
 import String
 import Task
-import Types
-    exposing
-        ( convertStatementFormToCustom
-        , DataId
-        , DataIdBody
-        , decodeDataIdBody
-        , initStatementForm
-        , StatementCustom(..)
-        , StatementForm
-        )
-import Views exposing (viewArgumentType, viewKind, viewLanguageCode, viewName, viewOption)
+import Types exposing (..)
+import Views exposing (..)
 
 
 -- MODEL
@@ -58,8 +49,8 @@ type Msg
     | Submit
 
 
-update : Msg -> Maybe Authenticator.Model.Authentication -> Model -> ( Model, Cmd Msg, Maybe DataId )
-update msg authenticationMaybe model =
+update : Msg -> Maybe Authenticator.Types.Authentication -> Model -> ( Model, Cmd Msg, Maybe DataId )
+update msg authentication model =
     case msg of
         ArgumentCreated body ->
             ( model, Cmd.none, Just body.data )
@@ -83,7 +74,7 @@ update msg authenticationMaybe model =
                     data.id
 
                 cmd =
-                    case authenticationMaybe of
+                    case authentication of
                         Just authentication ->
                             Task.perform
                                 ArgumentCreateError
@@ -116,36 +107,36 @@ update msg authenticationMaybe model =
                 statementForm =
                     model.statementForm
 
-                statementForm' =
+                statementForm_ =
                     { statementForm
                         | kind = kind
                     }
             in
-                ( { model | statementForm = statementForm' }, Cmd.none, Nothing )
+                ( { model | statementForm = statementForm_ }, Cmd.none, Nothing )
 
         LanguageCodeChanged languageCode ->
             let
                 statementForm =
                     model.statementForm
 
-                statementForm' =
+                statementForm_ =
                     { statementForm
                         | languageCode = languageCode
                     }
             in
-                ( { model | statementForm = statementForm' }, Cmd.none, Nothing )
+                ( { model | statementForm = statementForm_ }, Cmd.none, Nothing )
 
         NameInput name ->
             let
                 statementForm =
                     model.statementForm
 
-                statementForm' =
+                statementForm_ =
                     { statementForm
                         | name = name
                     }
             in
-                ( { model | statementForm = statementForm' }, Cmd.none, Nothing )
+                ( { model | statementForm = statementForm_ }, Cmd.none, Nothing )
 
         Submit ->
             let
@@ -194,7 +185,7 @@ update msg authenticationMaybe model =
 
                 cmd =
                     if List.isEmpty errorsList then
-                        case authenticationMaybe of
+                        case authentication of
                             Just authentication ->
                                 Task.perform
                                     GroundCreateError
@@ -209,12 +200,12 @@ update msg authenticationMaybe model =
                     else
                         Cmd.none
 
-                statementForm' =
+                statementForm_ =
                     { statementForm
                         | errors = Dict.fromList errorsList
                     }
             in
-                ( { model | statementForm = statementForm' }, cmd, Nothing )
+                ( { model | statementForm = statementForm_ }, cmd, Nothing )
 
 
 
@@ -247,7 +238,7 @@ view model =
                             []
                    )
                 ++ [ button
-                        [ class "btn btn-primary", type' "submit" ]
+                        [ class "btn btn-primary", type_ "button" ]
                         [ text "Create" ]
                    ]
             )

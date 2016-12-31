@@ -1,11 +1,9 @@
 module Person.Embed exposing (..)
 
 import Autocomplete
-import Basics.Extra exposing (never)
 import Dict
 import Dom
 import Html exposing (..)
-import Html.App
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Html.Events exposing (keyCode, onFocus, onInput, onWithOptions)
@@ -119,7 +117,7 @@ sleepAndThenLoadAutocompleteMenu : Model -> ( Model, Cmd Msg )
 sleepAndThenLoadAutocompleteMenu model =
     ( { model | autocompleteMenuState = AutocompleteMenuSleeping }
     , Process.sleep (300 * millisecond)
-        |> Task.perform never (\() -> LoadMenu)
+        |> Task.perform (\() -> LoadMenu)
     )
 
 
@@ -185,7 +183,7 @@ update msg fieldId model =
             , Task.perform
                 LoadMenuErr
                 LoadMenuOk
-                (newTaskAutocompleteStatements Nothing "Person" model.autocomplete autocompleterSize)
+                (autocompleteObjects Nothing "Person" model.autocomplete autocompleterSize)
             )
 
         LoadMenuErr err ->
@@ -199,7 +197,7 @@ update msg fieldId model =
                         , Task.perform
                             LoadMenuErr
                             LoadMenuOk
-                            (newTaskAutocompleteStatements Nothing "Person" model.autocomplete autocompleterSize)
+                            (autocompleteObjects Nothing "Person" model.autocomplete autocompleterSize)
                         )
 
                     _ ->
@@ -332,7 +330,7 @@ view fieldLabel fieldId model errors changed =
     in
         fieldset [ class "form-group" ]
             [ legend [] [ text fieldLabel ]
-            , Html.App.map changed (viewAutocomplete fieldId model errors)
+            , Html.map changed (viewAutocomplete fieldId model errors)
             ]
 
 
@@ -371,10 +369,10 @@ viewAutocomplete parentId model errors =
         ( errorClass, errorAttributes, errorBlock ) =
             case errorMaybe of
                 Just error ->
-                    ( " has-error"
+                    ( " has-danger"
                     , [ ariaDescribedby errorId ]
-                    , [ span
-                            [ class "help-block"
+                    , [ div
+                            [ class "form-control-feedback"
                             , id errorId
                             ]
                             [ text error ]
@@ -405,7 +403,7 @@ viewAutocomplete parentId model errors =
 
         menu =
             if showAutocompleteMenu then
-                [ Html.App.map AutocompleteMsg
+                [ Html.map AutocompleteMsg
                     (Autocomplete.view
                         { getItemId = .statement >> .id
                         , menuId = menuId
@@ -441,7 +439,7 @@ viewAutocomplete parentId model errors =
                                   , onWithOptions "keydown" { preventDefault = True, stopPropagation = False } decodeKeyCode
                                   , placeholder "John Doe (@JohnDoe)"
                                   , attribute "role" "combobox"
-                                  , type' "text"
+                                  , type_ "text"
                                   , value query
                                   ]
                                 , (case model.selectedMaybe of

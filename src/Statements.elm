@@ -14,12 +14,10 @@ module Statements
         , viewIndex
         )
 
-import Authenticator.Model
+import Authenticator.Types
 import Dict exposing (Dict)
-import Hop.Types
-import Html exposing (article, h1, Html, li, text, ul)
-import Html.Attributes exposing (class)
-import Html.App
+import Html exposing (..)
+import Html.Attributes exposing (..)
 import Http
 import Navigation
 import NewStatement
@@ -28,7 +26,7 @@ import Requests
         ( newTaskDeleteStatementRating
         , newTaskFlagAbuse
         , newTaskGetStatements
-        , newTaskRateStatement
+        , rateStatement
         , updateFromDataId
         )
 import Routes exposing (makeUrl, StatementsNestedRoute(..))
@@ -156,11 +154,6 @@ load =
     Task.perform (\_ -> Debug.crash "") (\_ -> ForSelf Load) (Task.succeed "")
 
 
-navigate : String -> Msg
-navigate path =
-    ForParent (Navigate path)
-
-
 statementMsgTranslation : Statement.MsgTranslation Msg
 statementMsgTranslation =
     { onInternalMsg = \internalMsg -> ForSelf (StatementMsg internalMsg)
@@ -183,8 +176,8 @@ translateMsg { onInternalMsg, onNavigate } msg =
             onInternalMsg internalMsg
 
 
-update : InternalMsg -> Maybe Authenticator.Model.Authentication -> SearchCriteria -> Model -> ( Model, Cmd Msg )
-update msg authenticationMaybe searchCriteria model =
+update : InternalMsg -> Maybe Authenticator.Types.Authentication -> SearchCriteria -> Model -> ( Model, Cmd Msg )
+update msg authentication searchCriteria model =
     case msg of
         Error err ->
             let
@@ -196,7 +189,7 @@ update msg authenticationMaybe searchCriteria model =
         FlagAbuse statementId ->
             let
                 cmd =
-                    case authenticationMaybe of
+                    case authentication of
                         Just authentication ->
                             Task.perform
                                 (\err -> ForSelf (FlagAbuseError err))
@@ -227,12 +220,12 @@ update msg authenticationMaybe searchCriteria model =
                 --         Task.perform
                 --             (ForSelf << Error)
                 --             (ForSelf << Loaded)
-                --             (newTaskGetStatements authenticationMaybe searchCriteria)
+                --             (newTaskGetStatements authentication searchCriteria)
                 cmd =
                     Task.perform
                         (ForSelf << Error)
                         (ForSelf << Loaded)
-                        (newTaskGetStatements authenticationMaybe searchCriteria)
+                        (newTaskGetStatements authentication searchCriteria)
             in
                 ( model, cmd )
 
@@ -249,7 +242,7 @@ update msg authenticationMaybe searchCriteria model =
         NewStatementMsg childMsg ->
             let
                 ( newStatementModel, childEffect, dataMaybe ) =
-                    NewStatement.update childMsg authenticationMaybe model.newStatementModel
+                    NewStatement.update childMsg authentication model.newStatementModel
 
                 model1 =
                     case dataMaybe of
@@ -276,14 +269,14 @@ update msg authenticationMaybe searchCriteria model =
         RatingChanged ratingMaybe statementId ->
             let
                 cmd =
-                    case authenticationMaybe of
+                    case authentication of
                         Just authentication ->
                             case ratingMaybe of
                                 Just rating ->
                                     Task.perform
                                         (\err -> ForSelf (RateError err))
                                         (\body -> ForSelf (Rated body))
-                                        (newTaskRateStatement authentication rating statementId)
+                                        (rateStatement authentication rating statementId)
 
                                 Nothing ->
                                     Task.perform
@@ -309,7 +302,7 @@ update msg authenticationMaybe searchCriteria model =
                     }
 
                 ( statementmodel2, childEffect ) =
-                    Statement.update childMsg authenticationMaybe statementmodel1
+                    Statement.update childMsg authentication statementmodel1
 
                 model1 =
                     { model
@@ -326,8 +319,8 @@ update msg authenticationMaybe searchCriteria model =
 -- VIEW
 
 
-view : Maybe Authenticator.Model.Authentication -> Model -> Html Msg
-view authenticationMaybe model =
+view : Maybe Authenticator.Types.Authentication -> Model -> Html Msg
+view authentication model =
     case model.route of
         StatementRoute statementId ->
             let
@@ -341,17 +334,17 @@ view authenticationMaybe model =
                         , statementIds = model.statementIds
                     }
             in
-                Html.App.map translateStatementMsg (Statement.view authenticationMaybe statementmodel1)
+                Html.map translateStatementMsg (Statement.view authentication statementmodel1)
 
         StatementsIndexRoute ->
-            viewIndex authenticationMaybe model
+            viewIndex authentication model
 
         StatementsNotFoundRoute ->
             viewNotFound
 
 
-viewIndex : Maybe Authenticator.Model.Authentication -> Model -> Html Msg
-viewIndex authenticationMaybe model =
+viewIndex : Maybe Authenticator.Types.Authentication -> Model -> Html Msg
+viewIndex authentication model =
     article
         [ class "statements" ]
         [ h1 [] [ text "Statements" ]
@@ -360,7 +353,7 @@ viewIndex authenticationMaybe model =
             (List.map
                 (\statementId ->
                     viewStatementLine
-                        authenticationMaybe
+                        authentication
                         li
                         statementId
                         True
@@ -371,9 +364,9 @@ viewIndex authenticationMaybe model =
                 )
                 model.statementIds
             )
-        , case authenticationMaybe of
+        , case authentication of
             Just authentication ->
-                Html.App.map (ForSelf << NewStatementMsg) (NewStatement.view model.newStatementModel)
+                Html.map (ForSelf << NewStatementMsg) (NewStatement.view model.newStatementModel)
 
             Nothing ->
                 text ""

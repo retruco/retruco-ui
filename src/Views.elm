@@ -1,44 +1,15 @@
-module Views
-    exposing
-        ( aForPath
-        , viewArgumentType
-        , viewEvent
-        , viewInlineSearchLanguageCode
-        , viewInlineSearchSort
-        , viewInlineSearchTerm
-        , viewInlineSearchType
-        , viewKind
-        , viewLanguageCode
-        , viewName
-        , viewNotFound
-        , viewOption
-        , viewPlain
-        , viewStatementLine
-        , viewStatementLineBody
-        , viewStatementLinePanel
-        , viewTwitterName
-        )
+module Views exposing (..)
 
-import Authenticator.Model
-import Dict
 import Json.Decode
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Html.Events exposing (on, onClick, onInput, onWithOptions, targetValue)
-import Routes exposing (makeUrl)
+import Http exposing (Error(..))
+import I18n
 import String
-import Types
-    exposing
-        ( Ballot
-        , convertArgumentTypeToString
-        , EventForm
-        , FormErrors
-        , ModelFragment
-        , PlainForm
-        , Statement
-        , StatementCustom(..)
-        )
+import Types exposing (..)
+import WebData exposing (LoadingStatus, WebData(..))
 
 
 argumentTypeLabelCouples : List ( String, String )
@@ -121,20 +92,6 @@ searchTypes =
     List.map (\( item, label ) -> item) searchTypeLabelCouples
 
 
-aForPath : (String -> msg) -> String -> List (Attribute msg) -> List (Html msg) -> Html msg
-aForPath navigate path attributes children =
-    a
-        ([ href (makeUrl path)
-         , onWithOptions
-            "click"
-            { stopPropagation = False, preventDefault = True }
-            (Json.Decode.succeed (navigate path))
-         ]
-            ++ attributes
-        )
-        children
-
-
 decodeArgumentType : String -> Json.Decode.Decoder String
 decodeArgumentType value =
     if List.member value argumentTypes then
@@ -195,6 +152,51 @@ decodeSearchType value =
         Json.Decode.fail ("Unknown search type: " ++ value)
 
 
+errorInfos : I18n.Language -> String -> Maybe I18n.TranslationId -> ( String, List (Attribute msg), List (Html msg1) )
+errorInfos language fieldId error =
+    let
+        errorId =
+            fieldId ++ "-error"
+    in
+        case error of
+            Just error ->
+                ( " has-danger"
+                , [ ariaDescribedby errorId ]
+                , [ div
+                        [ class "form-control-feedback"
+                        , id errorId
+                        ]
+                        [ text <| I18n.translate language error ]
+                  ]
+                )
+
+            Nothing ->
+                ( "", [], [] )
+
+
+getHttpErrorAsString : I18n.Language -> Http.Error -> String
+getHttpErrorAsString language err =
+    case err of
+        BadPayload message response ->
+            I18n.translate language I18n.BadPayloadExplanation
+
+        BadStatus response ->
+            if response.status.code == 404 then
+                I18n.translate language I18n.PageNotFoundExplanation
+            else
+                -- TODO Add I18n.BadStatusExplanation prefix
+                toString response
+
+        BadUrl message ->
+            I18n.translate language I18n.BadUrlExplanation
+
+        NetworkError ->
+            I18n.translate language I18n.NetworkErrorExplanation
+
+        Timeout ->
+            I18n.translate language I18n.TimeoutExplanation
+
+
 hasBallotRating : Int -> Maybe Ballot -> Bool
 hasBallotRating rating ballotMaybe =
     case ballotMaybe of
@@ -211,10 +213,10 @@ viewArgumentType argumentType errorMaybe argumentTypeChanged =
         ( errorClass, errorAttributes, errorBlock ) =
             case errorMaybe of
                 Just error ->
-                    ( " has-error"
+                    ( " has-danger"
                     , [ ariaDescribedby "argument-type-error" ]
-                    , [ span
-                            [ class "help-block"
+                    , [ div
+                            [ class "form-control-feedback"
                             , id "argument-type-error"
                             ]
                             [ text error ]
@@ -231,7 +233,7 @@ viewArgumentType argumentType errorMaybe argumentTypeChanged =
                  , id "argument-type"
                  , on "change"
                     (Json.Decode.map argumentTypeChanged
-                        (targetValue `Json.Decode.andThen` decodeArgumentType)
+                        (targetValue |> Json.Decode.andThen decodeArgumentType)
                     )
                  ]
                     ++ errorAttributes
@@ -245,9 +247,56 @@ viewArgumentType argumentType errorMaybe argumentTypeChanged =
             )
 
 
-viewEvent : EventForm -> FormErrors -> (EventForm -> msg) -> Html msg
-viewEvent eventForm errors eventChanged =
-    div [] [ text "TODO: Event" ]
+viewBigMessage : String -> String -> Html msg
+viewBigMessage title message =
+    div
+        -- [ style
+        --     [ ( "justify-content", "center" )
+        --     , ( "flex-direction", "column" )
+        --     , ( "display", "flex" )
+        --     , ( "align-items", "center" )
+        --     , ( "height", "100%" )
+        --     , ( "margin", "1em" )
+        --     , ( "font-family", "sans-serif" )
+        --     ]
+        -- ]
+        []
+        [ h1 []
+            [ text title ]
+        , p
+            -- [ style
+            --     [ ( "color", "rgb(136, 136, 136)" )
+            --     , ( "margin-top", "3em" )
+            --     ]
+            -- ]
+            []
+            [ text message ]
+        ]
+
+
+
+-- viewEvent : EventForm -> FormErrors -> (EventForm -> msg) -> Html msg
+-- viewEvent eventForm errors eventChanged =
+--     div [] [ text "TODO: Event" ]
+
+
+viewI18nOption : I18n.Language -> a -> ( a, I18n.TranslationId ) -> Html msg
+viewI18nOption language selectedItem ( item, label ) =
+    let
+        itemString =
+            (toString item)
+
+        itemString_ =
+            if String.left 1 itemString == "\"" && String.right 1 itemString == "\"" then
+                String.slice 1 -1 itemString
+            else
+                itemString
+    in
+        option
+            [ selected (item == selectedItem)
+            , value itemString_
+            ]
+            [ text <| I18n.translate language label ]
 
 
 viewInlineSearchLanguageCode : String -> Maybe String -> (String -> msg) -> Html msg
@@ -256,10 +305,10 @@ viewInlineSearchLanguageCode searchLanguageCode errorMaybe searchLanguageCodeCha
         ( errorClass, errorAttributes, errorBlock ) =
             case errorMaybe of
                 Just error ->
-                    ( " has-error"
+                    ( " has-danger"
                     , [ ariaDescribedby "search-language-code-error" ]
-                    , [ span
-                            [ class "help-block"
+                    , [ div
+                            [ class "form-control-feedback"
                             , id "search-language-code-error"
                             ]
                             [ text error ]
@@ -276,7 +325,7 @@ viewInlineSearchLanguageCode searchLanguageCode errorMaybe searchLanguageCodeCha
                  , id "search-language-code"
                  , on "change"
                     (Json.Decode.map searchLanguageCodeChanged
-                        (targetValue `Json.Decode.andThen` decodeSearchLanguageCode)
+                        (targetValue |> Json.Decode.andThen decodeSearchLanguageCode)
                     )
                  ]
                     ++ errorAttributes
@@ -296,10 +345,10 @@ viewInlineSearchSort searchSort errorMaybe searchSortChanged =
         ( errorClass, errorAttributes, errorBlock ) =
             case errorMaybe of
                 Just error ->
-                    ( " has-error"
+                    ( " has-danger"
                     , [ ariaDescribedby "search-sort-error" ]
-                    , [ span
-                            [ class "help-block"
+                    , [ div
+                            [ class "form-control-feedback"
                             , id "search-sort-error"
                             ]
                             [ text error ]
@@ -314,7 +363,7 @@ viewInlineSearchSort searchSort errorMaybe searchSortChanged =
              , select
                 ([ class "form-control"
                  , id "search-sort"
-                 , on "change" (Json.Decode.map searchSortChanged (targetValue `Json.Decode.andThen` decodeSearchSort))
+                 , on "change" (Json.Decode.map searchSortChanged (targetValue |> Json.Decode.andThen decodeSearchSort))
                  ]
                     ++ errorAttributes
                 )
@@ -327,16 +376,16 @@ viewInlineSearchSort searchSort errorMaybe searchSortChanged =
             )
 
 
-viewInlineSearchTerm : String -> Maybe String -> (String -> msg) -> Html msg
-viewInlineSearchTerm searchTerm errorMaybe searchTermChanged =
+viewInlineSearchTerm : I18n.Language -> String -> Maybe String -> (String -> msg) -> Html msg
+viewInlineSearchTerm language searchTerm errorMaybe searchTermChanged =
     let
         ( errorClass, errorAttributes, errorBlock ) =
             case errorMaybe of
                 Just error ->
-                    ( " has-error"
+                    ( " has-danger"
                     , [ ariaDescribedby "search-term-error" ]
-                    , [ span
-                            [ class "help-block"
+                    , [ div
+                            [ class "form-control-feedback"
                             , id "search-term-error"
                             ]
                             [ text error ]
@@ -347,12 +396,12 @@ viewInlineSearchTerm searchTerm errorMaybe searchTermChanged =
                     ( "", [], [] )
     in
         div [ class ("form-group" ++ errorClass) ]
-            ([ label [ class "sr-only", for "search-term" ] [ text "Search term" ]
+            ([ label [ class "sr-only", for "search-term" ] [ text <| I18n.translate language I18n.SearchPlaceholder ]
              , input
                 ([ class "form-control"
                  , id "search-term"
-                 , placeholder "Search term"
-                 , type' "text"
+                 , placeholder <| I18n.translate language I18n.SearchPlaceholder
+                 , type_ "text"
                  , value searchTerm
                  , onInput searchTermChanged
                  ]
@@ -370,10 +419,10 @@ viewInlineSearchType searchType errorMaybe searchTypeChanged =
         ( errorClass, errorAttributes, errorBlock ) =
             case errorMaybe of
                 Just error ->
-                    ( " has-error"
+                    ( " has-danger"
                     , [ ariaDescribedby "search-type-error" ]
-                    , [ span
-                            [ class "help-block"
+                    , [ div
+                            [ class "form-control-feedback"
                             , id "search-type-error"
                             ]
                             [ text error ]
@@ -388,7 +437,7 @@ viewInlineSearchType searchType errorMaybe searchTypeChanged =
              , select
                 ([ class "form-control"
                  , id "search-type"
-                 , on "change" (Json.Decode.map searchTypeChanged (targetValue `Json.Decode.andThen` decodeSearchType))
+                 , on "change" (Json.Decode.map searchTypeChanged (targetValue |> Json.Decode.andThen decodeSearchType))
                  ]
                     ++ errorAttributes
                 )
@@ -407,10 +456,10 @@ viewKind kind errorMaybe kindChanged =
         ( errorClass, errorAttributes, errorBlock ) =
             case errorMaybe of
                 Just error ->
-                    ( " has-error"
+                    ( " has-danger"
                     , [ ariaDescribedby "type-error" ]
-                    , [ span
-                            [ class "help-block"
+                    , [ div
+                            [ class "form-control-feedback"
                             , id "type-error"
                             ]
                             [ text error ]
@@ -425,7 +474,7 @@ viewKind kind errorMaybe kindChanged =
              , select
                 ([ class "form-control"
                  , id "type"
-                 , on "change" (Json.Decode.map kindChanged (targetValue `Json.Decode.andThen` decodeKind))
+                 , on "change" (Json.Decode.map kindChanged (targetValue |> Json.Decode.andThen decodeKind))
                  ]
                     ++ errorAttributes
                 )
@@ -444,10 +493,10 @@ viewLanguageCode languageCode errorMaybe languageCodeChanged =
         ( errorClass, errorAttributes, errorBlock ) =
             case errorMaybe of
                 Just error ->
-                    ( " has-error"
+                    ( " has-danger"
                     , [ ariaDescribedby "language-code-error" ]
-                    , [ span
-                            [ class "help-block"
+                    , [ div
+                            [ class "form-control-feedback"
                             , id "language-code-error"
                             ]
                             [ text error ]
@@ -464,7 +513,7 @@ viewLanguageCode languageCode errorMaybe languageCodeChanged =
                  , id "language-code"
                  , on "change"
                     (Json.Decode.map languageCodeChanged
-                        (targetValue `Json.Decode.andThen` decodeLanguageCode)
+                        (targetValue |> Json.Decode.andThen decodeLanguageCode)
                     )
                  ]
                     ++ errorAttributes
@@ -478,6 +527,12 @@ viewLanguageCode languageCode errorMaybe languageCodeChanged =
             )
 
 
+viewLoading : I18n.Language -> Html msg
+viewLoading language =
+    div [ style [ ( "height", "100em" ) ] ]
+        [ img [ class "loader", src "/img/loader.gif" ] [] ]
+
+
 viewName : String -> String -> String -> Maybe String -> (String -> msg) -> Html msg
 viewName fieldLabel fieldId fieldValue errorMaybe valueChanged =
     let
@@ -487,10 +542,10 @@ viewName fieldLabel fieldId fieldValue errorMaybe valueChanged =
         ( errorClass, errorAttributes, errorBlock ) =
             case errorMaybe of
                 Just error ->
-                    ( " has-error"
+                    ( " has-danger"
                     , [ ariaDescribedby errorId ]
-                    , [ span
-                            [ class "help-block"
+                    , [ div
+                            [ class "form-control-feedback"
                             , id errorId
                             ]
                             [ text error ]
@@ -506,7 +561,7 @@ viewName fieldLabel fieldId fieldValue errorMaybe valueChanged =
                 ([ class "form-control"
                  , id fieldId
                  , placeholder "To be or not to be"
-                 , type' "text"
+                 , type_ "text"
                  , value fieldValue
                  , onInput valueChanged
                  ]
@@ -518,13 +573,18 @@ viewName fieldLabel fieldId fieldValue errorMaybe valueChanged =
             )
 
 
-viewNotFound : Html msg
-viewNotFound =
-    p
-        []
-        [ img [ src "./img/elm.png" ] []
-        , text "Page not found!"
-        ]
+viewNotAuthentified : I18n.Language -> Html msg
+viewNotAuthentified language =
+    viewBigMessage
+        (I18n.translate language I18n.AuthenticationRequired)
+        (I18n.translate language I18n.AuthenticationRequiredExplanation)
+
+
+viewNotFound : I18n.Language -> Html msg
+viewNotFound language =
+    viewBigMessage
+        (I18n.translate language I18n.PageNotFound)
+        (I18n.translate language I18n.PageNotFoundExplanation)
 
 
 viewOption : a -> ( a, String ) -> Html msg
@@ -533,7 +593,7 @@ viewOption selectedItem ( item, label ) =
         itemString =
             (toString item)
 
-        itemString' =
+        itemString_ =
             if String.left 1 itemString == "\"" && String.right 1 itemString == "\"" then
                 String.slice 1 -1 itemString
             else
@@ -541,414 +601,392 @@ viewOption selectedItem ( item, label ) =
     in
         option
             [ selected (item == selectedItem)
-            , value itemString'
+            , value itemString_
             ]
             [ text label ]
 
 
-viewPlain : PlainForm -> FormErrors -> (PlainForm -> msg) -> Html msg
-viewPlain citedForm errors citedChanged =
-    div [] [ text "TODO: PlainStatement" ]
 
-
-viewStatementLine :
-    Maybe Authenticator.Model.Authentication
-    -> (List (Attribute msg) -> List (Html msg) -> Html msg)
-    -> String
-    -> Bool
-    -> (String -> msg)
-    -> (Maybe Int -> String -> msg)
-    -> (String -> msg)
-    -> ModelFragment a
-    -> Html msg
-viewStatementLine authenticationMaybe htmlElement statementId link navigate ratingChanged flagAbuse model =
-    htmlElement
-        [ class "statement-line" ]
-        [ viewStatementLinePanel authenticationMaybe statementId ratingChanged flagAbuse model
-        , viewStatementLineBody authenticationMaybe statementId link navigate model
-        ]
-
-
-viewStatementLineBody :
-    Maybe Authenticator.Model.Authentication
-    -> String
-    -> Bool
-    -> (String -> msg)
-    -> ModelFragment a
-    -> Html msg
-viewStatementLineBody authenticationMaybe statementId link navigate model =
-    let
-        statementMaybe =
-            Dict.get statementId model.statementById
-    in
-        case statementMaybe of
-            Nothing ->
-                div
-                    [ class "statement-line-body" ]
-                    [ h4
-                        [ class "statement-line-title" ]
-                        [ text ("Missing statement " ++ statementId) ]
-                    ]
-
-            Just statement ->
-                case statement.custom of
-                    AbuseCustom abuse ->
-                        let
-                            content =
-                                "Abuse"
-                        in
-                            div
-                                [ class "statement-line-body" ]
-                                [ h4
-                                    [ class "statement-line-title" ]
-                                    [ if link then
-                                        aForPath navigate ("/statements/" ++ statement.id) [] [ text content ]
-                                      else
-                                        text content
-                                    , text " for "
-                                    ]
-                                , viewStatementLineBody authenticationMaybe abuse.statementId True navigate model
-                                ]
-
-                    ArgumentCustom argument ->
-                        let
-                            content =
-                                "Argument"
-                        in
-                            div
-                                [ class "statement-line-body" ]
-                                [ h4
-                                    [ class "statement-line-title" ]
-                                    [ if link then
-                                        aForPath navigate ("/statements/" ++ statement.id) [] [ text content ]
-                                      else
-                                        text content
-                                    , text " for "
-                                    ]
-                                , text (convertArgumentTypeToString argument.argumentType)
-                                , dl
-                                    []
-                                    [ dt [] [ text "Claim:" ]
-                                    , dd []
-                                        [ viewStatementLineBody authenticationMaybe
-                                            argument.claimId
-                                            True
-                                            navigate
-                                            model
-                                        ]
-                                    , dt [] [ text "Ground:" ]
-                                    , dd []
-                                        [ viewStatementLineBody authenticationMaybe
-                                            argument.groundId
-                                            True
-                                            navigate
-                                            model
-                                        ]
-                                    ]
-                                ]
-
-                    CitationCustom citation ->
-                        let
-                            content =
-                                "Citation"
-                        in
-                            div
-                                [ class "statement-line-body" ]
-                                [ h4
-                                    [ class "statement-line-title" ]
-                                    [ if link then
-                                        aForPath navigate ("/statements/" ++ statement.id) [] [ text content ]
-                                      else
-                                        text content
-                                    , text " for "
-                                    ]
-                                , dl
-                                    []
-                                    [ dt [] [ text "Person:" ]
-                                    , dd []
-                                        [ viewStatementLineBody authenticationMaybe
-                                            citation.personId
-                                            True
-                                            navigate
-                                            model
-                                        ]
-                                    , dt [] [ text "Quote:" ]
-                                    , dd []
-                                        [ viewStatementLineBody authenticationMaybe
-                                            citation.citedId
-                                            True
-                                            navigate
-                                            model
-                                        ]
-                                    , dt [] [ text "Event:" ]
-                                    , dd []
-                                        [ viewStatementLineBody authenticationMaybe
-                                            citation.eventId
-                                            True
-                                            navigate
-                                            model
-                                        ]
-                                    ]
-                                ]
-
-                    EventCustom event ->
-                        div
-                            [ class "statement-line-body" ]
-                            [ h4
-                                [ class "statement-line-title" ]
-                                [ if link then
-                                    aForPath navigate ("/statements/" ++ statement.id) [] [ text event.name ]
-                                  else
-                                    text event.name
-                                ]
-                            ]
-
-                    PersonCustom person ->
-                        let
-                            title =
-                                if String.isEmpty person.twitterName then
-                                    person.name
-                                else
-                                    person.name ++ " (" ++ person.twitterName ++ ")"
-                        in
-                            div
-                                [ class "statement-line-body" ]
-                                [ h4
-                                    [ class "statement-line-title" ]
-                                    [ if link then
-                                        aForPath navigate ("/statements/" ++ statement.id) [] [ text title ]
-                                      else
-                                        text title
-                                    ]
-                                ]
-
-                    PlainCustom plain ->
-                        div
-                            [ class "statement-line-body" ]
-                            [ h4
-                                [ class "statement-line-title" ]
-                                [ if link then
-                                    aForPath navigate ("/statements/" ++ statement.id) [] [ text plain.name ]
-                                  else
-                                    text plain.name
-                                ]
-                            ]
-
-                    TagCustom tag ->
-                        let
-                            content =
-                                "Tag " ++ tag.name
-                        in
-                            div
-                                [ class "statement-line-body" ]
-                                [ h4
-                                    [ class "statement-line-title" ]
-                                    [ if link then
-                                        aForPath navigate ("/statements/" ++ statement.id) [] [ text content ]
-                                      else
-                                        text content
-                                    , text " for "
-                                    ]
-                                , viewStatementLineBody authenticationMaybe tag.statementId True navigate model
-                                ]
-
-
-viewStatementLinePanel :
-    Maybe Authenticator.Model.Authentication
-    -> String
-    -> (Maybe Int -> String -> msg)
-    -> (String -> msg)
-    -> ModelFragment a
-    -> Html msg
-viewStatementLinePanel authenticationMaybe statementId ratingChanged flagAbuse model =
-    let
-        statementMaybe =
-            Dict.get statementId model.statementById
-    in
-        case statementMaybe of
-            Nothing ->
-                text ""
-
-            Just statement ->
-                let
-                    authenticated =
-                        case authenticationMaybe of
-                            Just _ ->
-                                True
-
-                            Nothing ->
-                                False
-
-                    abuseAttributes =
-                        if authenticated then
-                            [ onClick (flagAbuse statement.id)
-                            ]
-                        else
-                            [ disabled True
-                            ]
-
-                    ballotMaybe =
-                        case statement.ballotIdMaybe of
-                            Just ballotId ->
-                                Dict.get ballotId model.ballotById
-
-                            Nothing ->
-                                Nothing
-
-                    deleteRatingAttributes =
-                        case ballotMaybe of
-                            Just ballot ->
-                                [ class "btn btn-default"
-                                , onClick (ratingChanged Nothing statement.id)
-                                ]
-
-                            Nothing ->
-                                [ class "btn btn-default"
-                                , disabled (not authenticated)
-                                ]
-
-                    negativeRatingAttributes =
-                        if hasBallotRating -1 ballotMaybe then
-                            [ ariaPressed True
-                            , class "active btn btn-default"
-                            ]
-                        else if authenticated then
-                            [ class "btn btn-default"
-                            , onClick (ratingChanged (Just -1) statement.id)
-                            ]
-                        else
-                            [ class "btn btn-default"
-                            , disabled True
-                            ]
-
-                    positiveRatingAttributes =
-                        if hasBallotRating 1 ballotMaybe then
-                            [ ariaPressed True
-                            , class "active btn btn-default"
-                            ]
-                        else if authenticated then
-                            [ class "btn btn-default"
-                            , onClick (ratingChanged (Just 1) statement.id)
-                            ]
-                        else
-                            [ class "btn btn-default"
-                            , disabled True
-                            ]
-
-                    zeroRatingAttributes =
-                        if hasBallotRating 0 ballotMaybe then
-                            [ ariaPressed True
-                            , class "active btn btn-default"
-                            ]
-                        else if authenticated then
-                            [ class "btn btn-default"
-                            , onClick (ratingChanged (Just 0) statement.id)
-                            ]
-                        else
-                            [ class "btn btn-default"
-                            , disabled True
-                            ]
-                in
-                    div
-                        [ ariaLabel "Statement panel"
-                        , class "statement-line-panel"
-                        , role "toolbar"
-                        ]
-                        [ div
-                            [ ariaLabel "Rate statement"
-                            , role "group"
-                            , class "btn-group-vertical btn-group-xs"
-                            ]
-                            [ button
-                                ([ ariaLabel "Set rating for statement to 1"
-                                 , role "button"
-                                 , title "Set rating for statement to 1"
-                                 , type' "button"
-                                 ]
-                                    ++ positiveRatingAttributes
-                                )
-                                [ span
-                                    [ ariaHidden True
-                                    , class "glyphicon glyphicon-triangle-top"
-                                    ]
-                                    []
-                                ]
-                            , button
-                                ([ ariaLabel "Set rating for statement to 0"
-                                 , role "button"
-                                 , title "Set rating for statement to 0"
-                                 , type' "button"
-                                 ]
-                                    ++ zeroRatingAttributes
-                                )
-                                [ text "="
-                                ]
-                            , button
-                                ([ ariaLabel "Set rating for statement to -1"
-                                 , role "button"
-                                 , title "Set rating for statement to -1"
-                                 , type' "button"
-                                 ]
-                                    ++ negativeRatingAttributes
-                                )
-                                [ span
-                                    [ ariaHidden True
-                                    , class "glyphicon glyphicon-triangle-bottom"
-                                    ]
-                                    []
-                                ]
-                            ]
-                        , div
-                            [ ariaLabel "Manage statement"
-                            , role "group"
-                            , class "btn-group-vertical btn-group-xs"
-                            ]
-                            [ button
-                                ([ ariaLabel "Erase rating for statement"
-                                 , role "button"
-                                 , title "Delete rating for statement"
-                                 , type' "button"
-                                 ]
-                                    ++ deleteRatingAttributes
-                                )
-                                [ span
-                                    [ ariaHidden True
-                                    , class "glyphicon glyphicon-erase"
-                                    ]
-                                    []
-                                ]
-                            , button
-                                [ ariaLabel "Sum and count of ratings"
-                                , class "btn btn-default"
-                                , disabled True
-                                  -- , role "button"
-                                , title "Sum and count of ratings"
-                                , type' "button"
-                                ]
-                                [ text ((toString statement.ratingSum) ++ " / " ++ (toString statement.ratingCount))
-                                ]
-                            , button
-                                ([ ariaLabel "Set statement rating to -1"
-                                 , class "btn btn-default"
-                                 , role "button"
-                                 , title "Sum and count of ratings"
-                                 , type' "button"
-                                 ]
-                                    ++ abuseAttributes
-                                )
-                                [ span
-                                    [ ariaHidden True
-                                    , class
-                                        (if statement.isAbuse then
-                                            "glyphicon glyphicon-trash"
-                                         else
-                                            "glyphicon glyphicon-warning-sign"
-                                        )
-                                    ]
-                                    []
-                                ]
-                            ]
-                        ]
+-- viewPlain : PlainForm -> FormErrors -> (PlainForm -> msg) -> Html msg
+-- viewPlain citedForm errors citedChanged =
+--     div [] [ text "TODO: PlainStatement" ]
+-- viewStatementLine :
+--     Maybe Authenticator.Types.Authentication
+--     -> (List (Attribute msg) -> List (Html msg) -> Html msg)
+--     -> String
+--     -> Bool
+--     -> (String -> msg)
+--     -> (Maybe Int -> String -> msg)
+--     -> (String -> msg)
+--     -> ModelFragment a
+--     -> Html msg
+-- viewStatementLine authentication htmlElement statementId link navigate ratingChanged flagAbuse model =
+--     htmlElement
+--         [ class "statement-line" ]
+--         [ viewStatementLinePanel authentication statementId ratingChanged flagAbuse model
+--         , viewStatementLineBody authentication statementId link navigate model
+--         ]
+-- viewStatementLineBody :
+--     Maybe Authenticator.Types.Authentication
+--     -> String
+--     -> Bool
+--     -> (String -> msg)
+--     -> ModelFragment a
+--     -> Html msg
+-- viewStatementLineBody authentication statementId link navigate model =
+--     let
+--         statementMaybe =
+--             Dict.get statementId model.statementById
+--     in
+--         case statementMaybe of
+--             Nothing ->
+--                 div
+--                     [ class "statement-line-body" ]
+--                     [ h4
+--                         [ class "statement-line-title" ]
+--                         [ text ("Missing statement " ++ statementId) ]
+--                     ]
+--             Just statement ->
+--                 case statement.custom of
+--                     AbuseCustom abuse ->
+--                         let
+--                             content =
+--                                 "Abuse"
+--                         in
+--                             div
+--                                 [ class "statement-line-body" ]
+--                                 [ h4
+--                                     [ class "statement-line-title" ]
+--                                     [ if link then
+--                                         aForPath navigate ("/statements/" ++ statement.id) [] [ text content ]
+--                                       else
+--                                         text content
+--                                     , text " for "
+--                                     ]
+--                                 , viewStatementLineBody authentication abuse.statementId True navigate model
+--                                 ]
+--                     ArgumentCustom argument ->
+--                         let
+--                             content =
+--                                 "Argument"
+--                         in
+--                             div
+--                                 [ class "statement-line-body" ]
+--                                 [ h4
+--                                     [ class "statement-line-title" ]
+--                                     [ if link then
+--                                         aForPath navigate ("/statements/" ++ statement.id) [] [ text content ]
+--                                       else
+--                                         text content
+--                                     , text " for "
+--                                     ]
+--                                 , text (convertArgumentTypeToString argument.argumentType)
+--                                 , dl
+--                                     []
+--                                     [ dt [] [ text "Claim:" ]
+--                                     , dd []
+--                                         [ viewStatementLineBody authentication
+--                                             argument.claimId
+--                                             True
+--                                             navigate
+--                                             model
+--                                         ]
+--                                     , dt [] [ text "Ground:" ]
+--                                     , dd []
+--                                         [ viewStatementLineBody authentication
+--                                             argument.groundId
+--                                             True
+--                                             navigate
+--                                             model
+--                                         ]
+--                                     ]
+--                                 ]
+--                     CitationCustom citation ->
+--                         let
+--                             content =
+--                                 "Citation"
+--                         in
+--                             div
+--                                 [ class "statement-line-body" ]
+--                                 [ h4
+--                                     [ class "statement-line-title" ]
+--                                     [ if link then
+--                                         aForPath navigate ("/statements/" ++ statement.id) [] [ text content ]
+--                                       else
+--                                         text content
+--                                     , text " for "
+--                                     ]
+--                                 , dl
+--                                     []
+--                                     [ dt [] [ text "Person:" ]
+--                                     , dd []
+--                                         [ viewStatementLineBody authentication
+--                                             citation.personId
+--                                             True
+--                                             navigate
+--                                             model
+--                                         ]
+--                                     , dt [] [ text "Quote:" ]
+--                                     , dd []
+--                                         [ viewStatementLineBody authentication
+--                                             citation.citedId
+--                                             True
+--                                             navigate
+--                                             model
+--                                         ]
+--                                     , dt [] [ text "Event:" ]
+--                                     , dd []
+--                                         [ viewStatementLineBody authentication
+--                                             citation.eventId
+--                                             True
+--                                             navigate
+--                                             model
+--                                         ]
+--                                     ]
+--                                 ]
+--                     EventCustom event ->
+--                         div
+--                             [ class "statement-line-body" ]
+--                             [ h4
+--                                 [ class "statement-line-title" ]
+--                                 [ if link then
+--                                     aForPath navigate ("/statements/" ++ statement.id) [] [ text event.name ]
+--                                   else
+--                                     text event.name
+--                                 ]
+--                             ]
+--                     PersonCustom person ->
+--                         let
+--                             title =
+--                                 if String.isEmpty person.twitterName then
+--                                     person.name
+--                                 else
+--                                     person.name ++ " (" ++ person.twitterName ++ ")"
+--                         in
+--                             div
+--                                 [ class "statement-line-body" ]
+--                                 [ h4
+--                                     [ class "statement-line-title" ]
+--                                     [ if link then
+--                                         aForPath navigate ("/statements/" ++ statement.id) [] [ text title ]
+--                                       else
+--                                         text title
+--                                     ]
+--                                 ]
+--                     PlainCustom plain ->
+--                         div
+--                             [ class "statement-line-body" ]
+--                             [ h4
+--                                 [ class "statement-line-title" ]
+--                                 [ if link then
+--                                     aForPath navigate ("/statements/" ++ statement.id) [] [ text plain.name ]
+--                                   else
+--                                     text plain.name
+--                                 ]
+--                             ]
+--                     TagCustom tag ->
+--                         let
+--                             content =
+--                                 "Tag " ++ tag.name
+--                         in
+--                             div
+--                                 [ class "statement-line-body" ]
+--                                 [ h4
+--                                     [ class "statement-line-title" ]
+--                                     [ if link then
+--                                         aForPath navigate ("/statements/" ++ statement.id) [] [ text content ]
+--                                       else
+--                                         text content
+--                                     , text " for "
+--                                     ]
+--                                 , viewStatementLineBody authentication tag.statementId True navigate model
+--                                 ]
+-- viewStatementLinePanel :
+--     Maybe Authenticator.Types.Authentication
+--     -> String
+--     -> (Maybe Int -> String -> msg)
+--     -> (String -> msg)
+--     -> ModelFragment a
+--     -> Html msg
+-- viewStatementLinePanel authentication statementId ratingChanged flagAbuse model =
+--     let
+--         statementMaybe =
+--             Dict.get statementId model.statementById
+--     in
+--         case statementMaybe of
+--             Nothing ->
+--                 text ""
+--             Just statement ->
+--                 let
+--                     authenticated =
+--                         case authentication of
+--                             Just _ ->
+--                                 True
+--                             Nothing ->
+--                                 False
+--                     abuseAttributes =
+--                         if authenticated then
+--                             [ onClick (flagAbuse statement.id)
+--                             ]
+--                         else
+--                             [ disabled True
+--                             ]
+--                     ballotMaybe =
+--                         case statement.ballotIdMaybe of
+--                             Just ballotId ->
+--                                 Dict.get ballotId model.ballotById
+--                             Nothing ->
+--                                 Nothing
+--                     deleteRatingAttributes =
+--                         case ballotMaybe of
+--                             Just ballot ->
+--                                 [ class "btn btn-default"
+--                                 , onClick (ratingChanged Nothing statement.id)
+--                                 ]
+--                             Nothing ->
+--                                 [ class "btn btn-default"
+--                                 , disabled (not authenticated)
+--                                 ]
+--                     negativeRatingAttributes =
+--                         if hasBallotRating -1 ballotMaybe then
+--                             [ ariaPressed True
+--                             , class "active btn btn-default"
+--                             ]
+--                         else if authenticated then
+--                             [ class "btn btn-default"
+--                             , onClick (ratingChanged (Just -1) statement.id)
+--                             ]
+--                         else
+--                             [ class "btn btn-default"
+--                             , disabled True
+--                             ]
+--                     positiveRatingAttributes =
+--                         if hasBallotRating 1 ballotMaybe then
+--                             [ ariaPressed True
+--                             , class "active btn btn-default"
+--                             ]
+--                         else if authenticated then
+--                             [ class "btn btn-default"
+--                             , onClick (ratingChanged (Just 1) statement.id)
+--                             ]
+--                         else
+--                             [ class "btn btn-default"
+--                             , disabled True
+--                             ]
+--                     zeroRatingAttributes =
+--                         if hasBallotRating 0 ballotMaybe then
+--                             [ ariaPressed True
+--                             , class "active btn btn-default"
+--                             ]
+--                         else if authenticated then
+--                             [ class "btn btn-default"
+--                             , onClick (ratingChanged (Just 0) statement.id)
+--                             ]
+--                         else
+--                             [ class "btn btn-default"
+--                             , disabled True
+--                             ]
+--                 in
+--                     div
+--                         [ ariaLabel "Statement panel"
+--                         , class "statement-line-panel"
+--                         , role "toolbar"
+--                         ]
+--                         [ div
+--                             [ ariaLabel "Rate statement"
+--                             , role "group"
+--                             , class "btn-group-vertical btn-group-xs"
+--                             ]
+--                             [ button
+--                                 ([ ariaLabel "Set rating for statement to 1"
+--                                  , role "button"
+--                                  , title "Set rating for statement to 1"
+--                                  , type_ "button"
+--                                  ]
+--                                     ++ positiveRatingAttributes
+--                                 )
+--                                 [ span
+--                                     [ ariaHidden True
+--                                     , class "glyphicon glyphicon-triangle-top"
+--                                     ]
+--                                     []
+--                                 ]
+--                             , button
+--                                 ([ ariaLabel "Set rating for statement to 0"
+--                                  , role "button"
+--                                  , title "Set rating for statement to 0"
+--                                  , type_ "button"
+--                                  ]
+--                                     ++ zeroRatingAttributes
+--                                 )
+--                                 [ text "="
+--                                 ]
+--                             , button
+--                                 ([ ariaLabel "Set rating for statement to -1"
+--                                  , role "button"
+--                                  , title "Set rating for statement to -1"
+--                                  , type_ "button"
+--                                  ]
+--                                     ++ negativeRatingAttributes
+--                                 )
+--                                 [ span
+--                                     [ ariaHidden True
+--                                     , class "glyphicon glyphicon-triangle-bottom"
+--                                     ]
+--                                     []
+--                                 ]
+--                             ]
+--                         , div
+--                             [ ariaLabel "Manage statement"
+--                             , role "group"
+--                             , class "btn-group-vertical btn-group-xs"
+--                             ]
+--                             [ button
+--                                 ([ ariaLabel "Erase rating for statement"
+--                                  , role "button"
+--                                  , title "Delete rating for statement"
+--                                  , type_ "button"
+--                                  ]
+--                                     ++ deleteRatingAttributes
+--                                 )
+--                                 [ span
+--                                     [ ariaHidden True
+--                                     , class "glyphicon glyphicon-erase"
+--                                     ]
+--                                     []
+--                                 ]
+--                             , button
+--                                 [ ariaLabel "Sum and count of ratings"
+--                                 , class "btn btn-default"
+--                                 , disabled True
+--                                   -- , role "button"
+--                                 , title "Sum and count of ratings"
+--                                 , type_ "button"
+--                                 ]
+--                                 [ text ((toString statement.ratingSum) ++ " / " ++ (toString statement.ratingCount))
+--                                 ]
+--                             , button
+--                                 ([ ariaLabel "Set statement rating to -1"
+--                                  , class "btn btn-default"
+--                                  , role "button"
+--                                  , title "Sum and count of ratings"
+--                                  , type_ "button"
+--                                  ]
+--                                     ++ abuseAttributes
+--                                 )
+--                                 [ span
+--                                     [ ariaHidden True
+--                                     , class
+--                                         (if statement.isAbuse then
+--                                             "glyphicon glyphicon-trash"
+--                                          else
+--                                             "glyphicon glyphicon-warning-sign"
+--                                         )
+--                                     ]
+--                                     []
+--                                 ]
+--                             ]
+--                         ]
 
 
 viewTwitterName : String -> String -> String -> Maybe String -> (String -> msg) -> Html msg
@@ -960,10 +998,10 @@ viewTwitterName fieldLabel fieldId fieldValue errorMaybe valueChanged =
         ( errorClass, errorAttributes, errorBlock ) =
             case errorMaybe of
                 Just error ->
-                    ( " has-error"
+                    ( " has-danger"
                     , [ ariaDescribedby errorId ]
-                    , [ span
-                            [ class "help-block"
+                    , [ div
+                            [ class "form-control-feedback"
                             , id errorId
                             ]
                             [ text error ]
@@ -979,7 +1017,7 @@ viewTwitterName fieldLabel fieldId fieldValue errorMaybe valueChanged =
                 ([ class "form-control"
                  , id fieldId
                  , placeholder "@JohnDoe"
-                 , type' "text"
+                 , type_ "text"
                  , value fieldValue
                  , onInput valueChanged
                  ]
@@ -989,3 +1027,42 @@ viewTwitterName fieldLabel fieldId fieldValue errorMaybe valueChanged =
              ]
                 ++ errorBlock
             )
+
+
+viewWebData : I18n.Language -> (LoadingStatus a -> Html msg) -> WebData a -> Html msg
+viewWebData language viewSuccess webData =
+    case webData of
+        NotAsked ->
+            div [ class "text-center" ]
+                [ viewLoading language ]
+
+        Failure err ->
+            let
+                genericTitle =
+                    I18n.translate language I18n.GenericError
+
+                title =
+                    case err of
+                        BadPayload message response ->
+                            genericTitle
+
+                        BadStatus response ->
+                            if response.status.code == 404 then
+                                I18n.translate language I18n.PageNotFound
+                            else
+                                -- TODO Add I18n.BadStatusExplanation prefix
+                                genericTitle
+
+                        BadUrl message ->
+                            genericTitle
+
+                        NetworkError ->
+                            genericTitle
+
+                        Timeout ->
+                            genericTitle
+            in
+                viewBigMessage title (getHttpErrorAsString language err)
+
+        Data loadingStatus ->
+            viewSuccess loadingStatus

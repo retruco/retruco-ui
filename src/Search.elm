@@ -1,10 +1,11 @@
 module Search exposing (init, InternalMsg, Model, MsgTranslation, MsgTranslator, translateMsg, update, view)
 
-import Authenticator.Model
+import Authenticator.Types exposing (Authentication)
 import Dict exposing (Dict)
 import Html exposing (a, br, button, div, footer, form, h1, h2, h3, h4, Html, img, input, label, li, nav, p, select, option, span, text, u, ul)
-import Html.Attributes exposing (action, alt, attribute, class, for, href, id, method, name, placeholder, src, title, type', value)
+import Html.Attributes exposing (action, alt, attribute, class, for, href, id, method, name, placeholder, src, title, type_, value)
 import Html.Events exposing (onSubmit)
+import I18n
 import String
 import Types exposing (FormErrors, SearchCriteria)
 import Views exposing (viewInlineSearchLanguageCode, viewInlineSearchSort, viewInlineSearchTerm, viewInlineSearchType)
@@ -70,8 +71,8 @@ type alias MsgTranslator parentMsg =
     Msg -> parentMsg
 
 
-convertModelToSearchCriteria : Model -> Result FormErrors SearchCriteria
-convertModelToSearchCriteria model =
+convertControlsToSearchCriteria : Model -> Result FormErrors SearchCriteria
+convertControlsToSearchCriteria model =
     let
         errorsList =
             (List.filterMap
@@ -124,11 +125,6 @@ convertModelToSearchCriteria model =
             Err (Dict.fromList errorsList)
 
 
-navigate : String -> Msg
-navigate path =
-    ForParent (Navigate path)
-
-
 translateMsg : MsgTranslation parentMsg -> MsgTranslator parentMsg
 translateMsg { onInternalMsg, onNavigate } msg =
     case msg of
@@ -139,8 +135,8 @@ translateMsg { onInternalMsg, onNavigate } msg =
             onInternalMsg internalMsg
 
 
-update : InternalMsg -> Maybe Authenticator.Model.Authentication -> Model -> ( Model, Cmd Msg )
-update msg authenticationMaybe model =
+update : InternalMsg -> Maybe Authentication -> Model -> ( Model, Cmd Msg )
+update msg authentication model =
     case msg of
         SearchLanguageCodeChanged searchLanguageCode ->
             ( { model | searchLanguageCode = searchLanguageCode }, Cmd.none )
@@ -155,7 +151,7 @@ update msg authenticationMaybe model =
             ( { model | searchType = searchType }, Cmd.none )
 
         Submit ->
-            case (convertModelToSearchCriteria model) of
+            case (convertControlsToSearchCriteria model) of
                 Err errors ->
                     ( { model | errors = errors }, Cmd.none )
 
@@ -167,8 +163,8 @@ update msg authenticationMaybe model =
 -- VIEW
 
 
-view : Maybe Authenticator.Model.Authentication -> Model -> Html Msg
-view authenticationMaybe model =
+view : Maybe Authentication -> I18n.Language -> Model -> Html Msg
+view authentication language model =
     nav [ class "navbar navbar-light bg-faded" ]
         [ form [ class "form-inline", onSubmit (ForSelf Submit) ]
             [ viewInlineSearchType
@@ -184,10 +180,11 @@ view authenticationMaybe model =
                 (Dict.get "searchLanguageCode" model.errors)
                 (ForSelf << SearchLanguageCodeChanged)
             , viewInlineSearchTerm
+                language
                 model.searchTerm
                 (Dict.get "searchTerm" model.errors)
                 (ForSelf << SearchTermChanged)
-            , button [ class "btn btn-outline-success", type' "submit" ]
+            , button [ class "btn btn-outline-success", type_ "button" ]
                 [ span [ class "fa fa-search" ] []
                 , text " "
                 , text "Search"

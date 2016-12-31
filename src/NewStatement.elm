@@ -1,6 +1,6 @@
 module NewStatement exposing (init, Msg, Model, subscriptions, update, view)
 
-import Authenticator.Model
+import Authenticator.Types
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -43,8 +43,8 @@ type Msg
     | TwitterNameChanged String
 
 
-update : Msg -> Maybe Authenticator.Model.Authentication -> Model -> ( Model, Cmd Msg, Maybe DataId )
-update msg authenticationMaybe model =
+update : Msg -> Maybe Authenticator.Types.Authentication -> Model -> ( Model, Cmd Msg, Maybe DataId )
+update msg authentication model =
     case msg of
         CitedMsg plainEmbed ->
             ( { model | cited = plainEmbed }, Cmd.none, Nothing )
@@ -116,7 +116,7 @@ update msg authenticationMaybe model =
 
                 cmd =
                     if List.isEmpty errorsList then
-                        case authenticationMaybe of
+                        case authentication of
                             Just authentication ->
                                 Task.perform
                                     CreateError
@@ -183,7 +183,7 @@ view model =
                         []
                )
             ++ [ button
-                    [ class "btn btn-primary", type' "submit" ]
+                    [ class "btn btn-primary", type_ "button" ]
                     [ text "Create" ]
                ]
         )

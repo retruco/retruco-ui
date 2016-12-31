@@ -1,14 +1,13 @@
 module Statement exposing (init, InternalMsg, Model, Msg, MsgTranslation, MsgTranslator, translateMsg, update, view)
 
-import Authenticator.Model
+import Authenticator.Types
 import Dict exposing (Dict)
 import Html exposing (article, div, hr, Html, li, node, text, ul)
-import Html.App
 import Html.Attributes exposing (class)
 import Http
 import Navigation
 import NewGroundArgument
-import Requests exposing (newTaskDeleteStatementRating, newTaskFlagAbuse, newTaskRateStatement, updateFromDataId)
+import Requests exposing (newTaskDeleteStatementRating, newTaskFlagAbuse, rateStatement, updateFromDataId)
 import Routes exposing (makeUrl)
 import Task
 import Types exposing (Ballot, convertArgumentTypeToString, DataIdBody, Statement, StatementCustom(..))
@@ -70,11 +69,6 @@ type alias MsgTranslator parentMsg =
     Msg -> parentMsg
 
 
-navigate : String -> Msg
-navigate path =
-    ForParent (Navigate path)
-
-
 translateMsg : MsgTranslation parentMsg -> MsgTranslator parentMsg
 translateMsg { onInternalMsg, onNavigate } msg =
     case msg of
@@ -85,13 +79,13 @@ translateMsg { onInternalMsg, onNavigate } msg =
             onInternalMsg internalMsg
 
 
-update : InternalMsg -> Maybe Authenticator.Model.Authentication -> Model -> ( Model, Cmd Msg )
-update msg authenticationMaybe model =
+update : InternalMsg -> Maybe Authenticator.Types.Authentication -> Model -> ( Model, Cmd Msg )
+update msg authentication model =
     case msg of
         FlagAbuse statementId ->
             let
                 cmd =
-                    case authenticationMaybe of
+                    case authentication of
                         Just authentication ->
                             Task.perform
                                 (\err -> ForSelf (FlagAbuseError err))
@@ -118,15 +112,15 @@ update msg authenticationMaybe model =
                 newGroundArgumentModel =
                     model.newGroundArgumentModel
 
-                newGroundArgumentModel' =
+                newGroundArgumentModel_ =
                     { newGroundArgumentModel
                         | claimId = model.statementId
                     }
 
-                ( newGroundArgumentModel'', childEffect, dataMaybe ) =
-                    NewGroundArgument.update childMsg authenticationMaybe newGroundArgumentModel'
+                ( newGroundArgumentModel__, childEffect, dataMaybe ) =
+                    NewGroundArgument.update childMsg authentication newGroundArgumentModel_
 
-                model' =
+                model_ =
                     case dataMaybe of
                         Just data ->
                             { model
@@ -148,7 +142,7 @@ update msg authenticationMaybe model =
                                         data.ballots
                                         model.ballotById
                                         Dict.empty
-                                , newGroundArgumentModel = newGroundArgumentModel''
+                                , newGroundArgumentModel = newGroundArgumentModel__
                                 , statementById =
                                     Dict.merge
                                         (\id statement statementById ->
@@ -180,10 +174,10 @@ update msg authenticationMaybe model =
 
                         Nothing ->
                             { model
-                                | newGroundArgumentModel = newGroundArgumentModel''
+                                | newGroundArgumentModel = newGroundArgumentModel__
                             }
             in
-                ( model', Cmd.map (ForSelf << NewGroundArgumentMsg) childEffect )
+                ( model_, Cmd.map (ForSelf << NewGroundArgumentMsg) childEffect )
 
         Rated body ->
             let
@@ -250,14 +244,14 @@ update msg authenticationMaybe model =
         RatingChanged ratingMaybe statementId ->
             let
                 cmd =
-                    case authenticationMaybe of
+                    case authentication of
                         Just authentication ->
                             case ratingMaybe of
                                 Just rating ->
                                     Task.perform
                                         (\err -> ForSelf (RateError err))
                                         (\body -> ForSelf (Rated body))
-                                        (newTaskRateStatement authentication rating statementId)
+                                        (rateStatement authentication rating statementId)
 
                                 Nothing ->
                                     Task.perform
@@ -275,12 +269,12 @@ update msg authenticationMaybe model =
 -- VIEW
 
 
-view : Maybe Authenticator.Model.Authentication -> Model -> Html Msg
-view authenticationMaybe model =
+view : Maybe Authenticator.Types.Authentication -> Model -> Html Msg
+view authentication model =
     article
         [ class "statement" ]
         [ viewStatementLine
-            authenticationMaybe
+            authentication
             div
             model.statementId
             False
@@ -310,7 +304,7 @@ view authenticationMaybe model =
                                                     li
                                                         [ class "statement-line" ]
                                                         [ viewStatementLinePanel
-                                                            authenticationMaybe
+                                                            authentication
                                                             argumentId
                                                             (\ratingMaybe statementId ->
                                                                 ForSelf (RatingChanged ratingMaybe statementId)
@@ -323,7 +317,7 @@ view authenticationMaybe model =
                                                                 (convertArgumentTypeToString argument.argumentType)
                                                             ]
                                                         , viewStatementLineBody
-                                                            authenticationMaybe
+                                                            authentication
                                                             argument.groundId
                                                             True
                                                             navigate
@@ -341,9 +335,9 @@ view authenticationMaybe model =
 
                 Nothing ->
                     text ""
-        , case authenticationMaybe of
+        , case authentication of
             Just authentication ->
-                Html.App.map
+                Html.map
                     (ForSelf << NewGroundArgumentMsg)
                     (NewGroundArgument.view model.newGroundArgumentModel)
 

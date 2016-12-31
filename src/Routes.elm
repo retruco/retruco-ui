@@ -1,63 +1,95 @@
-module Routes exposing (makeUrl, Route(..), StatementsNestedRoute(..), urlParser)
+module Routes exposing (..)
 
-import Authenticator.Model
-import Combine exposing (Parser)
-import Hop
-import Hop.Matchers exposing (match1, match2, nested1)
-import Hop.Types
+import Authenticator.Routes
+import I18n
 import Navigation
+import UrlParser exposing ((</>), map, oneOf, parsePath, Parser, remaining, s, string, top)
+
+
+type LocalizedRoute
+    = AboutRoute
+    | AuthenticatorRoute Authenticator.Routes.Route
+    | NotFoundRoute (List String)
+    | SearchRoute
+    | StatementsRoute StatementsRoute
+    | UserProfileRoute
+    | ValuesRoute ValuesRoute
 
 
 type Route
-    = AboutRoute
-    | AuthenticatorRoute Authenticator.Model.Route
-    | NotFoundRoute
-    | SearchRoute
-    | StatementsRoute StatementsNestedRoute
+    = I18nRouteWithLanguage I18n.Language LocalizedRoute
+    | I18nRouteWithoutLanguage String
 
 
-type StatementsNestedRoute
+type StatementsRoute
     = StatementRoute String
     | StatementsIndexRoute
-    | StatementsNotFoundRoute
 
 
-makeUrl : String -> String
-makeUrl path =
-    Hop.makeUrl routerConfig path
+type ValuesRoute
+    = NewValueRoute
+    | ValueRoute String
+    | ValuesIndexRoute
 
 
-matchers : List (Hop.Types.PathMatcher Route)
-matchers =
-    [ match1 SearchRoute ""
-    , match1 AboutRoute "/about"
-    , match1 (AuthenticatorRoute Authenticator.Model.SignInRoute) "/sign_in"
-    , match1 (AuthenticatorRoute Authenticator.Model.SignOutRoute) "/sign_out"
-    , match1 (AuthenticatorRoute Authenticator.Model.SignUpRoute) "/sign_up"
-    , nested1 StatementsRoute
-        "/statements"
-        [ match1 StatementsIndexRoute ""
-        , match2 StatementRoute "/" statementIdParser
+idParser : Parser (String -> a) a
+idParser =
+    string
+
+
+localizedRouteParser : Parser (LocalizedRoute -> a) a
+localizedRouteParser =
+    oneOf
+        [ map SearchRoute top
+        , map AboutRoute (s "about")
+        , map UserProfileRoute (s "profile")
+        , map (AuthenticatorRoute Authenticator.Routes.ResetPasswordRoute) (s "reset_password")
+        , map (AuthenticatorRoute Authenticator.Routes.SignInRoute) (s "sign_in")
+        , map (AuthenticatorRoute Authenticator.Routes.SignOutRoute) (s "sign_out")
+        , map (AuthenticatorRoute Authenticator.Routes.SignUpRoute) (s "sign_up")
+        , map StatementsRoute (s "statements" </> statementsRouteParser)
+        , map
+            (AuthenticatorRoute << Authenticator.Routes.ActivateRoute)
+            (s "users" </> idParser </> s "activate")
+        , map
+            (AuthenticatorRoute << Authenticator.Routes.ChangePasswordRoute)
+            (s "users" </> idParser </> s "reset-password")
+        , map ValuesRoute (s "values" </> valuesRouteParser)
+        , map NotFoundRoute remaining
         ]
-    ]
 
 
-routerConfig : Hop.Types.Config Route
-routerConfig =
-    { hash =
-        -- Use with "devServer.historyApiFallback = true" in webpack config.
-        False
-    , basePath = ""
-    , matchers = matchers
-    , notFound = NotFoundRoute
-    }
+parseLocation : Navigation.Location -> Maybe Route
+parseLocation location =
+    UrlParser.parsePath routeParser location
 
 
-statementIdParser : Parser String
-statementIdParser =
-    Combine.regex "[0-9]+"
+routeParser : Parser (Route -> a) a
+routeParser =
+    oneOf
+        (List.map
+            (\language ->
+                map (I18nRouteWithLanguage language) (s (I18n.iso639_1FromLanguage language) </> localizedRouteParser)
+            )
+            [ I18n.English
+            , I18n.French
+            , I18n.Spanish
+            ]
+        )
 
 
-urlParser : Navigation.Parser ( Route, Hop.Types.Location )
-urlParser =
-    Navigation.makeParser (.href >> Hop.matchUrl routerConfig)
+statementsRouteParser : Parser (StatementsRoute -> a) a
+statementsRouteParser =
+    oneOf
+        [ map StatementsIndexRoute top
+        , map StatementRoute idParser
+        ]
+
+
+valuesRouteParser : Parser (ValuesRoute -> a) a
+valuesRouteParser =
+    oneOf
+        [ map ValuesIndexRoute top
+        , map NewValueRoute (s "new")
+        , map ValueRoute idParser
+        ]

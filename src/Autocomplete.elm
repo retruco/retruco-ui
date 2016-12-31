@@ -16,10 +16,8 @@ module Autocomplete
         , ViewConfig
         )
 
-import Basics.Extra exposing (never)
 import Char exposing (KeyCode)
 import Html exposing (Html, Attribute)
-import Html.App
 import Html.Attributes
 import Html.Events
 import Html.Keyed
@@ -254,13 +252,13 @@ viewItem { getItemId, viewItemContent } { key, mouse } data =
                 , ( "bg-faded", (isSelected key) || (isSelected mouse) )
                 ]
             , Html.Attributes.id id
-            , Html.Attributes.type' "button"
+            , Html.Attributes.type_ "button"
             , Html.Events.onFocus (Focus id)
             , Html.Events.onMouseEnter (MouseEnter id)
             , Html.Events.onMouseLeave (MouseLeave id)
             , Html.Events.onClick (MouseClick id)
             ]
-            (List.map (Html.App.map never) (viewItemContent data))
+            (List.map (Html.map never) (viewItemContent data))
 
 
 viewList : ViewConfig data -> Int -> State -> List data -> Html Msg
