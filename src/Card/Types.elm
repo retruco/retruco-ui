@@ -1,5 +1,6 @@
 module Card.Types exposing (..)
 
+import Authenticator.Types exposing (Authentication)
 import Http
 import I18n
 import Types exposing (..)
@@ -16,7 +17,8 @@ type InternalMsg
 
 
 type alias Model =
-    { id : String
+    { authentication : Maybe Authentication
+    , id : String
     , language : I18n.Language
     , webData : WebData DataIdBody
     }

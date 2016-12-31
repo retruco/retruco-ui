@@ -14,14 +14,15 @@ import WebData exposing (..)
 
 init : Model
 init =
-    { id = ""
+    { authentication = Nothing
+    , id = ""
     , language = I18n.English
     , webData = NotAsked
     }
 
 
-update : InternalMsg -> Model -> Maybe Authentication -> ( Model, Cmd Msg )
-update msg model authentication =
+update : InternalMsg -> Model -> ( Model, Cmd Msg )
+update msg model =
     case msg of
         Retrieve ->
             let
@@ -34,7 +35,7 @@ update msg model authentication =
                             Just 10
                     in
                         Requests.getCard
-                            authentication
+                            model.authentication
                             model.id
                             |> Http.send (ForSelf << Retrieved)
             in
@@ -75,4 +76,9 @@ update msg model authentication =
 
 urlUpdate : Maybe Authentication -> I18n.Language -> Navigation.Location -> String -> Model -> ( Model, Cmd Msg )
 urlUpdate authentication language location id model =
-    update Retrieve { model | id = id, language = language } authentication
+    update Retrieve
+        { model
+            | authentication = authentication
+            , id = id
+            , language = language
+        }

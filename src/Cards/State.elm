@@ -14,7 +14,8 @@ import WebData exposing (..)
 
 init : Model
 init =
-    { errors = Dict.empty
+    { authentication = Nothing
+    , errors = Dict.empty
     , language = I18n.English
     , searchCriteria =
         { sort = "latest"
@@ -64,8 +65,8 @@ convertControlsToSearchCriteria model =
             Err (Dict.fromList errorsList)
 
 
-update : InternalMsg -> Model -> Maybe Authentication -> ( Model, Cmd Msg )
-update msg model authentication =
+update : InternalMsg -> Model -> ( Model, Cmd Msg )
+update msg model =
     case msg of
         Found (Err err) ->
             let
@@ -94,7 +95,7 @@ update msg model authentication =
                     in
                         -- TODO: Handle sort order.
                         Requests.getCards
-                            authentication
+                            model.authentication
                             (Maybe.withDefault "" model.searchCriteria.term)
                             limit
                             []
@@ -118,7 +119,6 @@ update msg model authentication =
                     update
                         Search
                         { model | errors = Dict.empty, searchCriteria = searchCriteria }
-                        authentication
 
 
 urlUpdate : Maybe Authentication -> I18n.Language -> Navigation.Location -> Model -> ( Model, Cmd Msg )
@@ -128,10 +128,10 @@ urlUpdate authentication language location model =
             update
                 Submit
                 { model
-                    | language = language
+                    | authentication = authentication
+                    , language = language
                     , searchTerm = Urls.querySearchTerm location
                 }
-                authentication
     in
         newModel
             ! [ cmd

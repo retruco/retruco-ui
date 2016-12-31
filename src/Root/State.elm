@@ -146,7 +146,7 @@ update msg model =
             CardMsg childMsg ->
                 let
                     ( cardModel, childCmd ) =
-                        Card.State.update childMsg model.cardModel model.authentication
+                        Card.State.update childMsg model.cardModel
                 in
                     ( { model | cardModel = cardModel }
                     , Cmd.map translateCardMsg childCmd
@@ -155,7 +155,7 @@ update msg model =
             CardsMsg childMsg ->
                 let
                     ( cardsModel, childCmd ) =
-                        Cards.State.update childMsg model.cardsModel model.authentication
+                        Cards.State.update childMsg model.cardsModel
                 in
                     ( { model | cardsModel = cardsModel }
                     , Cmd.map translateCardsMsg childCmd
@@ -238,7 +238,7 @@ update msg model =
             ValueMsg childMsg ->
                 let
                     ( valueModel, childCmd ) =
-                        Value.State.update childMsg model.valueModel model.authentication
+                        Value.State.update childMsg model.valueModel
                 in
                     ( { model | valueModel = valueModel }
                     , Cmd.map translateValueMsg childCmd
@@ -247,7 +247,7 @@ update msg model =
             ValuesMsg childMsg ->
                 let
                     ( valuesModel, childCmd ) =
-                        Values.State.update childMsg model.valuesModel model.authentication
+                        Values.State.update childMsg model.valuesModel
                 in
                     ( { model | valuesModel = valuesModel }
                     , Cmd.map translateValuesMsg childCmd

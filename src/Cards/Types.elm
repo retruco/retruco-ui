@@ -1,5 +1,6 @@
 module Cards.Types exposing (..)
 
+import Authenticator.Types exposing (Authentication)
 import Dict exposing (Dict)
 import Http
 import I18n
@@ -24,7 +25,8 @@ type InternalMsg
 
 
 type alias Model =
-    { errors : FormErrors
+    { authentication : Maybe Authentication
+    , errors : FormErrors
     , language : I18n.Language
     , searchCriteria : SearchCriteria
     , searchSort : String
