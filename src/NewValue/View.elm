@@ -7,10 +7,9 @@ import Html.Attributes.Aria exposing (..)
 import Html.Events exposing (..)
 import Http.Error
 import I18n
-import Image.Types exposing (..)
+import Image.View exposing (..)
 import Json.Decode
 import NewValue.Types exposing (..)
-import Urls
 import Views exposing (errorInfos)
 
 
@@ -340,46 +339,7 @@ view model =
                                         []
                                      ]
                                         ++ errorBlock
-                                        ++ [ let
-                                                missingImage messageI18n =
-                                                    div [ class "text-xs-center" ]
-                                                        [ span
-                                                            [ attribute "aria-hidden" "true"
-                                                            , class "fa fa-camera fa-4"
-                                                            ]
-                                                            []
-                                                        , p [] [ text <| I18n.translate language messageI18n ]
-                                                        ]
-                                             in
-                                                case model.imageUploadStatus of
-                                                    ImageNotUploadedStatus ->
-                                                        missingImage I18n.UploadImage
-
-                                                    ImageSelectedStatus ->
-                                                        missingImage I18n.ReadingSelectedImage
-
-                                                    ImageReadStatus { contents, filename } ->
-                                                        missingImage (I18n.UploadingImage filename)
-
-                                                    ImageUploadedStatus path ->
-                                                        figure
-                                                            [ class "figure text-xs-center"
-                                                            , style [ ( "width", "100%" ) ]
-                                                            ]
-                                                            [ img
-                                                                [ alt <| I18n.translate language I18n.ImageAlt
-                                                                , class "figure-img img-fluid rounded"
-                                                                , src (Urls.fullApiUrl path)
-                                                                ]
-                                                                []
-                                                            , figcaption [ class "figure-caption" ] [ text path ]
-                                                            ]
-
-                                                    ImageUploadErrorStatus httpError ->
-                                                        missingImage <|
-                                                            I18n.ImageUploadError <|
-                                                                Http.Error.toString language httpError
-                                           ]
+                                        ++ [ viewImageUploadStatus language model.imageUploadStatus ]
                                     )
                          else
                             text ""
