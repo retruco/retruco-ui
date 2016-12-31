@@ -76,9 +76,9 @@ view model =
                                     )
                                     (fieldTypeLabelCouples
                                         |> List.map
-                                            (\( symbol, labelAtom ) ->
+                                            (\( symbol, labelI18n ) ->
                                                 ( symbol
-                                                , I18n.translate language labelAtom
+                                                , I18n.translate language labelI18n
                                                 )
                                             )
                                         |> List.sortBy (\( symbol, label ) -> label)
@@ -118,9 +118,9 @@ view model =
                                         )
                                         (I18n.languages
                                             |> List.map
-                                                (\languageAtom ->
-                                                    ( I18n.iso639_1FromLanguage languageAtom
-                                                    , I18n.translate language (I18n.Language languageAtom)
+                                                (\languageI18n ->
+                                                    ( I18n.iso639_1FromLanguage languageI18n
+                                                    , I18n.translate language (I18n.Language languageI18n)
                                                     )
                                                 )
                                             |> List.sortBy (\( languageIso639_1, languageLabel ) -> languageLabel)
