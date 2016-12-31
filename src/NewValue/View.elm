@@ -7,6 +7,7 @@ import Html.Attributes.Aria exposing (..)
 import Html.Events exposing (..)
 import Http.Error
 import I18n
+import Image.Types exposing (..)
 import Json.Decode
 import NewValue.Types exposing (..)
 import Urls

@@ -74,7 +74,8 @@ requireSignIn language location model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        -- TODO Fix duplicate messages with port "fileContentRead", that was worked around by a "Selected" constructor.
+        -- TODO Fix duplicate messages with port "fileContentRead", that was worked around by a "ImageSelectedStatus"
+        -- constructor.
         [ Sub.map NewValueMsg (NewValue.State.subscriptions model.newValueModel)
           -- , Sub.map StatementsMsg (Statements.subscriptions model.statementsModel)
         ]

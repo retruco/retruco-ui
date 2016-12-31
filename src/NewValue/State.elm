@@ -5,6 +5,7 @@ import Dict exposing (Dict)
 import Http
 import Http.Error
 import I18n
+import Image.Types exposing (..)
 import Navigation
 import NewValue.Types exposing (..)
 import Ports

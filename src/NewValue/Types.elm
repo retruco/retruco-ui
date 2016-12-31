@@ -4,6 +4,7 @@ import Authenticator.Types exposing (Authentication)
 import Dict exposing (Dict)
 import Http
 import I18n
+import Image.Types exposing (..)
 import Ports
 import Types exposing (..)
 
@@ -14,14 +15,6 @@ type ExternalMsg
 
 type alias FormErrors =
     Dict String I18n.TranslationId
-
-
-type ImageUploadStatus
-    = ImageNotUploadedStatus
-    | ImageSelectedStatus
-    | ImageReadStatus Ports.ImagePortData
-    | ImageUploadedStatus String
-    | ImageUploadErrorStatus Http.Error
 
 
 type InternalMsg
