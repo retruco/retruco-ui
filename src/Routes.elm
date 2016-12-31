@@ -6,12 +6,28 @@ import Navigation
 import UrlParser exposing ((</>), map, oneOf, parsePath, Parser, remaining, s, string, top)
 
 
+type CardsRoute
+    = CardRoute String
+    | CardsIndexRoute
+
+
+
+-- | NewCardRoute
+
+
+type ConceptsRoute
+    = NewConceptRoute
+    | ConceptRoute String
+    | ConceptsIndexRoute
+
+
 type LocalizedRoute
     = AboutRoute
     | AuthenticatorRoute Authenticator.Routes.Route
+    | CardsRoute CardsRoute
+      -- | ConceptsRoute ConceptsRoute
     | NotFoundRoute (List String)
     | SearchRoute
-    | StatementsRoute StatementsRoute
     | UserProfileRoute
     | ValuesRoute ValuesRoute
 
@@ -21,15 +37,28 @@ type Route
     | I18nRouteWithoutLanguage String
 
 
-type StatementsRoute
-    = StatementRoute String
-    | StatementsIndexRoute
-
-
 type ValuesRoute
     = NewValueRoute
     | ValueRoute String
     | ValuesIndexRoute
+
+
+cardsRouteParser : Parser (CardsRoute -> a) a
+cardsRouteParser =
+    oneOf
+        [ map CardsIndexRoute top
+          -- , map NewCardRoute (s "new")
+        , map CardRoute idParser
+        ]
+
+
+conceptsRouteParser : Parser (ConceptsRoute -> a) a
+conceptsRouteParser =
+    oneOf
+        [ map ConceptsIndexRoute top
+        , map NewConceptRoute (s "new")
+        , map ConceptRoute idParser
+        ]
 
 
 idParser : Parser (String -> a) a
@@ -42,12 +71,13 @@ localizedRouteParser =
     oneOf
         [ map SearchRoute top
         , map AboutRoute (s "about")
+        , map CardsRoute (s "cards" </> cardsRouteParser)
+          -- , map ConceptsRoute (s "concepts" </> conceptsRouteParser)
         , map UserProfileRoute (s "profile")
         , map (AuthenticatorRoute Authenticator.Routes.ResetPasswordRoute) (s "reset_password")
         , map (AuthenticatorRoute Authenticator.Routes.SignInRoute) (s "sign_in")
         , map (AuthenticatorRoute Authenticator.Routes.SignOutRoute) (s "sign_out")
         , map (AuthenticatorRoute Authenticator.Routes.SignUpRoute) (s "sign_up")
-        , map StatementsRoute (s "statements" </> statementsRouteParser)
         , map
             (AuthenticatorRoute << Authenticator.Routes.ActivateRoute)
             (s "users" </> idParser </> s "activate")
@@ -76,14 +106,6 @@ routeParser =
             , I18n.Spanish
             ]
         )
-
-
-statementsRouteParser : Parser (StatementsRoute -> a) a
-statementsRouteParser =
-    oneOf
-        [ map StatementsIndexRoute top
-        , map StatementRoute idParser
-        ]
 
 
 valuesRouteParser : Parser (ValuesRoute -> a) a

@@ -2,6 +2,8 @@ module Root.State exposing (..)
 
 import Authenticator.Routes exposing (..)
 import Authenticator.State
+import Card.State
+import Cards.State
 import Decoders
 import Dom.Scroll
 import Erl
@@ -32,6 +34,8 @@ init flags location =
         , authenticatorCancelMsg = Nothing
         , authenticatorCompletionMsg = Nothing
         , authenticatorModel = Authenticator.State.init
+        , cardModel = Card.State.init
+        , cardsModel = Cards.State.init
         , location = location
         , navigatorLanguage =
             flags.language
@@ -138,6 +142,24 @@ update msg model =
                                                     Urls.languagePath language "/"
                                             )
                               ]
+
+            CardMsg childMsg ->
+                let
+                    ( cardModel, childCmd ) =
+                        Card.State.update childMsg model.cardModel model.authentication
+                in
+                    ( { model | cardModel = cardModel }
+                    , Cmd.map translateCardMsg childCmd
+                    )
+
+            CardsMsg childMsg ->
+                let
+                    ( cardsModel, childCmd ) =
+                        Cards.State.update childMsg model.cardsModel model.authentication
+                in
+                    ( { model | cardsModel = cardsModel }
+                    , Cmd.map translateCardsMsg childCmd
+                    )
 
             ChangeAuthenticatorRoute authenticatorRoute ->
                 let
@@ -275,6 +297,57 @@ urlUpdate location model =
                                         , Cmd.map translateAuthenticatorMsg childCmd
                                         )
 
+                                CardsRoute childRoute ->
+                                    case childRoute of
+                                        CardRoute cardId ->
+                                            let
+                                                ( cardModel, childCmd ) =
+                                                    Card.State.urlUpdate
+                                                        model.authentication
+                                                        language
+                                                        location
+                                                        cardId
+                                                        model.cardModel
+                                            in
+                                                ( { model | cardModel = cardModel }
+                                                , Cmd.map translateCardMsg childCmd
+                                                )
+
+                                        CardsIndexRoute ->
+                                            let
+                                                ( cardsModel, childCmd ) =
+                                                    Cards.State.urlUpdate
+                                                        model.authentication
+                                                        language
+                                                        location
+                                                        model.cardsModel
+                                            in
+                                                ( { model | cardsModel = cardsModel }
+                                                , Cmd.map translateCardsMsg childCmd
+                                                )
+
+                                -- NewCardRoute ->
+                                --     case model.authentication of
+                                --         Just _ ->
+                                --             let
+                                --                 ( newCardModel, childCmd ) =
+                                --                     NewCard.State.urlUpdate
+                                --                         model.authentication
+                                --                         language
+                                --                         location
+                                --                         model.newCardModel
+                                --             in
+                                --                 ( { model
+                                --                     | newCardModel = newCardModel
+                                --                     , signOutMsg =
+                                --                         Just <|
+                                --                             NavigateFromAuthenticator <|
+                                --                                 Urls.languagePath language "/cards"
+                                --                   }
+                                --                 , Cmd.map translateNewCardMsg childCmd
+                                --                 )
+                                --         Nothing ->
+                                --             requireSignIn language location model
                                 NotFoundRoute _ ->
                                     ( model
                                     , Ports.setDocumentMetadata
@@ -286,15 +359,6 @@ urlUpdate location model =
 
                                 SearchRoute ->
                                     -- ( model, Cmd.map translateStatementsMsg (Statements.load) )
-                                    ( model, Cmd.none )
-
-                                StatementsRoute childRoute ->
-                                    -- let
-                                    --     -- Cmd.map translateStatementsMsg Statements.load
-                                    --     ( statementsModel, childEffect ) =
-                                    --         Statements.urlUpdate ( childRoute, location ) model.statementsModel
-                                    -- in
-                                    --     ( { model | statementsModel = statementsModel }, Cmd.map translateStatementsMsg childEffect )
                                     ( model, Cmd.none )
 
                                 UserProfileRoute ->

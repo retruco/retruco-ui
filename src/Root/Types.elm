@@ -2,6 +2,8 @@ module Root.Types exposing (..)
 
 import Authenticator.Routes
 import Authenticator.Types exposing (Authentication)
+import Card.Types
+import Cards.Types
 import I18n
 import Navigation
 import NewValue.Types
@@ -17,6 +19,8 @@ type alias Model =
     , authenticatorCancelMsg : Maybe Msg
     , authenticatorCompletionMsg : Maybe Msg
     , authenticatorModel : Authenticator.Types.Model
+    , cardModel : Card.Types.Model
+    , cardsModel : Cards.Types.Model
     , location : Navigation.Location
     , navigatorLanguage : Maybe I18n.Language
     , newValueModel : NewValue.Types.Model
@@ -33,6 +37,8 @@ type alias Model =
 type Msg
     = AuthenticatorMsg Authenticator.Types.InternalMsg
     | AuthenticatorTerminated Authenticator.Routes.Route (Result () (Maybe Authentication))
+    | CardMsg Card.Types.InternalMsg
+    | CardsMsg Cards.Types.InternalMsg
     | ChangeAuthenticatorRoute Authenticator.Routes.Route
     | LocationChanged Navigation.Location
     | Navigate String
@@ -51,6 +57,22 @@ translateAuthenticatorMsg =
         , onInternalMsg = AuthenticatorMsg
         , onNavigate = NavigateFromAuthenticator
         , onTerminated = AuthenticatorTerminated
+        }
+
+
+translateCardMsg : Card.Types.MsgTranslator Msg
+translateCardMsg =
+    Card.Types.translateMsg
+        { onInternalMsg = CardMsg
+        , onNavigate = Navigate
+        }
+
+
+translateCardsMsg : Cards.Types.MsgTranslator Msg
+translateCardsMsg =
+    Cards.Types.translateMsg
+        { onInternalMsg = CardsMsg
+        , onNavigate = Navigate
         }
 
 
@@ -84,12 +106,3 @@ translateSearchMsg =
         { onInternalMsg = SearchMsg
         , onNavigate = Navigate
         }
-
-
-
--- translateStatementsMsg : Statements.MsgTranslator Msg
--- translateStatementsMsg =
---     Statements.translateMsg
---         { onInternalMsg = StatementsMsg
---         , onNavigate = Navigate
---         }

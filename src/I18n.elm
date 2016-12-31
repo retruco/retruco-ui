@@ -45,12 +45,16 @@ type TranslationId
     | Cancel
     | CardId
     | CardIdArray
+    | Cards
+    | CardsDescription
     | ChangePassword
     | ChangePasswordDescription
     | ChangePasswordExplanation
     | ChangePasswordTitle
     | Close
     | Colon
+    | Concepts
+    | ConceptsDescription
     | Copyright
     | CountVersionsAvailable Int
     | Create
@@ -96,6 +100,8 @@ type TranslationId
     | NetworkError
     | NetworkErrorExplanation
     | New
+    | NewCard
+    | NewConcept
     | NewValue
     | NewValueDescription
     | Number
@@ -397,6 +403,18 @@ getTranslationSet translationId =
             , spanish = todo
             }
 
+        Cards ->
+            { english = s "Cards"
+            , french = s "Fiches"
+            , spanish = todo
+            }
+
+        CardsDescription ->
+            { english = s "List of cards"
+            , french = s "Liste de fiches"
+            , spanish = todo
+            }
+
         ChangePassword ->
             { english = s "Change your password"
             , french = s "Changez votre mot de passe"
@@ -431,6 +449,18 @@ getTranslationSet translationId =
             { english = s ": "
             , french = s " : "
             , spanish = s ": "
+            }
+
+        Concepts ->
+            { english = s "Concepts"
+            , french = s "Concepts"
+            , spanish = todo
+            }
+
+        ConceptsDescription ->
+            { english = s "List of concepts"
+            , french = s "Liste de concepts"
+            , spanish = todo
             }
 
         Copyright ->
@@ -730,6 +760,18 @@ getTranslationSet translationId =
         New ->
             { english = s "New"
             , french = s "Nouveau"
+            , spanish = todo
+            }
+
+        NewCard ->
+            { english = s "New Card"
+            , french = s "Nouvelle fiche"
+            , spanish = todo
+            }
+
+        NewConcept ->
+            { english = s "New Concept"
+            , french = s "Nouveau concept"
             , spanish = todo
             }
 

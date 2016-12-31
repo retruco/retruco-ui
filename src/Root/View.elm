@@ -1,6 +1,8 @@
 module Root.View exposing (..)
 
 import Authenticator.View
+import Card.View
+import Cards.View
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Helpers exposing (aForPath)
@@ -87,23 +89,37 @@ view model =
                             []
                         , div [ class "collapse navbar-toggleable-md", id "collapsable-navbar" ]
                             [ ul [ class "nav navbar-nav" ]
+                                -- [ li [ class "nav-item" ]
+                                --     [ aForPath Navigate
+                                --         language
+                                --         "/"
+                                --         [ class "nav-link" ]
+                                --         [ span [ class "fa fa-search" ] []
+                                --         , text " "
+                                --         , text <| I18n.translate language I18n.Search
+                                --         ]
+                                --     ]
+                                -- , li [ class "nav-item" ]
+                                --     [ aForPath
+                                --         Navigate
+                                --         language
+                                --         "/about"
+                                --         [ class "nav-link" ]
+                                --         [ text <| I18n.translate language I18n.About ]
+                                --     ]
                                 [ li [ class "nav-item" ]
                                     [ aForPath Navigate
                                         language
-                                        "/"
+                                        "/cards"
                                         [ class "nav-link" ]
-                                        [ span [ class "fa fa-search" ] []
-                                        , text " "
-                                        , text <| I18n.translate language I18n.Search
-                                        ]
+                                        [ text <| I18n.translate language I18n.Cards ]
                                     ]
                                 , li [ class "nav-item" ]
-                                    [ aForPath
-                                        Navigate
+                                    [ aForPath Navigate
                                         language
-                                        "/about"
+                                        "/concepts"
                                         [ class "nav-link" ]
-                                        [ text <| I18n.translate language I18n.About ]
+                                        [ text <| I18n.translate language I18n.Concepts ]
                                     ]
                                 , li [ class "nav-item" ]
                                     [ aForPath Navigate
@@ -143,6 +159,19 @@ view model =
                             Authenticator.View.view childRoute model.authenticatorModel
                                 |> Html.map translateAuthenticatorMsg
 
+                        CardsRoute childRoute ->
+                            case childRoute of
+                                CardRoute _ ->
+                                    Card.View.view model.cardModel
+                                        |> Html.map translateCardMsg
+
+                                CardsIndexRoute ->
+                                    Cards.View.view model.cardsModel
+                                        |> Html.map translateCardsMsg
+
+                        -- NewCardRoute ->
+                        --     NewCard.View.view model.newCardModel
+                        --         |> Html.map translateNewCardMsg
                         NotFoundRoute _ ->
                             viewNotFound language
 
@@ -154,9 +183,6 @@ view model =
                                   --     translateStatementsMsg
                                   --     (Statements.viewIndex model.authentication model.statementsModel)
                                 ]
-
-                        StatementsRoute _ ->
-                            viewNotFound language
 
                         UserProfileRoute ->
                             viewNotFound language
