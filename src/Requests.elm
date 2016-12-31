@@ -98,7 +98,7 @@ getCard authentication cardId =
 
 
 getCards : Maybe Authentication -> String -> Maybe Int -> List String -> List String -> Http.Request DataIdsBody
-getCards authentication searchQuery limit tagIds cardTypes =
+getCards authentication term limit tagIds cardTypes =
     Http.request
         { method = "GET"
         , headers = authenticationHeaders authentication
@@ -108,10 +108,10 @@ getCards authentication searchQuery limit tagIds cardTypes =
                 ++ (List.map (\cardType -> "type=" ++ cardType) cardTypes
                         ++ (([ Just "show=values"
                              , Just "depth=1"
-                             , (if String.isEmpty searchQuery then
+                             , (if String.isEmpty term then
                                     Nothing
                                 else
-                                    Just ("term=" ++ searchQuery)
+                                    Just ("term=" ++ term)
                                )
                              , limit |> Maybe.map (\limit -> "limit=" ++ (toString limit))
                              ]
