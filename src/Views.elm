@@ -6,6 +6,7 @@ import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Html.Events exposing (on, onClick, onInput, onWithOptions, targetValue)
 import Http exposing (Error(..))
+import Http.Error
 import I18n
 import String
 import Types exposing (..)
@@ -172,29 +173,6 @@ errorInfos language fieldId error =
 
             Nothing ->
                 ( "", [], [] )
-
-
-getHttpErrorAsString : I18n.Language -> Http.Error -> String
-getHttpErrorAsString language err =
-    case err of
-        BadPayload message response ->
-            I18n.translate language I18n.BadPayloadExplanation
-
-        BadStatus response ->
-            if response.status.code == 404 then
-                I18n.translate language I18n.PageNotFoundExplanation
-            else
-                -- TODO Add I18n.BadStatusExplanation prefix
-                toString response
-
-        BadUrl message ->
-            I18n.translate language I18n.BadUrlExplanation
-
-        NetworkError ->
-            I18n.translate language I18n.NetworkErrorExplanation
-
-        Timeout ->
-            I18n.translate language I18n.TimeoutExplanation
 
 
 hasBallotRating : Int -> Maybe Ballot -> Bool
@@ -1062,7 +1040,7 @@ viewWebData language viewSuccess webData =
                         Timeout ->
                             genericTitle
             in
-                viewBigMessage title (getHttpErrorAsString language err)
+                viewBigMessage title (Http.Error.toString language err)
 
         Data loadingStatus ->
             viewSuccess loadingStatus

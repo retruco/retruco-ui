@@ -3,6 +3,7 @@ module NewValue.State exposing (..)
 import Authenticator.Types exposing (Authentication)
 import Dict exposing (Dict)
 import Http
+import Http.Error
 import I18n
 import Navigation
 import NewValue.Types exposing (..)
@@ -11,7 +12,6 @@ import Requests
 import Task
 import Types exposing (Field(..))
 import Urls
-import Views exposing (getHttpErrorAsString)
 
 
 init : Model
@@ -71,7 +71,7 @@ convertControls model =
 
                         ImageUploadErrorStatus httpError ->
                             ( Nothing
-                            , [ ( "new-image", Just (I18n.ImageUploadError (getHttpErrorAsString language httpError)) ) ]
+                            , [ ( "new-image", Just (I18n.ImageUploadError (Http.Error.toString language httpError)) ) ]
                             )
 
                 "InputEmailField" ->

@@ -5,11 +5,12 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Html.Events exposing (..)
+import Http.Error
 import I18n
 import Json.Decode
 import NewValue.Types exposing (..)
 import Urls
-import Views exposing (errorInfos, getHttpErrorAsString)
+import Views exposing (errorInfos)
 
 
 fieldTypeLabelCouples : List ( String, I18n.TranslationId )
@@ -44,7 +45,7 @@ view model =
                                 I18n.translate language I18n.ValueCreationFailed
                                     ++ I18n.translate language I18n.Colon
                             ]
-                        , text <| getHttpErrorAsString language httpError
+                        , text <| Http.Error.toString language httpError
                         ]
                     ]
     in
@@ -376,7 +377,7 @@ view model =
                                                     ImageUploadErrorStatus httpError ->
                                                         missingImage <|
                                                             I18n.ImageUploadError <|
-                                                                getHttpErrorAsString language httpError
+                                                                Http.Error.toString language httpError
                                            ]
                                     )
                          else
