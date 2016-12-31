@@ -8,12 +8,14 @@ import Html.Events exposing (..)
 import I18n
 import Json.Decode
 import NewValue.Types exposing (..)
+import Urls
 import Views exposing (errorInfos, getHttpErrorAsString)
 
 
 fieldTypeLabelCouples : List ( String, I18n.TranslationId )
 fieldTypeLabelCouples =
     [ ( "BooleanField", I18n.BooleanField )
+    , ( "ImageField", I18n.ImageField )
     , ( "InputEmailField", I18n.InputEmailField )
     , ( "InputNumberField", I18n.InputNumberField )
     , ( "InputUrlField", I18n.InputUrlField )
@@ -304,6 +306,78 @@ view model =
                                         [ text model.value ]
                                      ]
                                         ++ errorBlock
+                                    )
+                         else
+                            text ""
+                       , if model.fieldType == "ImageField" then
+                            let
+                                controlId =
+                                    -- Note: ID is given by State to Ports.fileSelected.
+                                    "new-image"
+
+                                controlLabel =
+                                    I18n.translate language I18n.Image
+
+                                controlTitle =
+                                    I18n.translate language I18n.EnterImage
+
+                                ( errorClass, errorAttributes, errorBlock ) =
+                                    errorInfos language controlId (Dict.get controlId model.errors)
+                            in
+                                div [ class ("form-group" ++ errorClass) ]
+                                    ([ label [ class "control-label", for controlId ] [ text controlLabel ]
+                                     , input
+                                        ([ class "form-control-file"
+                                         , id controlId
+                                         , title controlTitle
+                                         , type_ "file"
+                                         , on "change" (Json.Decode.succeed (ForSelf ImageSelected))
+                                         ]
+                                            ++ errorAttributes
+                                        )
+                                        []
+                                     ]
+                                        ++ errorBlock
+                                        ++ [ let
+                                                missingImage messageI18n =
+                                                    div [ class "text-xs-center" ]
+                                                        [ span
+                                                            [ attribute "aria-hidden" "true"
+                                                            , class "fa fa-camera fa-4"
+                                                            ]
+                                                            []
+                                                        , p [] [ text <| I18n.translate language messageI18n ]
+                                                        ]
+                                             in
+                                                case model.imageUploadStatus of
+                                                    ImageNotUploadedStatus ->
+                                                        missingImage I18n.UploadImage
+
+                                                    ImageSelectedStatus ->
+                                                        missingImage I18n.ReadingSelectedImage
+
+                                                    ImageReadStatus { contents, filename } ->
+                                                        missingImage (I18n.UploadingImage filename)
+
+                                                    ImageUploadedStatus path ->
+                                                        figure
+                                                            [ class "figure text-xs-center"
+                                                            , style [ ( "width", "100%" ) ]
+                                                            ]
+                                                            [ img
+                                                                [ alt <| I18n.translate language I18n.ImageAlt
+                                                                , class "figure-img img-fluid rounded"
+                                                                , src (Urls.fullApiUrl path)
+                                                                ]
+                                                                []
+                                                            , figcaption [ class "figure-caption" ] [ text path ]
+                                                            ]
+
+                                                    ImageUploadErrorStatus httpError ->
+                                                        missingImage <|
+                                                            I18n.ImageUploadError <|
+                                                                getHttpErrorAsString language httpError
+                                           ]
                                     )
                          else
                             text ""

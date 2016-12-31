@@ -59,6 +59,7 @@ type TranslationId
     | EmptyString
     | EnterBoolean
     | EnterEmail
+    | EnterImage
     | EnterNumber
     | EnterPassword
     | EnterUrl
@@ -74,6 +75,10 @@ type TranslationId
     | Home
     | HomeDescription
     | HomeTitle
+    | Image
+    | ImageAlt
+    | ImageField
+    | ImageUploadError String
     | ImproveExistingContent
     | InputEmailField
     | InputNumberField
@@ -102,6 +107,7 @@ type TranslationId
     | PasswordChangeFailed
     | PasswordLost
     | PasswordPlaceholder
+    | ReadingSelectedImage
     | ReadMore
     | Register
     | RegisterNow
@@ -140,6 +146,8 @@ type TranslationId
     | UnknownUser
     | UnknownValue
     | UntitledCard
+    | UploadImage
+    | UploadingImage String
     | Url
     | UrlPlaceholder
     | Username
@@ -493,6 +501,12 @@ getTranslationSet translationId =
             , spanish = todo
             }
 
+        EnterImage ->
+            { english = s "Please select an image"
+            , french = s "Veuillez sélectionner une image"
+            , spanish = todo
+            }
+
         EnterNumber ->
             { english = s "Please enter a number"
             , french = s "Veuillez entrer un nombre"
@@ -580,6 +594,27 @@ getTranslationSet translationId =
         HomeTitle ->
             { english = s "OGP Toolbox"
             , french = s "OGP Toolbox"
+            , spanish = todo
+            }
+
+        Image ->
+            { english = s "Image"
+            , french = s "Image"
+            , spanish = todo
+            }
+
+        ImageAlt ->
+            { english = s "The uploaded image"
+            , french = s "L'image téléversée"
+            , spanish = todo
+            }
+
+        ImageField ->
+            getTranslationSet Image
+
+        ImageUploadError message ->
+            { english = s ("Image upload error: " ++ message)
+            , french = s ("Échec du téléversement de l'image :" ++ message)
             , spanish = todo
             }
 
@@ -753,6 +788,12 @@ getTranslationSet translationId =
         PasswordPlaceholder ->
             { english = s "Your secret password"
             , french = s "Votre mot de passe secret"
+            , spanish = todo
+            }
+
+        ReadingSelectedImage ->
+            { english = s "Reading selected image..."
+            , french = s "Lecture de l'image sélectionnée..."
             , spanish = todo
             }
 
@@ -982,6 +1023,18 @@ getTranslationSet translationId =
             { english = s "Untitled Card"
             , french = s "Fiche sans titre"
             , spanish = s "Tipo"
+            }
+
+        UploadImage ->
+            { english = s "Upload image"
+            , french = s "Téléverser une image"
+            , spanish = todo
+            }
+
+        UploadingImage filename ->
+            { english = s ("Uploading image \"" ++ filename ++ "\"...")
+            , french = s ("Téléversement de l'image \"" ++ filename ++ "\"...")
+            , spanish = todo
             }
 
         Url ->

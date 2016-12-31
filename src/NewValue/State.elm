@@ -11,6 +11,7 @@ import Requests
 import Task
 import Types exposing (Field(..))
 import Urls
+import Views exposing (getHttpErrorAsString)
 
 
 init : Model
@@ -21,6 +22,7 @@ init =
     , field = Nothing
     , fieldType = "TextField"
     , httpError = Nothing
+    , imageUploadStatus = ImageNotUploadedStatus
     , language = I18n.English
     , languageIso639_1 = ""
     , value = ""
@@ -30,6 +32,9 @@ init =
 convertControls : Model -> Model
 convertControls model =
     let
+        language =
+            model.language
+
         ( field, errorsList ) =
             case model.fieldType of
                 "" ->
@@ -41,6 +46,33 @@ convertControls model =
                     ( Just (BooleanField model.booleanValue)
                     , []
                     )
+
+                "ImageField" ->
+                    case model.imageUploadStatus of
+                        ImageNotUploadedStatus ->
+                            ( Nothing
+                            , [ ( "new-image", Just I18n.UploadImage ) ]
+                            )
+
+                        ImageSelectedStatus ->
+                            ( Nothing
+                            , [ ( "new-image", Just I18n.ReadingSelectedImage ) ]
+                            )
+
+                        ImageReadStatus { contents, filename } ->
+                            ( Nothing
+                            , [ ( "new-image", Just (I18n.UploadingImage filename) ) ]
+                            )
+
+                        ImageUploadedStatus path ->
+                            ( Just (ImageField path)
+                            , []
+                            )
+
+                        ImageUploadErrorStatus httpError ->
+                            ( Nothing
+                            , [ ( "new-image", Just (I18n.ImageUploadError (getHttpErrorAsString language httpError)) ) ]
+                            )
 
                 "InputEmailField" ->
                     case String.trim model.value of
@@ -152,6 +184,11 @@ convertControls model =
         }
 
 
+subscriptions : Model -> Sub InternalMsg
+subscriptions model =
+    Ports.fileContentRead ImageRead
+
+
 update : InternalMsg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -171,6 +208,47 @@ update msg model =
 
         FieldTypeChanged fieldType ->
             ( convertControls { model | fieldType = fieldType }
+            , Cmd.none
+            )
+
+        ImageRead data ->
+            let
+                newModel =
+                    convertControls { model | imageUploadStatus = ImageReadStatus data }
+
+                -- Ensure that image is uploaded only once, although port "fileContentRead" is sent to every image
+                -- editor.
+                cmd =
+                    case model.imageUploadStatus of
+                        ImageNotUploadedStatus ->
+                            Cmd.none
+
+                        ImageSelectedStatus ->
+                            Requests.postUploadImage newModel.authentication data.contents
+                                |> Http.send ImageUploaded
+                                |> Cmd.map ForSelf
+
+                        ImageReadStatus _ ->
+                            Cmd.none
+
+                        ImageUploadedStatus _ ->
+                            Cmd.none
+
+                        ImageUploadErrorStatus _ ->
+                            Cmd.none
+            in
+                ( newModel, cmd )
+
+        ImageSelected ->
+            ( convertControls { model | imageUploadStatus = ImageSelectedStatus }
+            , Ports.fileSelected "new-image"
+            )
+
+        ImageUploaded (Err err) ->
+            ( convertControls { model | imageUploadStatus = ImageUploadErrorStatus err }, Cmd.none )
+
+        ImageUploaded (Ok path) ->
+            ( convertControls { model | imageUploadStatus = ImageUploadedStatus path }
             , Cmd.none
             )
 

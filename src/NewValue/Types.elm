@@ -4,6 +4,7 @@ import Authenticator.Types exposing (Authentication)
 import Dict exposing (Dict)
 import Http
 import I18n
+import Ports
 import Types exposing (..)
 
 
@@ -15,9 +16,20 @@ type alias FormErrors =
     Dict String I18n.TranslationId
 
 
+type ImageUploadStatus
+    = ImageNotUploadedStatus
+    | ImageSelectedStatus
+    | ImageReadStatus Ports.ImagePortData
+    | ImageUploadedStatus String
+    | ImageUploadErrorStatus Http.Error
+
+
 type InternalMsg
     = Created (Result Http.Error DataIdBody)
     | FieldTypeChanged String
+    | ImageRead Ports.ImagePortData
+    | ImageSelected
+    | ImageUploaded (Result Http.Error String)
     | LanguageChanged String
     | Submit
     | ValueChanged String
@@ -31,6 +43,7 @@ type alias Model =
     , field : Maybe Field
     , fieldType : String
     , httpError : Maybe Http.Error
+    , imageUploadStatus : ImageUploadStatus
     , language : I18n.Language
     , languageIso639_1 : String
     , value : String
