@@ -217,7 +217,7 @@ getValue authentication id =
     Http.request
         { method = "GET"
         , headers = authenticationHeaders authentication
-        , url = apiUrl ++ "objects/" ++ id ++ "?show=references&show=values&depth=2"
+        , url = apiUrl ++ "objects/" ++ id ++ "?depth=3&show=properties&show=values"
         , body = Http.emptyBody
         , expect = Http.expectJson dataIdBodyDecoder
         , timeout = Nothing
@@ -233,8 +233,9 @@ getValues authentication term limit =
         , url =
             apiUrl
                 ++ "values?"
-                ++ ([ Just "show=values"
-                    , Just "depth=1"
+                ++ ([ Just "depth=3"
+                    , Just "show=properties"
+                    , Just "show=values"
                     , (case term of
                         Just "" ->
                             Nothing

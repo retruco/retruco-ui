@@ -39,9 +39,12 @@ type TranslationId
     | BadUrl
     | BadUrlExplanation
     | BestOf Int
+    | BijectiveCardReference
     | Boolean
     | BooleanField
     | Cancel
+    | CardId
+    | CardIdArray
     | ChangePassword
     | ChangePasswordDescription
     | ChangePasswordExplanation
@@ -87,6 +90,7 @@ type TranslationId
     | Language Language
     | LanguageWord
     | License
+    | LocalizedString
     | MissingDescription
     | MissingValue
     | NetworkError
@@ -135,6 +139,7 @@ type TranslationId
     | SignUp
     | SignUpDescription
     | SignUpTitle
+    | String
     | Tags
     | TextField
     | Timeout
@@ -143,6 +148,7 @@ type TranslationId
     | TweetMessage String String
     | Type
     | UnknownLanguage
+    | UnknownSchemaId String
     | UnknownUser
     | UnknownValue
     | UntitledCard
@@ -157,6 +163,8 @@ type TranslationId
     | Uses
     | Value
     | ValueCreationFailed
+    | ValueId
+    | ValueIdArray
     | ValuePlaceholder
     | Values
     | ValuesDescription
@@ -356,6 +364,12 @@ getTranslationSet translationId =
             , spanish = todo
             }
 
+        BijectiveCardReference ->
+            { english = s "Bijective reference to a card"
+            , french = s "Référence bijective à une fiche"
+            , spanish = todo
+            }
+
         Boolean ->
             { english = s "Boolean"
             , french = s "Booléen"
@@ -368,6 +382,18 @@ getTranslationSet translationId =
         Cancel ->
             { english = s "Cancel"
             , french = s "Annuler"
+            , spanish = todo
+            }
+
+        CardId ->
+            { english = s "Reference to a card"
+            , french = s "Référence à une fiche"
+            , spanish = todo
+            }
+
+        CardIdArray ->
+            { english = s "Array of references to cards"
+            , french = s "Tableau de références à des fiches"
             , spanish = todo
             }
 
@@ -671,6 +697,12 @@ getTranslationSet translationId =
             , spanish = todo
             }
 
+        LocalizedString ->
+            { english = s "Localized string"
+            , french = s "Chaîne de caractères localisée"
+            , spanish = todo
+            }
+
         MissingDescription ->
             { english = s "Missing description"
             , french = s "Description manquante"
@@ -959,6 +991,12 @@ getTranslationSet translationId =
             , spanish = todo
             }
 
+        String ->
+            { english = s "String"
+            , french = s "Chaîne de caractères"
+            , spanish = todo
+            }
+
         Tags ->
             { english = s "Tags"
             , french = s "Tags"
@@ -1004,6 +1042,12 @@ getTranslationSet translationId =
         UnknownLanguage ->
             { english = s "Unknown language"
             , french = s "Langue inconnue"
+            , spanish = todo
+            }
+
+        UnknownSchemaId schemaId ->
+            { english = s ("Reference to an unknown schema: " ++ schemaId)
+            , french = s ("Référence à un schema inconnu : " ++ schemaId)
             , spanish = todo
             }
 
@@ -1088,6 +1132,18 @@ getTranslationSet translationId =
         ValueCreationFailed ->
             { english = s "Value création failed"
             , french = s "Échec de la création de la valeur"
+            , spanish = todo
+            }
+
+        ValueId ->
+            { english = s "Reference to a value"
+            , french = s "Référence à une valeur"
+            , spanish = todo
+            }
+
+        ValueIdArray ->
+            { english = s "Array of references to valuess"
+            , french = s "Tableau de références à des valeurs"
             , spanish = todo
             }
 
@@ -1179,8 +1235,20 @@ getManyStrings language keyIds card values =
         getStrings : ValueType -> List String
         getStrings value =
             case value of
-                StringValue value ->
-                    [ value ]
+                BijectiveCardReferenceValue _ ->
+                    []
+
+                BooleanValue _ ->
+                    []
+
+                CardIdArrayValue ids ->
+                    []
+
+                CardIdValue cardId ->
+                    []
+
+                ImagePathValue path ->
+                    []
 
                 LocalizedStringValue valueByLanguage ->
                     case getValueByPreferredLanguage language valueByLanguage of
@@ -1190,20 +1258,11 @@ getManyStrings language keyIds card values =
                         Just value ->
                             [ value ]
 
-                CardIdArrayValue ids ->
-                    []
-
-                CardIdValue cardId ->
-                    []
-
                 NumberValue _ ->
                     []
 
-                BooleanValue _ ->
-                    []
-
-                BijectiveCardReferenceValue _ ->
-                    []
+                StringValue value ->
+                    [ value ]
 
                 ValueIdArrayValue ids ->
                     List.concatMap (\id -> getStrings (ValueIdValue id)) ids
@@ -1247,32 +1306,35 @@ getOneString language keyIds card values =
 getOneStringFromValueType : Language -> Dict String TypedValue -> ValueType -> Maybe String
 getOneStringFromValueType language values valueType =
     case valueType of
-        StringValue value ->
-            Just value
+        BijectiveCardReferenceValue _ ->
+            Nothing
+
+        BooleanValue _ ->
+            Nothing
+
+        CardIdArrayValue _ ->
+            Nothing
+
+        CardIdValue cardId ->
+            Nothing
+
+        ImagePathValue path ->
+            Nothing
 
         LocalizedStringValue valueByLanguage ->
             getValueByPreferredLanguage language valueByLanguage
 
-        CardIdArrayValue _ ->
+        NumberValue _ ->
             Nothing
+
+        StringValue value ->
+            Just value
 
         ValueIdArrayValue [] ->
             Nothing
 
         ValueIdArrayValue (childValue :: _) ->
             getOneStringFromValueType language values (ValueIdValue childValue)
-
-        NumberValue _ ->
-            Nothing
-
-        BooleanValue _ ->
-            Nothing
-
-        BijectiveCardReferenceValue _ ->
-            Nothing
-
-        CardIdValue cardId ->
-            Nothing
 
         ValueIdValue valueId ->
             Dict.get valueId values

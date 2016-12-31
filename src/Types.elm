@@ -113,6 +113,17 @@ type alias DataIdsBody =
     }
 
 
+type alias DataProxy a =
+    { a
+        | ballots : Dict String Ballot
+        , cards : Dict String Card
+        , collections : Dict String Collection
+        , properties : Dict String Property
+        , users : Dict String User
+        , values : Dict String TypedValue
+    }
+
+
 type alias DocumentMetadata =
     { description : String
     , imageUrl : String
@@ -311,15 +322,16 @@ type alias UserBody =
 
 
 type ValueType
-    = StringValue String
+    = BijectiveCardReferenceValue BijectiveCardReference
+    | BooleanValue Bool
+    | CardIdArrayValue (List String)
+    | CardIdValue String
+    | ImagePathValue String
     | LocalizedStringValue (Dict String String)
     | NumberValue Float
-    | BooleanValue Bool
-    | BijectiveCardReferenceValue BijectiveCardReference
-    | CardIdValue String
-    | CardIdArrayValue (List String)
-    | ValueIdValue String
+    | StringValue String
     | ValueIdArrayValue (List String)
+    | ValueIdValue String
     | WrongValue String String
 
 

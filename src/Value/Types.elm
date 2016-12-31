@@ -45,3 +45,41 @@ translateMsg { onInternalMsg, onNavigate } msg =
 
         ForSelf internalMsg ->
             onInternalMsg internalMsg
+
+
+valueTypeToTypeLabel : I18n.Language -> ValueType -> String
+valueTypeToTypeLabel language valueType =
+    I18n.translate language <|
+        case valueType of
+            BijectiveCardReferenceValue _ ->
+                I18n.BijectiveCardReference
+
+            BooleanValue _ ->
+                I18n.Boolean
+
+            CardIdArrayValue _ ->
+                I18n.CardIdArray
+
+            CardIdValue _ ->
+                I18n.CardId
+
+            ImagePathValue _ ->
+                I18n.Image
+
+            LocalizedStringValue _ ->
+                I18n.LocalizedString
+
+            NumberValue _ ->
+                I18n.Number
+
+            StringValue _ ->
+                I18n.String
+
+            ValueIdArrayValue _ ->
+                I18n.ValueIdArray
+
+            ValueIdValue _ ->
+                I18n.ValueId
+
+            WrongValue _ schemaId ->
+                I18n.UnknownSchemaId schemaId
