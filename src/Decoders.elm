@@ -184,6 +184,8 @@ userDecoder =
         |: (field "activated" bool)
         |: oneOf [ (field "apiKey" string), succeed "" ]
         |: oneOf [ (field "email" string), succeed "" ]
+        |: (field "id" string)
+        |: (field "isAdmin" bool)
         |: (field "name" string)
         |: (field "urlName" string)
 
