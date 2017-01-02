@@ -179,14 +179,10 @@ view model =
                          else if model.fieldType == "CardIdField" then
                             let
                                 controlId =
-                                    "value"
-
-                                controlLabel =
-                                    I18n.translate language I18n.CardId
+                                    "cardId"
                             in
-                                CardsAutocomplete.View.view
+                                CardsAutocomplete.View.viewAutocomplete
                                     language
-                                    controlLabel
                                     controlId
                                     (Dict.get controlId model.errors)
                                     model.cardsAutocompleteModel

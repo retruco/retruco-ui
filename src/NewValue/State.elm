@@ -50,6 +50,22 @@ convertControls model =
                     , []
                     )
 
+                "CardIdField" ->
+                    let
+                        cardAutocompletion =
+                            model.cardsAutocompleteModel.selected
+                    in
+                        case cardAutocompletion of
+                            Just cardAutocompletion ->
+                                ( Just (CardIdField cardAutocompletion.card.id)
+                                , []
+                                )
+
+                            Nothing ->
+                                ( Nothing
+                                , [ ( "cardId", Just I18n.MissingValue ) ]
+                                )
+
                 "ImageField" ->
                     case model.imageUploadStatus of
                         ImageNotUploadedStatus ->
@@ -189,7 +205,10 @@ convertControls model =
 
 subscriptions : Model -> Sub InternalMsg
 subscriptions model =
-    Ports.fileContentRead ImageRead
+    Sub.batch
+        [ Sub.map CardsAutocompleteMsg (CardsAutocomplete.State.subscriptions model.cardsAutocompleteModel)
+        , Ports.fileContentRead ImageRead
+        ]
 
 
 update : InternalMsg -> Model -> ( Model, Cmd Msg )
@@ -200,10 +219,10 @@ update msg model =
                 ( cardsAutocompleteModel, childCmd ) =
                     CardsAutocomplete.State.update childMsg
                         model.language
-                        "cardsAutocomplete"
+                        "cardId"
                         model.cardsAutocompleteModel
             in
-                ( { model | cardsAutocompleteModel = cardsAutocompleteModel }
+                ( convertControls { model | cardsAutocompleteModel = cardsAutocompleteModel }
                 , Cmd.map translateCardsAutocompleteMsg childCmd
                 )
 

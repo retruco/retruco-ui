@@ -36,7 +36,7 @@ init =
     , autocompleteMenuState = AutocompleteMenuHidden
     , autocompleter = Autocomplete.empty
     , autocompletions = []
-    , selectedMaybe = Nothing
+    , selected = Nothing
     }
 
 
@@ -66,14 +66,14 @@ resetAutocompleteMenu model =
 
 setModelFromCardId : String -> Model -> Model
 setModelFromCardId id model =
-    setModelFromSelectedMaybe (idToAutocompletion id model) model
+    setModelFromSelected (idToAutocompletion id model) model
 
 
-setModelFromSelectedMaybe : Maybe CardAutocompletion -> Model -> Model
-setModelFromSelectedMaybe selectedMaybe model =
+setModelFromSelected : Maybe CardAutocompletion -> Model -> Model
+setModelFromSelected selected model =
     let
         autocomplete =
-            case selectedMaybe of
+            case selected of
                 Just selected ->
                     selected.autocomplete
 
@@ -82,7 +82,7 @@ setModelFromSelectedMaybe selectedMaybe model =
     in
         { model
             | autocomplete = autocomplete
-            , selectedMaybe = selectedMaybe
+            , selected = selected
         }
 
 
@@ -94,9 +94,9 @@ sleepAndThenLoadAutocompleteMenu model =
     )
 
 
-subscriptions : Model -> Sub Msg
+subscriptions : Model -> Sub InternalMsg
 subscriptions model =
-    Sub.map (ForSelf << AutocompleteMsg) Autocomplete.subscription
+    Sub.map AutocompleteMsg Autocomplete.subscription
 
 
 update : InternalMsg -> I18n.Language -> String -> Model -> ( Model, Cmd Msg )
@@ -126,7 +126,7 @@ update msg language fieldId model =
             model ! []
 
         HandleEscape ->
-            ( { model | selectedMaybe = autocompleteToAutocompletion model.autocomplete model }
+            ( { model | selected = autocompleteToAutocompletion model.autocomplete model }
                 |> resetAutocompleteMenu
             , Cmd.none
             )
@@ -146,7 +146,7 @@ update msg language fieldId model =
             in
                 ( { newModel
                     | autocomplete = fieldValue
-                    , selectedMaybe = autocompleteToAutocompletion fieldValue newModel
+                    , selected = autocompleteToAutocompletion fieldValue newModel
                   }
                 , cmd
                 )
@@ -190,7 +190,7 @@ update msg language fieldId model =
             in
                 ( { model
                     | autocomplete =
-                        case model.selectedMaybe of
+                        case model.selected of
                             Just selected ->
                                 selected.autocomplete
 
@@ -222,26 +222,26 @@ update msg language fieldId model =
             model ! []
 
         Preview id ->
-            ( { model | selectedMaybe = idToAutocompletion id model }
+            ( { model | selected = idToAutocompletion id model }
             , Cmd.none
             )
 
         Reset ->
             ( { model
                 | autocompleter = Autocomplete.reset updateAutocompleteConfig model.autocompleter
-                , selectedMaybe = autocompleteToAutocompletion model.autocomplete model
+                , selected = autocompleteToAutocompletion model.autocomplete model
               }
             , Cmd.none
             )
 
         Wrap toTop ->
-            case model.selectedMaybe of
+            case model.selected of
                 Just selected ->
                     update Reset language fieldId model
 
                 Nothing ->
                     let
-                        ( autocompleter, selectedMaybe ) =
+                        ( autocompleter, selected ) =
                             if toTop then
                                 ( Autocomplete.resetToLastItem
                                     updateAutocompleteConfig
@@ -261,7 +261,7 @@ update msg language fieldId model =
                     in
                         ( { model
                             | autocompleter = autocompleter
-                            , selectedMaybe = selectedMaybe
+                            , selected = selected
                           }
                         , Cmd.none
                         )

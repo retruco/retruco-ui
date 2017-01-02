@@ -43,9 +43,11 @@ type TranslationId
     | Boolean
     | BooleanField
     | Cancel
+    | Card
     | CardId
     | CardIdArray
     | CardIdField
+    | CardPlaceholder
     | Cards
     | CardsDescription
     | ChangePassword
@@ -66,6 +68,7 @@ type TranslationId
     | EmailSentForAccountActivation String
     | EmptyString
     | EnterBoolean
+    | EnterCard
     | EnterEmail
     | EnterImage
     | EnterNumber
@@ -75,6 +78,8 @@ type TranslationId
     | EnterValue
     | EveryLanguage
     | FalseWord
+    | FindAnotherCard
+    | FindCard
     | FooterAbout
     | FooterDiscover
     | GenericError
@@ -95,6 +100,7 @@ type TranslationId
     | Language Language
     | LanguageWord
     | License
+    | LoadingMenu
     | LocalizedString
     | MissingDescription
     | MissingValue
@@ -131,6 +137,7 @@ type TranslationId
     | Score
     | Search
     | SearchPlaceholder
+    | SelectCardOrTypeMoreCharacters
     | Send
     | SendEmailAgain
     | Share
@@ -372,8 +379,8 @@ getTranslationSet translationId =
             }
 
         BijectiveCardReference ->
-            { english = s "Bijective reference to a card"
-            , french = s "Référence bijective à une fiche"
+            { english = s "Bijective link to a card"
+            , french = s "Lien bijectif vers une fiche"
             , spanish = todo
             }
 
@@ -392,20 +399,32 @@ getTranslationSet translationId =
             , spanish = todo
             }
 
+        Card ->
+            { english = s "Card"
+            , french = s "Fiche"
+            , spanish = todo
+            }
+
         CardId ->
-            { english = s "Reference to a card"
-            , french = s "Référence à une fiche"
+            { english = s "Link to a card"
+            , french = s "Lien vers une fiche"
             , spanish = todo
             }
 
         CardIdArray ->
-            { english = s "Array of references to cards"
-            , french = s "Tableau de références à des fiches"
+            { english = s "Array of links to cards"
+            , french = s "Tableau de liens vers des fiches"
             , spanish = todo
             }
 
         CardIdField ->
             getTranslationSet CardId
+
+        CardPlaceholder ->
+            { english = s "Name or ID of a card"
+            , french = s "Nom ou identifiant d'une fiche"
+            , spanish = todo
+            }
 
         Cards ->
             { english = s "Cards"
@@ -555,6 +574,12 @@ getTranslationSet translationId =
             , spanish = todo
             }
 
+        EnterCard ->
+            { english = s "Please enter the name or the ID of a card"
+            , french = s "Veuillez entrer le nom ou l'identifiant d'une fiche"
+            , spanish = todo
+            }
+
         EnterEmail ->
             { english = s "Please enter your email"
             , french = s "Veuillez entrer votre courriel"
@@ -609,9 +634,21 @@ getTranslationSet translationId =
             , spanish = todo
             }
 
+        FindAnotherCard ->
+            { english = s "Find another card"
+            , french = s "Rechercher une autre fiche"
+            , spanish = todo
+            }
+
+        FindCard ->
+            { english = s "Find a card"
+            , french = s "Rechercher fiche"
+            , spanish = todo
+            }
+
         FooterAbout ->
             { english = s "About"
-            , french = s "A propos"
+            , french = s "À propos"
             , spanish = s "Acerca"
             }
 
@@ -728,6 +765,12 @@ getTranslationSet translationId =
         License ->
             { english = s "License"
             , french = s "Licence"
+            , spanish = todo
+            }
+
+        LoadingMenu ->
+            { english = s "Loading menu..."
+            , french = s "Chargement du menu..."
             , spanish = todo
             }
 
@@ -944,6 +987,12 @@ getTranslationSet translationId =
         SearchPlaceholder ->
             { english = s "Search terms"
             , french = s "Termes de la recherche"
+            , spanish = todo
+            }
+
+        SelectCardOrTypeMoreCharacters ->
+            { english = s "Select a card or type more characters"
+            , french = s "Sélectionner une fiche ou tapez plus de caractères"
             , spanish = todo
             }
 
@@ -1182,14 +1231,14 @@ getTranslationSet translationId =
             }
 
         ValueId ->
-            { english = s "Reference to a value"
-            , french = s "Référence à une valeur"
+            { english = s "Link to a value"
+            , french = s "Lien vers une valeur"
             , spanish = todo
             }
 
         ValueIdArray ->
-            { english = s "Array of references to valuess"
-            , french = s "Tableau de références à des valeurs"
+            { english = s "Array of links to valuess"
+            , french = s "Tableau de liens vers des valeurs"
             , spanish = todo
             }
 

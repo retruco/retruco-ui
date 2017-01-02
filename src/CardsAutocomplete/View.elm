@@ -9,26 +9,39 @@ import Html.Events exposing (..)
 import I18n
 import Json.Decode
 import Types exposing (CardAutocompletion)
-
-
-view : I18n.Language -> String -> String -> Maybe I18n.TranslationId -> Model -> Html Msg
-view language fieldLabel fieldId errorMaybe model =
-    let
-        prefix =
-            if String.isEmpty fieldId then
-                fieldId
-            else
-                fieldId ++ "."
-    in
-        fieldset [ class "form-group" ]
-            [ legend [] [ text fieldLabel ]
-            , viewAutocomplete language fieldId errorMaybe model
-            ]
+import Views exposing (errorInfos)
 
 
 viewAutocomplete : I18n.Language -> String -> Maybe I18n.TranslationId -> Model -> Html Msg
-viewAutocomplete language parentId errorMaybe model =
+viewAutocomplete language parentId error model =
     let
+        controlId =
+            if String.isEmpty parentId then
+                "autocomplete"
+            else
+                parentId ++ ".autocomplete"
+
+        controlFindAnother =
+            I18n.translate language I18n.FindAnotherCard
+
+        controlFindOne =
+            I18n.translate language I18n.FindCard
+
+        controlLabel =
+            I18n.translate language I18n.Card
+
+        controlPlaceholder =
+            I18n.translate language I18n.CardPlaceholder
+
+        controlSelectOneOrTypeMoreCharacters =
+            I18n.translate language I18n.SelectCardOrTypeMoreCharacters
+
+        controlTitle =
+            I18n.translate language I18n.EnterCard
+
+        ( errorClass, errorAttributes, errorBlock ) =
+            errorInfos language controlId error
+
         decodeKeyCode =
             keyCode
                 |> Json.Decode.andThen
@@ -41,46 +54,11 @@ viewAutocomplete language parentId errorMaybe model =
                             Json.Decode.fail "not handling that key"
                     )
 
-        -- (Json.Decode.customDecoder keyCode
-        --     (\code ->
-        --         if code == 38 || code == 40 then
-        --             Ok NoOp
-        --         else if code == 27 then
-        --             Ok HandleEscape
-        --         else
-        --             Err "not handling that key"
-        --     )
-        -- )
-        inputId =
-            if String.isEmpty parentId then
-                "autocomplete"
-            else
-                parentId ++ ".autocomplete"
-
-        errorId =
-            inputId ++ "-error"
-
-        ( errorClass, errorAttributes, errorBlock ) =
-            case errorMaybe of
-                Just error ->
-                    ( " has-danger"
-                    , [ ariaDescribedby errorId ]
-                    , [ div
-                            [ class "form-control-feedback"
-                            , id errorId
-                            ]
-                            [ text <| I18n.translate language error ]
-                      ]
-                    )
-
-                Nothing ->
-                    ( "", [], [] )
-
         menuId =
-            inputId ++ "-menu"
+            controlId ++ "-menu"
 
         query =
-            case model.selectedMaybe of
+            case model.selected of
                 Just selected ->
                     selected.autocomplete
 
@@ -113,11 +91,7 @@ viewAutocomplete language parentId errorMaybe model =
     in
         div [ class ("form-group" ++ errorClass) ]
             (List.concat
-                [ [ label [ class "control-label", for inputId ]
-                        [ span [ class "fa fa-search" ] []
-                        , text " "
-                        , text "Search"
-                        ]
+                [ [ label [ class "control-label", for controlId ] [ text controlLabel ]
                   , div [ class "input-group" ]
                         [ input
                             (List.concat
@@ -127,19 +101,20 @@ viewAutocomplete language parentId errorMaybe model =
                                   , attribute "aria-owns" menuId
                                   , autocomplete False
                                   , class "form-control"
-                                  , id inputId
+                                  , id controlId
                                   , onFocus (ForSelf Focus)
                                   , onInput (ForSelf << InputChanged)
                                   , onWithOptions
                                         "keydown"
                                         { preventDefault = True, stopPropagation = False }
                                         decodeKeyCode
-                                  , placeholder "John Doe (@JohnDoe)"
-                                  , attribute "role" "combobox"
+                                  , placeholder controlPlaceholder
+                                  , title controlTitle
+                                  , role "combobox"
                                   , type_ "text"
                                   , value query
                                   ]
-                                , (case model.selectedMaybe of
+                                , (case model.selected of
                                     Just selected ->
                                         [ ariaActiveDescendant selected.autocomplete ]
 
@@ -159,7 +134,7 @@ viewAutocomplete language parentId errorMaybe model =
                                             { preventDefault = True, stopPropagation = False }
                                             (Json.Decode.succeed (ForSelf MouseOpen))
                                         ]
-                                        (case model.selectedMaybe of
+                                        (case model.selected of
                                             Just selected ->
                                                 [ span
                                                     [ ariaHidden True
@@ -168,7 +143,7 @@ viewAutocomplete language parentId errorMaybe model =
                                                     []
                                                 , span
                                                     [ class "sr-only" ]
-                                                    [ text "Find another person" ]
+                                                    [ text controlFindAnother ]
                                                 ]
 
                                             Nothing ->
@@ -179,7 +154,7 @@ viewAutocomplete language parentId errorMaybe model =
                                                     []
                                                 , span
                                                     [ class "sr-only" ]
-                                                    [ text "Find a person" ]
+                                                    [ text controlFindOne ]
                                                 ]
                                         )
 
@@ -209,21 +184,36 @@ viewAutocomplete language parentId errorMaybe model =
                                             (Json.Decode.succeed (ForSelf NoOp))
                                         ]
                                         [ span [ ariaHidden True, class "fa fa-fw fa-refresh fa-spin" ] []
-                                        , span [ class "sr-only" ] [ text "Loading menu..." ]
+                                        , span [ class "sr-only" ] [ text <| I18n.translate language I18n.LoadingMenu ]
                                         ]
                               )
                             ]
-                        , span [ class "input-group-btn" ]
-                            [ button [ class "btn btn-secondary" ]
-                                [ text "New" ]
-                            ]
+                          -- , span [ class "input-group-btn" ]
+                          --     [ button [ class "btn btn-secondary" ]
+                          --         [ text  <| I18n.translate language I18n.LoadingMenu ]
+                          --     ]
                         ]
-                  , span [ class "sr-only" ] [ text "Loading menu..." ]
+                  , span [ class "sr-only" ] [ text <| I18n.translate language I18n.LoadingMenu ]
                   ]
                 , menu
                 , errorBlock
                 ]
             )
+
+
+viewAutocompleteFieldset : I18n.Language -> String -> String -> Maybe I18n.TranslationId -> Model -> Html Msg
+viewAutocompleteFieldset language fieldLabel fieldId error model =
+    let
+        prefix =
+            if String.isEmpty fieldId then
+                fieldId
+            else
+                fieldId ++ "."
+    in
+        fieldset [ class "form-group" ]
+            [ legend [] [ text fieldLabel ]
+            , viewAutocomplete language fieldId error model
+            ]
 
 
 viewAutocompleteItemContent : CardAutocompletion -> List (Html Never)
