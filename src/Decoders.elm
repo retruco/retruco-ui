@@ -188,23 +188,6 @@ userDecoder =
         |: (field "urlName" string)
 
 
-userForPortDecoder : Decoder User
-userForPortDecoder =
-    succeed User
-        -- Workaround a bug in ports that removes boolean values.
-        |:
-            ((field "activated" string)
-                |> andThen
-                    (\activated ->
-                        succeed (not (String.isEmpty activated))
-                    )
-            )
-        |: (field "apiKey" string)
-        |: (field "email" string)
-        |: (field "name" string)
-        |: (field "urlName" string)
-
-
 valueDecoder : Decoder Types.TypedValue
 valueDecoder =
     map5 (,,,,)

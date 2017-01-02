@@ -316,16 +316,6 @@ type alias User =
     }
 
 
-type alias UserForPort =
-    -- Workaround for ports removing booleans
-    { activated : String
-    , apiKey : String
-    , email : String
-    , name : String
-    , urlName : String
-    }
-
-
 type alias UserBody =
     { data : User
     }

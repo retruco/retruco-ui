@@ -29,7 +29,7 @@ init flags location =
             Search.init
     in
         { authentication =
-            Json.Decode.decodeValue Decoders.userForPortDecoder flags.authentication
+            Json.Decode.decodeValue Decoders.userDecoder flags.authentication
                 |> Result.toMaybe
         , authenticatorCancelMsg = Nothing
         , authenticatorCompletionMsg = Nothing
@@ -127,7 +127,7 @@ update msg model =
                             , authenticatorCancelMsg = Nothing
                             , authenticatorCompletionMsg = Nothing
                         }
-                            ! [ Ports.storeAuthentication (Ports.userToUserForPort authentication)
+                            ! [ Ports.storeAuthentication authentication
                               , case model.authenticatorCompletionMsg of
                                     Just completionMsg ->
                                         Task.perform (\_ -> completionMsg) (Task.succeed ())
