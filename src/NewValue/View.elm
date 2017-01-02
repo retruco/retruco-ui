@@ -1,5 +1,6 @@
 module NewValue.View exposing (..)
 
+import CardsAutocomplete.View
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -16,6 +17,7 @@ import Views exposing (errorInfos)
 fieldTypeLabelCouples : List ( String, I18n.TranslationId )
 fieldTypeLabelCouples =
     [ ( "BooleanField", I18n.BooleanField )
+    , ( "CardIdField", I18n.CardIdField )
     , ( "ImageField", I18n.ImageField )
     , ( "InputEmailField", I18n.InputEmailField )
     , ( "InputNumberField", I18n.InputNumberField )
@@ -174,6 +176,21 @@ view model =
                                      ]
                                         ++ errorBlock
                                     )
+                         else if model.fieldType == "CardIdField" then
+                            let
+                                controlId =
+                                    "value"
+
+                                controlLabel =
+                                    I18n.translate language I18n.CardId
+                            in
+                                CardsAutocomplete.View.view
+                                    language
+                                    controlLabel
+                                    controlId
+                                    (Dict.get controlId model.errors)
+                                    model.cardsAutocompleteModel
+                                    |> Html.map translateCardsAutocompleteMsg
                          else if model.fieldType == "InputEmailField" then
                             let
                                 controlId =

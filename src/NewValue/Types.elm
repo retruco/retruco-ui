@@ -1,6 +1,7 @@
 module NewValue.Types exposing (..)
 
 import Authenticator.Types exposing (Authentication)
+import CardsAutocomplete.Types
 import Dict exposing (Dict)
 import Http
 import I18n
@@ -18,7 +19,8 @@ type alias FormErrors =
 
 
 type InternalMsg
-    = Created (Result Http.Error DataIdBody)
+    = CardsAutocompleteMsg CardsAutocomplete.Types.InternalMsg
+    | Created (Result Http.Error DataIdBody)
     | FieldTypeChanged String
     | ImageRead Ports.ImagePortData
     | ImageSelected
@@ -32,6 +34,7 @@ type InternalMsg
 type alias Model =
     { authentication : Maybe Authentication
     , booleanValue : Bool
+    , cardsAutocompleteModel : CardsAutocomplete.Types.Model
     , errors : FormErrors
     , field : Maybe Field
     , fieldType : String
@@ -56,6 +59,14 @@ type alias MsgTranslation parentMsg =
 
 type alias MsgTranslator parentMsg =
     Msg -> parentMsg
+
+
+translateCardsAutocompleteMsg : CardsAutocomplete.Types.MsgTranslator Msg
+translateCardsAutocompleteMsg =
+    CardsAutocomplete.Types.translateMsg
+        { onInternalMsg = ForSelf << CardsAutocompleteMsg
+        , onNavigate = ForParent << Navigate
+        }
 
 
 translateMsg : MsgTranslation parentMsg -> MsgTranslator parentMsg

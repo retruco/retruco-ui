@@ -25,23 +25,6 @@ bijectiveCardReferenceDecoder =
         |: (field "reverseKeyId" string)
 
 
-popularTagDecoder : Decoder PopularTag
-popularTagDecoder =
-    succeed PopularTag
-        |: (field "count" float)
-        |: (field "tagId" string)
-
-
-popularTagsDataDecoder : Decoder PopularTagsData
-popularTagsDataDecoder =
-    (field "data"
-        (succeed PopularTagsData
-            |: (field "popularity" (list popularTagDecoder))
-            |: (oneOf [ (field "values" (dict valueDecoder)), succeed Dict.empty ])
-        )
-    )
-
-
 cardDecoder : Decoder Card
 cardDecoder =
     succeed Card
@@ -57,6 +40,20 @@ cardDecoder =
         |: oneOf [ (field "tagIds" (list string)), succeed [] ]
         |: (field "type" string)
         |: oneOf [ (field "usageIds" (list string)), succeed [] ]
+
+
+cardsAutocompletionBodyDecoder : Decoder CardsAutocompletionBody
+cardsAutocompletionBodyDecoder =
+    succeed CardsAutocompletionBody
+        |: (field "data" (list cardsAutocompletionDecoder))
+
+
+cardsAutocompletionDecoder : Decoder CardAutocompletion
+cardsAutocompletionDecoder =
+    succeed CardAutocompletion
+        |: (field "autocomplete" string)
+        |: (field "card" cardDecoder)
+        |: (field "distance" float)
 
 
 collectionDecoder : Decoder Collection
@@ -82,6 +79,12 @@ collectionDecoder =
         |: (field "name" string)
 
 
+dataIdBodyDecoder : Decoder DataIdBody
+dataIdBodyDecoder =
+    succeed DataIdBody
+        |: (field "data" dataIdDecoder)
+
+
 dataIdDecoder : Decoder DataId
 dataIdDecoder =
     succeed DataId
@@ -94,10 +97,13 @@ dataIdDecoder =
         |: oneOf [ (field "values" (dict valueDecoder)), succeed Dict.empty ]
 
 
-dataIdBodyDecoder : Decoder DataIdBody
-dataIdBodyDecoder =
-    succeed DataIdBody
-        |: (field "data" dataIdDecoder)
+dataIdsBodyDecoder : Decoder DataIdsBody
+dataIdsBodyDecoder =
+    succeed DataIdsBody
+        |: oneOf [ (field "count" int), succeed 0 ]
+        |: (field "data" dataIdsDecoder)
+        |: oneOf [ (field "limit" int), succeed 0 ]
+        |: oneOf [ (field "offset" int), succeed 0 ]
 
 
 dataIdsDecoder : Decoder DataIds
@@ -124,18 +130,26 @@ dataIdsDecoder =
             )
 
 
-dataIdsBodyDecoder : Decoder DataIdsBody
-dataIdsBodyDecoder =
-    succeed DataIdsBody
-        |: oneOf [ (field "count" int), succeed 0 ]
-        |: (field "data" dataIdsDecoder)
-        |: oneOf [ (field "limit" int), succeed 0 ]
-        |: oneOf [ (field "offset" int), succeed 0 ]
-
-
 messageBodyDecoder : Decoder String
 messageBodyDecoder =
     (field "data" string)
+
+
+popularTagDecoder : Decoder PopularTag
+popularTagDecoder =
+    succeed PopularTag
+        |: (field "count" float)
+        |: (field "tagId" string)
+
+
+popularTagsDataDecoder : Decoder PopularTagsData
+popularTagsDataDecoder =
+    (field "data"
+        (succeed PopularTagsData
+            |: (field "popularity" (list popularTagDecoder))
+            |: (oneOf [ (field "values" (dict valueDecoder)), succeed Dict.empty ])
+        )
+    )
 
 
 propertyDecoder : Decoder Property
@@ -259,3 +273,84 @@ valueTypeDecoder schemaId widgetId =
                             WrongValue str schemaId
                     )
             ]
+
+
+
+-- decodeArgumentType : Decoder ArgumentType
+-- decodeArgumentType =
+--     customDecoder string
+--         (\argumentType ->
+--             case argumentType of
+--                 "because" ->
+--                     Ok Because
+--                 "but" ->
+--                     Ok But
+--                 "comment" ->
+--                     Ok Comment
+--                 "example" ->
+--                     Ok Example
+--                 _ ->
+--                     Err ("Unkown argument type: " ++ argumentType)
+--         )
+-- decodeStatement : Decoder Statement
+-- decodeStatement =
+--     succeed Statement
+--         |: maybe ("ballotId" := string)
+--         |: ("createdAt" := string)
+--         |: (("type" := string) |> andThen decodeStatementFromType)
+--         |: oneOf [ ("deleted" := bool), succeed False ]
+--         |: oneOf [ ("groundIds" := list string), succeed [] ]
+--         |: ("id" := string)
+--         |: oneOf [ ("isAbuse" := bool), succeed False ]
+--         |: oneOf [ ("ratingCount" := int), succeed 0 ]
+--         |: oneOf [ ("ratingSum" := int), succeed 0 ]
+-- decodeStatementAutocompletion : Decoder StatementAutocompletion
+-- decodeStatementAutocompletion =
+--     succeed StatementAutocompletion
+--         |: ("autocomplete" := string)
+--         |: ("distance" := float)
+--         |: ("statement" := decodeStatement)
+-- decodeStatementFromType : String -> Decoder StatementCustom
+-- decodeStatementFromType statementType =
+--     case statementType of
+--         "Abuse" ->
+--             succeed Abuse
+--                 |: ("statementId" := string)
+--                 |> andThen (\abuse -> succeed (AbuseCustom abuse))
+--         "Argument" ->
+--             succeed Argument
+--                 |: ("argumentType" := decodeArgumentType)
+--                 |: ("claimId" := string)
+--                 |: ("groundId" := string)
+--                 |> andThen (\argument -> succeed (ArgumentCustom argument))
+--         "Citation" ->
+--             succeed Citation
+--                 |: ("citedId" := string)
+--                 |: ("eventId" := string)
+--                 |: ("personId" := string)
+--                 |> andThen (\citation -> succeed (CitationCustom citation))
+--         "Event" ->
+--             succeed Event
+--                 |: ("name" := string)
+--                 |> andThen (\event -> succeed (EventCustom event))
+--         "Person" ->
+--             succeed Person
+--                 |: ("name" := string)
+--                 |: ("twitterName" := string)
+--                 |> andThen (\person -> succeed (PersonCustom person))
+--         "PlainStatement" ->
+--             succeed Plain
+--                 |: ("languageCode" := string)
+--                 |: ("name" := string)
+--                 |> andThen (\plain -> succeed (PlainCustom plain))
+--         "Tag" ->
+--             succeed Tag
+--                 |: ("name" := string)
+--                 |: ("statementId" := string)
+--                 |> andThen (\tag -> succeed (TagCustom tag))
+--         _ ->
+--             fail ("Unkown statement type: " ++ statementType)
+-- decodeStatementsAutocompletionBody : Decoder StatementsAutocompletionBody
+-- decodeStatementsAutocompletionBody =
+--     succeed StatementsAutocompletionBody
+--         |: ("data" := list decodeStatementAutocompletion)

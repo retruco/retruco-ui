@@ -1,6 +1,7 @@
 module NewValue.State exposing (..)
 
 import Authenticator.Types exposing (Authentication)
+import CardsAutocomplete.State
 import Dict exposing (Dict)
 import Http
 import Http.Error
@@ -19,6 +20,7 @@ init : Model
 init =
     { authentication = Nothing
     , booleanValue = False
+    , cardsAutocompleteModel = CardsAutocomplete.State.init
     , errors = Dict.empty
     , field = Nothing
     , fieldType = "TextField"
@@ -193,6 +195,15 @@ subscriptions model =
 update : InternalMsg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        CardsAutocompleteMsg childMsg ->
+            let
+                ( cardsAutocompleteModel, childCmd ) =
+                    CardsAutocomplete.State.update childMsg "cardsAutocomplete" model.cardsAutocompleteModel
+            in
+                ( { model | cardsAutocompleteModel = cardsAutocompleteModel }
+                , Cmd.map translateCardsAutocompleteMsg childCmd
+                )
+
         Created (Err httpError) ->
             ( { model | httpError = Just httpError }, Cmd.none )
 

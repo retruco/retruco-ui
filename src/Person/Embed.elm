@@ -436,7 +436,10 @@ viewAutocomplete parentId model errors =
                                   , id inputId
                                   , onFocus Focus
                                   , onInput InputChanged
-                                  , onWithOptions "keydown" { preventDefault = True, stopPropagation = False } decodeKeyCode
+                                  , onWithOptions
+                                        "keydown"
+                                        { preventDefault = True, stopPropagation = False }
+                                        decodeKeyCode
                                   , placeholder "John Doe (@JohnDoe)"
                                   , attribute "role" "combobox"
                                   , type_ "text"

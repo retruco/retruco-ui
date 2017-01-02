@@ -45,6 +45,7 @@ type TranslationId
     | Cancel
     | CardId
     | CardIdArray
+    | CardIdField
     | Cards
     | CardsDescription
     | ChangePassword
@@ -402,6 +403,9 @@ getTranslationSet translationId =
             , french = s "Tableau de références à des fiches"
             , spanish = todo
             }
+
+        CardIdField ->
+            getTranslationSet CardId
 
         Cards ->
             { english = s "Cards"

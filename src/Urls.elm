@@ -58,6 +58,28 @@ languagePath language path =
     "/" ++ (I18n.iso639_1FromLanguage language) ++ path
 
 
+paramsToQuery : List ( String, Maybe String ) -> String
+paramsToQuery params =
+    let
+        query =
+            params
+                |> List.filterMap
+                    (\( key, value ) ->
+                        case value of
+                            Just value ->
+                                Just <| Http.encodeUri key ++ "=" ++ Http.encodeUri value
+
+                            Nothing ->
+                                Nothing
+                    )
+                |> String.join "&"
+    in
+        if String.isEmpty query then
+            ""
+        else
+            "?" ++ query
+
+
 parentUrl : String -> String
 parentUrl url =
     let

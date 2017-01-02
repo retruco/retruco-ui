@@ -11,6 +11,7 @@ import Json.Encode as Encode
 import Regex
 import String
 import Types exposing (..)
+import Urls
 
 
 idRegex : Regex.Regex
@@ -42,6 +43,35 @@ authenticationHeaders authentication =
 
         Nothing ->
             []
+
+
+autocompleteCards : Maybe Authentication -> Maybe String -> String -> Int -> Http.Request CardsAutocompletionBody
+autocompleteCards authentication subType term limit =
+    Http.request
+        { method = "GET"
+        , headers = authenticationHeaders authentication
+        , url =
+            apiUrl
+                ++ "cards/autocomplete"
+                ++ Urls.paramsToQuery
+                    [ ( "limit", Just (toString limit) )
+                    , ( "term"
+                      , let
+                            cleanTerm =
+                                String.trim term
+                        in
+                            if String.isEmpty cleanTerm then
+                                Nothing
+                            else
+                                Just cleanTerm
+                      )
+                    , ( "type", subType )
+                    ]
+        , body = Http.emptyBody
+        , expect = Http.expectJson cardsAutocompletionBodyDecoder
+        , timeout = Nothing
+        , withCredentials = False
+        }
 
 
 

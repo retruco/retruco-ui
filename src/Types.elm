@@ -19,13 +19,11 @@ import Json.Decode
 --     | But
 --     | Comment
 --     | Example
-
-
-type AutocompleteMenuState
-    = AutocompleteMenuHidden
-    | AutocompleteMenuSleeping
-    | AutocompleteMenuLoading
-    | AutocompleteMenuVisible
+-- type AutocompleteMenuState
+--     = AutocompleteMenuHidden
+--     | AutocompleteMenuSleeping
+--     | AutocompleteMenuLoading
+--     | AutocompleteMenuVisible
 
 
 type alias Ballot =
@@ -57,6 +55,18 @@ type alias Card =
     , tagIds : List String
     , type_ : String
     , usageIds : List String
+    }
+
+
+type alias CardAutocompletion =
+    { autocomplete : String
+    , card : Card
+    , distance : Float
+    }
+
+
+type alias CardsAutocompletionBody =
+    { data : List CardAutocompletion
     }
 
 
@@ -419,126 +429,6 @@ type ValueType
 --                 { languageCode = "en"
 --                 , name = "Unknown kind: " ++ form.kind
 --                 }
--- decodeArgumentType : Decoder ArgumentType
--- decodeArgumentType =
---     customDecoder string
---         (\argumentType ->
---             case argumentType of
---                 "because" ->
---                     Ok Because
---                 "but" ->
---                     Ok But
---                 "comment" ->
---                     Ok Comment
---                 "example" ->
---                     Ok Example
---                 _ ->
---                     Err ("Unkown argument type: " ++ argumentType)
---         )
--- decodeBallot : Decoder Ballot
--- decodeBallot =
---     succeed Ballot
---         |: oneOf [ ("rating" := int) |> andThen (\_ -> succeed False), succeed True ]
---         |: ("id" := string)
---         |: oneOf [ ("rating" := int), succeed 0 ]
---         |: ("statementId" := string)
---         |: oneOf [ ("updatedAt" := string), succeed "" ]
---         |: ("voterId" := string)
--- decodeDataId : Decoder DataId
--- decodeDataId =
---     succeed DataId
---         |: oneOf [ ("ballots" := dict decodeBallot), succeed Dict.empty ]
---         |: ("id" := string)
---         |: oneOf [ ("statements" := dict decodeStatement), succeed Dict.empty ]
---         |: oneOf [ ("users" := dict decodeUser), succeed Dict.empty ]
--- decodeDataIds : Decoder DataIds
--- decodeDataIds =
---     succeed DataIds
---         |: oneOf [ ("ballots" := dict decodeBallot), succeed Dict.empty ]
---         |: ("ids" := list string)
---         |: oneOf [ ("statements" := dict decodeStatement), succeed Dict.empty ]
---         |: oneOf [ ("users" := dict decodeUser), succeed Dict.empty ]
--- decodeDataIdBody : Decoder DataIdBody
--- decodeDataIdBody =
---     succeed DataIdBody
---         |: ("data" := decodeDataId)
--- decodeDataIdsBody : Decoder DataIdsBody
--- decodeDataIdsBody =
---     succeed DataIdsBody
---         |: ("data" := decodeDataIds)
--- decodeStatement : Decoder Statement
--- decodeStatement =
---     succeed Statement
---         |: maybe ("ballotId" := string)
---         |: ("createdAt" := string)
---         |: (("type" := string) |> andThen decodeStatementFromType)
---         |: oneOf [ ("deleted" := bool), succeed False ]
---         |: oneOf [ ("groundIds" := list string), succeed [] ]
---         |: ("id" := string)
---         |: oneOf [ ("isAbuse" := bool), succeed False ]
---         |: oneOf [ ("ratingCount" := int), succeed 0 ]
---         |: oneOf [ ("ratingSum" := int), succeed 0 ]
--- decodeStatementAutocompletion : Decoder StatementAutocompletion
--- decodeStatementAutocompletion =
---     succeed StatementAutocompletion
---         |: ("autocomplete" := string)
---         |: ("distance" := float)
---         |: ("statement" := decodeStatement)
--- decodeStatementFromType : String -> Decoder StatementCustom
--- decodeStatementFromType statementType =
---     case statementType of
---         "Abuse" ->
---             succeed Abuse
---                 |: ("statementId" := string)
---                 |> andThen (\abuse -> succeed (AbuseCustom abuse))
---         "Argument" ->
---             succeed Argument
---                 |: ("argumentType" := decodeArgumentType)
---                 |: ("claimId" := string)
---                 |: ("groundId" := string)
---                 |> andThen (\argument -> succeed (ArgumentCustom argument))
---         "Citation" ->
---             succeed Citation
---                 |: ("citedId" := string)
---                 |: ("eventId" := string)
---                 |: ("personId" := string)
---                 |> andThen (\citation -> succeed (CitationCustom citation))
---         "Event" ->
---             succeed Event
---                 |: ("name" := string)
---                 |> andThen (\event -> succeed (EventCustom event))
---         "Person" ->
---             succeed Person
---                 |: ("name" := string)
---                 |: ("twitterName" := string)
---                 |> andThen (\person -> succeed (PersonCustom person))
---         "PlainStatement" ->
---             succeed Plain
---                 |: ("languageCode" := string)
---                 |: ("name" := string)
---                 |> andThen (\plain -> succeed (PlainCustom plain))
---         "Tag" ->
---             succeed Tag
---                 |: ("name" := string)
---                 |: ("statementId" := string)
---                 |> andThen (\tag -> succeed (TagCustom tag))
---         _ ->
---             fail ("Unkown statement type: " ++ statementType)
--- decodeStatementsAutocompletionBody : Decoder StatementsAutocompletionBody
--- decodeStatementsAutocompletionBody =
---     succeed StatementsAutocompletionBody
---         |: ("data" := list decodeStatementAutocompletion)
--- decodeUser : Decoder User
--- decodeUser =
---     succeed User
---         |: ("apiKey" := string)
---         |: ("email" := string)
---         |: ("name" := string)
---         |: ("urlName" := string)
--- decodeUserBody : Decoder UserBody
--- decodeUserBody =
---     succeed UserBody
---         |: ("data" := decodeUser)
 -- filterPrefix : String -> Dict String value -> Dict String value
 -- filterPrefix prefix dict =
 --     let
