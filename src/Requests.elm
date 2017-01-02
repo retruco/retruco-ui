@@ -271,7 +271,7 @@ getValues authentication term limit =
                             Nothing
 
                         Just term ->
-                            Just ("term=" ++ term)
+                            Just ("term=" ++ Http.encodeUri term)
 
                         Nothing ->
                             Nothing

@@ -68,13 +68,13 @@ convertControlsToSearchCriteria model =
 update : InternalMsg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Found (Err err) ->
+        Found (Err httpError) ->
             let
                 _ =
-                    Debug.log "Cards.State update Loaded Err" err
+                    Debug.log "Cards.State update Loaded Err" httpError
 
                 newModel =
-                    { model | webData = Failure err }
+                    { model | webData = Failure httpError }
             in
                 ( newModel, Cmd.none )
 
