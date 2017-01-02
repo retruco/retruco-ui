@@ -45,8 +45,14 @@ authenticationHeaders authentication =
             []
 
 
-autocompleteCards : Maybe Authentication -> Maybe String -> String -> Int -> Http.Request CardsAutocompletionBody
-autocompleteCards authentication subType term limit =
+autocompleteCards :
+    Maybe Authentication
+    -> I18n.Language
+    -> Maybe String
+    -> String
+    -> Int
+    -> Http.Request CardsAutocompletionBody
+autocompleteCards authentication language subType term limit =
     Http.request
         { method = "GET"
         , headers = authenticationHeaders authentication
@@ -54,7 +60,8 @@ autocompleteCards authentication subType term limit =
             apiUrl
                 ++ "cards/autocomplete"
                 ++ Urls.paramsToQuery
-                    [ ( "limit", Just (toString limit) )
+                    [ ( "language", Just (I18n.iso639_1FromLanguage language) )
+                    , ( "limit", Just (toString limit) )
                     , ( "term"
                       , let
                             cleanTerm =
@@ -291,16 +298,16 @@ getValues authentication term limit =
 postCard : Maybe Authentication -> Dict String String -> I18n.Language -> Http.Request DataIdBody
 postCard authentication fields language =
     let
-        languageCode =
+        languageIso639_1 =
             I18n.iso639_1FromLanguage language
 
         localizedStringEncoder x =
-            Encode.object [ ( languageCode, Encode.string x ) ]
+            Encode.object [ ( languageIso639_1, Encode.string x ) ]
 
         body =
             Encode.object
                 -- Always use en(glish) language because this is the language of the labels below.
-                -- [ ( "language", Encode.string (I18n.iso639_1FromLanguage language) )
+                -- [ ( "language", Encode.string languageIso639_1 )
                 [ ( "language", Encode.string "en" )
                 , ( "schemas"
                   , Encode.object

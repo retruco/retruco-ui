@@ -4,6 +4,7 @@ import Autocomplete
 import CardsAutocomplete.Types exposing (..)
 import Dom
 import Http
+import I18n
 import Process
 import Requests
 import Task
@@ -98,8 +99,8 @@ subscriptions model =
     Sub.map (ForSelf << AutocompleteMsg) Autocomplete.subscription
 
 
-update : InternalMsg -> String -> Model -> ( Model, Cmd Msg )
-update msg fieldId model =
+update : InternalMsg -> I18n.Language -> String -> Model -> ( Model, Cmd Msg )
+update msg language fieldId model =
     case msg of
         AutocompleteMsg childMsg ->
             let
@@ -119,7 +120,7 @@ update msg fieldId model =
                         ( newModel, Cmd.none )
 
                     Just newMsg ->
-                        update newMsg fieldId newModel
+                        update newMsg language fieldId newModel
 
         Focus ->
             model ! []
@@ -152,7 +153,7 @@ update msg fieldId model =
 
         LoadMenu ->
             ( { model | autocompleteMenuState = AutocompleteMenuLoading }
-            , Requests.autocompleteCards Nothing Nothing model.autocomplete autocompleterSize
+            , Requests.autocompleteCards Nothing language Nothing model.autocomplete autocompleterSize
                 |> Http.send (ForSelf << MenuLoaded)
             )
 
@@ -164,7 +165,7 @@ update msg fieldId model =
                 case model.autocompleteMenuState of
                     AutocompleteMenuSleeping ->
                         ( { model | autocompleteMenuState = AutocompleteMenuLoading }
-                        , Requests.autocompleteCards Nothing Nothing model.autocomplete autocompleterSize
+                        , Requests.autocompleteCards Nothing language Nothing model.autocomplete autocompleterSize
                             |> Http.send (ForSelf << MenuLoaded)
                         )
 
@@ -236,7 +237,7 @@ update msg fieldId model =
         Wrap toTop ->
             case model.selectedMaybe of
                 Just selected ->
-                    update Reset fieldId model
+                    update Reset language fieldId model
 
                 Nothing ->
                     let

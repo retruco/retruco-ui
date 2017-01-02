@@ -198,7 +198,10 @@ update msg model =
         CardsAutocompleteMsg childMsg ->
             let
                 ( cardsAutocompleteModel, childCmd ) =
-                    CardsAutocomplete.State.update childMsg "cardsAutocomplete" model.cardsAutocompleteModel
+                    CardsAutocomplete.State.update childMsg
+                        model.language
+                        "cardsAutocomplete"
+                        model.cardsAutocompleteModel
             in
                 ( { model | cardsAutocompleteModel = cardsAutocompleteModel }
                 , Cmd.map translateCardsAutocompleteMsg childCmd
