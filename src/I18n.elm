@@ -1225,7 +1225,7 @@ getTranslationSet translationId =
             }
 
         ValueCreationFailed ->
-            { english = s "Value création failed"
+            { english = s "Value creation failed"
             , french = s "Échec de la création de la valeur"
             , spanish = todo
             }
