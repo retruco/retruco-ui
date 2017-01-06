@@ -84,7 +84,7 @@ urlUpdate : ( StatementsNestedRoute, Hop.Types.Location ) -> Model -> ( Model, C
 urlUpdate ( route, location ) model =
     let
         model1 =
-            { model
+            { init
               -- | location = location
                 | route = route
             }

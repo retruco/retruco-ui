@@ -321,7 +321,7 @@ update msg model =
 
 urlUpdate : Maybe Authentication -> I18n.Language -> Navigation.Location -> Model -> ( Model, Cmd Msg )
 urlUpdate authentication language location model =
-    ( { model
+    ( { init
         | authentication = authentication
         , language = language
         , languageIso639_1 = I18n.iso639_1FromLanguage language

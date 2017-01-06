@@ -77,7 +77,7 @@ update msg model =
 urlUpdate : Maybe Authentication -> I18n.Language -> Navigation.Location -> String -> Model -> ( Model, Cmd Msg )
 urlUpdate authentication language location id model =
     update Retrieve
-        { model
+        { init
             | authentication = authentication
             , id = id
             , language = language

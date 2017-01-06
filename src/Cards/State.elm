@@ -127,7 +127,7 @@ urlUpdate authentication language location model =
         ( newModel, cmd ) =
             update
                 Submit
-                { model
+                { init
                     | authentication = authentication
                     , language = language
                     , searchTerm = Urls.querySearchTerm location
