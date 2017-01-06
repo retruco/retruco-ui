@@ -6,11 +6,17 @@ import Http
 import I18n
 import List.Extra
 import Navigation
+import Regex
 
 
 appLogoFullUrl : String
 appLogoFullUrl =
     Configuration.appUrl ++ "img/ogptoolbox-logo.png"
+
+
+idRegex : Regex.Regex
+idRegex =
+    Regex.regex "(^|/)(\\d+)(\\?|$)"
 
 
 fullApiUrl : String -> String
@@ -141,3 +147,19 @@ replaceLanguageInLocation language location =
             { url | path = path }
     in
         Erl.toString newUrl
+
+
+urlToId : String -> Maybe String
+urlToId url =
+    (Regex.find Regex.All idRegex url
+        |> List.head
+    )
+        |> Maybe.andThen
+            (\match ->
+                case match.submatches |> List.drop 1 |> List.head of
+                    Nothing ->
+                        Nothing
+
+                    Just maybe ->
+                        maybe
+            )
