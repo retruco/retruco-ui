@@ -1,9 +1,9 @@
-module Value.View exposing (..)
+module Values.Item.View exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Objects.ViewsParts exposing (..)
-import Value.Types exposing (..)
+import Values.Item.Types exposing (..)
+import Values.ViewsParts exposing (..)
 import Views
 import WebData
 

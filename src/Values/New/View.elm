@@ -1,4 +1,4 @@
-module NewValue.View exposing (..)
+module Values.New.View exposing (..)
 
 import CardsAutocomplete.View
 import Dict exposing (Dict)
@@ -10,7 +10,7 @@ import Http.Error
 import I18n
 import Image.View exposing (..)
 import Json.Decode
-import NewValue.Types exposing (..)
+import Values.New.Types exposing (..)
 import Views exposing (errorInfos)
 
 

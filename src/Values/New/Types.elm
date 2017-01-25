@@ -1,4 +1,4 @@
-module NewValue.Types exposing (..)
+module Values.New.Types exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import CardsAutocomplete.Types

@@ -1,4 +1,4 @@
-module Values.Types exposing (..)
+module Values.Index.Types exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import Dict exposing (Dict)

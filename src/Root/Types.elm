@@ -6,12 +6,12 @@ import Card.Types
 import Cards.Types
 import I18n
 import Navigation
-import NewValue.Types
 import Routes
 import Search
 import Types
-import Value.Types
-import Values.Types
+import Values.Index.Types
+import Values.Item.Types
+import Values.New.Types
 
 
 type alias Model =
@@ -23,14 +23,14 @@ type alias Model =
     , cardsModel : Cards.Types.Model
     , location : Navigation.Location
     , navigatorLanguage : Maybe I18n.Language
-    , newValueModel : NewValue.Types.Model
+    , newValueModel : Values.New.Types.Model
     , page : String
     , route : Routes.Route
     , searchCriteria : Types.SearchCriteria
     , searchModel : Search.Model
     , signOutMsg : Maybe Msg
-    , valueModel : Value.Types.Model
-    , valuesModel : Values.Types.Model
+    , valueModel : Values.Item.Types.Model
+    , valuesModel : Values.Index.Types.Model
     }
 
 
@@ -43,11 +43,11 @@ type Msg
     | LocationChanged Navigation.Location
     | Navigate String
     | NavigateFromAuthenticator String
-    | NewValueMsg NewValue.Types.InternalMsg
+    | NewValueMsg Values.New.Types.InternalMsg
     | NoOp
     | SearchMsg Search.InternalMsg
-    | ValueMsg Value.Types.InternalMsg
-    | ValuesMsg Values.Types.InternalMsg
+    | ValueMsg Values.Item.Types.InternalMsg
+    | ValuesMsg Values.Index.Types.InternalMsg
 
 
 translateAuthenticatorMsg : Authenticator.Types.MsgTranslator Msg
@@ -76,25 +76,25 @@ translateCardsMsg =
         }
 
 
-translateNewValueMsg : NewValue.Types.MsgTranslator Msg
+translateNewValueMsg : Values.New.Types.MsgTranslator Msg
 translateNewValueMsg =
-    NewValue.Types.translateMsg
+    Values.New.Types.translateMsg
         { onInternalMsg = NewValueMsg
         , onNavigate = Navigate
         }
 
 
-translateValueMsg : Value.Types.MsgTranslator Msg
+translateValueMsg : Values.Item.Types.MsgTranslator Msg
 translateValueMsg =
-    Value.Types.translateMsg
+    Values.Item.Types.translateMsg
         { onInternalMsg = ValueMsg
         , onNavigate = Navigate
         }
 
 
-translateValuesMsg : Values.Types.MsgTranslator Msg
+translateValuesMsg : Values.Index.Types.MsgTranslator Msg
 translateValuesMsg =
-    Values.Types.translateMsg
+    Values.Index.Types.translateMsg
         { onInternalMsg = ValuesMsg
         , onNavigate = Navigate
         }

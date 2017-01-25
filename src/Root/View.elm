@@ -7,12 +7,12 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Helpers exposing (aForPath)
 import I18n
-import NewValue.View
 import Root.Types exposing (..)
 import Routes exposing (..)
 import Search
-import Value.View
-import Values.View
+import Values.Index.View
+import Values.Item.View
+import Values.New.View
 import Views exposing (..)
 
 
@@ -190,15 +190,15 @@ view model =
                         ValuesRoute childRoute ->
                             case childRoute of
                                 NewValueRoute ->
-                                    NewValue.View.view model.newValueModel
+                                    Values.New.View.view model.newValueModel
                                         |> Html.map translateNewValueMsg
 
                                 ValueRoute _ ->
-                                    Value.View.view model.valueModel
+                                    Values.Item.View.view model.valueModel
                                         |> Html.map translateValueMsg
 
                                 ValuesIndexRoute ->
-                                    Values.View.view model.valuesModel
+                                    Values.Index.View.view model.valuesModel
                                         |> Html.map translateValuesMsg
                     ]
 

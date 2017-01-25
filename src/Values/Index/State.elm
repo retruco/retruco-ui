@@ -1,4 +1,4 @@
-module Values.State exposing (..)
+module Values.Index.State exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import Dict exposing (Dict)
@@ -8,7 +8,7 @@ import Navigation
 import Ports
 import Requests
 import Urls
-import Values.Types exposing (..)
+import Values.Index.Types exposing (..)
 import WebData exposing (..)
 
 

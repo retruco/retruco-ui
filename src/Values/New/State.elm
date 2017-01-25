@@ -1,4 +1,4 @@
-module NewValue.State exposing (..)
+module Values.New.State exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import CardsAutocomplete.State
@@ -8,12 +8,12 @@ import Http.Error
 import I18n
 import Image.Types exposing (..)
 import Navigation
-import NewValue.Types exposing (..)
 import Ports
 import Requests
 import Task
 import Types exposing (Field(..))
 import Urls
+import Values.New.Types exposing (..)
 
 
 init : Model

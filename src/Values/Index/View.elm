@@ -1,4 +1,4 @@
-module Values.View exposing (..)
+module Values.Index.View exposing (..)
 
 import Dict exposing (Dict)
 import Html exposing (..)
@@ -7,9 +7,9 @@ import Html.Attributes.Aria exposing (..)
 import Html.Events exposing (..)
 import Html.Helpers exposing (aForPath, aIfIsUrl)
 import I18n
-import Objects.ViewsParts exposing (..)
 import Json.Decode
-import Values.Types exposing (..)
+import Values.Index.Types exposing (..)
+import Values.ViewsParts exposing (..)
 import Views
 import WebData
 

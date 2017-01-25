@@ -1,4 +1,4 @@
-module Objects.ViewsParts exposing (..)
+module Values.ViewsParts exposing (..)
 
 import Dict exposing (Dict)
 import Html exposing (..)
@@ -7,7 +7,7 @@ import Html.Helpers exposing (aForPath, aIfIsUrl)
 import I18n
 import Types exposing (..)
 import Urls
-import Value.Types exposing (..)
+import Values.Item.Types exposing (..)
 
 
 viewCardIdLine : I18n.Language -> Maybe (String -> msg) -> DataProxy a -> String -> Html msg

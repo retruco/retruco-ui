@@ -10,7 +10,6 @@ import Erl
 import Json.Decode
 import I18n
 import Navigation
-import NewValue.State
 import Ports
 import Root.Types exposing (..)
 import Routes exposing (..)
@@ -18,8 +17,9 @@ import Search
 import Task
 import Types exposing (Flags)
 import Urls
-import Value.State
-import Values.State
+import Values.Index.State
+import Values.Item.State
+import Values.New.State
 
 
 init : Flags -> Navigation.Location -> ( Model, Cmd Msg )
@@ -42,14 +42,14 @@ init flags location =
                 |> String.left 2
                 |> String.toLower
                 |> I18n.languageFromIso639_1
-        , newValueModel = NewValue.State.init
+        , newValueModel = Values.New.State.init
         , page = "reference"
         , route = Routes.I18nRouteWithoutLanguage ""
         , searchCriteria = searchModel.searchCriteria
         , searchModel = searchModel
         , signOutMsg = Nothing
-        , valueModel = Value.State.init
-        , valuesModel = Values.State.init
+        , valueModel = Values.Item.State.init
+        , valuesModel = Values.Index.State.init
         }
             |> update (LocationChanged location)
 
@@ -80,7 +80,7 @@ subscriptions model =
     Sub.batch
         -- TODO Fix duplicate messages with port "fileContentRead", that was worked around by a "ImageSelectedStatus"
         -- constructor.
-        [ Sub.map NewValueMsg (NewValue.State.subscriptions model.newValueModel)
+        [ Sub.map NewValueMsg (Values.New.State.subscriptions model.newValueModel)
           -- , Sub.map StatementsMsg (Statements.subscriptions model.statementsModel)
         ]
 
@@ -206,7 +206,7 @@ update msg model =
             NewValueMsg childMsg ->
                 let
                     ( newValueModel, childCmd ) =
-                        NewValue.State.update childMsg model.newValueModel
+                        Values.New.State.update childMsg model.newValueModel
                 in
                     ( { model | newValueModel = newValueModel }
                     , Cmd.map translateNewValueMsg childCmd
@@ -238,7 +238,7 @@ update msg model =
             ValueMsg childMsg ->
                 let
                     ( valueModel, childCmd ) =
-                        Value.State.update childMsg model.valueModel
+                        Values.Item.State.update childMsg model.valueModel
                 in
                     ( { model | valueModel = valueModel }
                     , Cmd.map translateValueMsg childCmd
@@ -247,7 +247,7 @@ update msg model =
             ValuesMsg childMsg ->
                 let
                     ( valuesModel, childCmd ) =
-                        Values.State.update childMsg model.valuesModel
+                        Values.Index.State.update childMsg model.valuesModel
                 in
                     ( { model | valuesModel = valuesModel }
                     , Cmd.map translateValuesMsg childCmd
@@ -371,7 +371,7 @@ urlUpdate location model =
                                                 Just _ ->
                                                     let
                                                         ( newValueModel, childCmd ) =
-                                                            NewValue.State.urlUpdate
+                                                            Values.New.State.urlUpdate
                                                                 model.authentication
                                                                 language
                                                                 location
@@ -393,7 +393,7 @@ urlUpdate location model =
                                         ValueRoute valueId ->
                                             let
                                                 ( valueModel, childCmd ) =
-                                                    Value.State.urlUpdate
+                                                    Values.Item.State.urlUpdate
                                                         model.authentication
                                                         language
                                                         location
@@ -407,7 +407,7 @@ urlUpdate location model =
                                         ValuesIndexRoute ->
                                             let
                                                 ( valuesModel, childCmd ) =
-                                                    Values.State.urlUpdate
+                                                    Values.Index.State.urlUpdate
                                                         model.authentication
                                                         language
                                                         location

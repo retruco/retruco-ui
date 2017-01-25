@@ -1,4 +1,4 @@
-module Value.Types exposing (..)
+module Values.Item.Types exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import Http
