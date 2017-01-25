@@ -2,8 +2,8 @@ module Root.State exposing (..)
 
 import Authenticator.Routes exposing (..)
 import Authenticator.State
-import Card.State
-import Cards.State
+import Cards.Index.State
+import Cards.Item.State
 import Decoders
 import Dom.Scroll
 import Erl
@@ -34,8 +34,8 @@ init flags location =
         , authenticatorCancelMsg = Nothing
         , authenticatorCompletionMsg = Nothing
         , authenticatorModel = Authenticator.State.init
-        , cardModel = Card.State.init
-        , cardsModel = Cards.State.init
+        , cardModel = Cards.Item.State.init
+        , cardsModel = Cards.Index.State.init
         , location = location
         , navigatorLanguage =
             flags.language
@@ -146,7 +146,7 @@ update msg model =
             CardMsg childMsg ->
                 let
                     ( cardModel, childCmd ) =
-                        Card.State.update childMsg model.cardModel
+                        Cards.Item.State.update childMsg model.cardModel
                 in
                     ( { model | cardModel = cardModel }
                     , Cmd.map translateCardMsg childCmd
@@ -155,7 +155,7 @@ update msg model =
             CardsMsg childMsg ->
                 let
                     ( cardsModel, childCmd ) =
-                        Cards.State.update childMsg model.cardsModel
+                        Cards.Index.State.update childMsg model.cardsModel
                 in
                     ( { model | cardsModel = cardsModel }
                     , Cmd.map translateCardsMsg childCmd
@@ -302,7 +302,7 @@ urlUpdate location model =
                                         CardRoute cardId ->
                                             let
                                                 ( cardModel, childCmd ) =
-                                                    Card.State.urlUpdate
+                                                    Cards.Item.State.urlUpdate
                                                         model.authentication
                                                         language
                                                         location
@@ -316,7 +316,7 @@ urlUpdate location model =
                                         CardsIndexRoute ->
                                             let
                                                 ( cardsModel, childCmd ) =
-                                                    Cards.State.urlUpdate
+                                                    Cards.Index.State.urlUpdate
                                                         model.authentication
                                                         language
                                                         location
@@ -331,7 +331,7 @@ urlUpdate location model =
                                 --         Just _ ->
                                 --             let
                                 --                 ( newCardModel, childCmd ) =
-                                --                     NewCard.State.urlUpdate
+                                --                     NewCards.Item.State.urlUpdate
                                 --                         model.authentication
                                 --                         language
                                 --                         location

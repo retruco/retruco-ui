@@ -1,6 +1,6 @@
-module Cards.View exposing (..)
+module Cards.Index.View exposing (..)
 
-import Cards.Types exposing (..)
+import Cards.Index.Types exposing (..)
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)

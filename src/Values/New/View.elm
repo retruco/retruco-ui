@@ -1,6 +1,6 @@
 module Values.New.View exposing (..)
 
-import CardsAutocomplete.View
+import Cards.Autocomplete.View
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -181,7 +181,7 @@ view model =
                                 controlId =
                                     "cardId"
                             in
-                                CardsAutocomplete.View.viewAutocomplete
+                                Cards.Autocomplete.View.viewAutocomplete
                                     language
                                     controlId
                                     (Dict.get controlId model.errors)

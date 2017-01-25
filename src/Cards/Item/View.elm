@@ -1,6 +1,6 @@
-module Card.View exposing (..)
+module Cards.Item.View exposing (..)
 
-import Card.Types exposing (..)
+import Cards.Item.Types exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Values.ViewsParts exposing (..)

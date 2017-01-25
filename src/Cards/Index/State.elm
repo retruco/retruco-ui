@@ -1,7 +1,7 @@
-module Cards.State exposing (..)
+module Cards.Index.State exposing (..)
 
 import Authenticator.Types exposing (Authentication)
-import Cards.Types exposing (..)
+import Cards.Index.Types exposing (..)
 import Dict exposing (Dict)
 import Http
 import I18n

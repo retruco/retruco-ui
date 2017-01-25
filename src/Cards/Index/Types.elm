@@ -1,6 +1,7 @@
-module Card.Types exposing (..)
+module Cards.Index.Types exposing (..)
 
 import Authenticator.Types exposing (Authentication)
+import Dict exposing (Dict)
 import Http
 import I18n
 import Types exposing (..)
@@ -11,16 +12,26 @@ type ExternalMsg
     = Navigate String
 
 
+type alias FormErrors =
+    Dict String String
+
+
 type InternalMsg
-    = Retrieve
-    | Retrieved (Result Http.Error DataIdBody)
+    = Found (Result Http.Error DataIdsBody)
+    | Search
+    | SearchSortChanged String
+    | SearchTermChanged String
+    | Submit
 
 
 type alias Model =
     { authentication : Maybe Authentication
-    , id : String
+    , errors : FormErrors
     , language : I18n.Language
-    , webData : WebData DataIdBody
+    , searchCriteria : SearchCriteria
+    , searchSort : String
+    , searchTerm : String
+    , webData : WebData DataIdsBody
     }
 
 
@@ -37,6 +48,12 @@ type alias MsgTranslation parentMsg =
 
 type alias MsgTranslator parentMsg =
     Msg -> parentMsg
+
+
+type alias SearchCriteria =
+    { sort : String
+    , term : Maybe String
+    }
 
 
 translateMsg : MsgTranslation parentMsg -> MsgTranslator parentMsg

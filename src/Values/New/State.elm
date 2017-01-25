@@ -1,7 +1,7 @@
 module Values.New.State exposing (..)
 
 import Authenticator.Types exposing (Authentication)
-import CardsAutocomplete.State
+import Cards.Autocomplete.State
 import Dict exposing (Dict)
 import Http
 import Http.Error
@@ -20,7 +20,7 @@ init : Model
 init =
     { authentication = Nothing
     , booleanValue = False
-    , cardsAutocompleteModel = CardsAutocomplete.State.init
+    , cardsAutocompleteModel = Cards.Autocomplete.State.init
     , errors = Dict.empty
     , field = Nothing
     , fieldType = "TextField"
@@ -206,7 +206,7 @@ convertControls model =
 subscriptions : Model -> Sub InternalMsg
 subscriptions model =
     Sub.batch
-        [ Sub.map CardsAutocompleteMsg (CardsAutocomplete.State.subscriptions model.cardsAutocompleteModel)
+        [ Sub.map CardsAutocompleteMsg (Cards.Autocomplete.State.subscriptions model.cardsAutocompleteModel)
         , Ports.fileContentRead ImageRead
         ]
 
@@ -217,7 +217,7 @@ update msg model =
         CardsAutocompleteMsg childMsg ->
             let
                 ( cardsAutocompleteModel, childCmd ) =
-                    CardsAutocomplete.State.update childMsg
+                    Cards.Autocomplete.State.update childMsg
                         model.language
                         "cardId"
                         model.cardsAutocompleteModel

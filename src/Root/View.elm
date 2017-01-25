@@ -1,8 +1,8 @@
 module Root.View exposing (..)
 
 import Authenticator.View
-import Card.View
-import Cards.View
+import Cards.Index.View
+import Cards.Item.View
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Helpers exposing (aForPath)
@@ -162,15 +162,15 @@ view model =
                         CardsRoute childRoute ->
                             case childRoute of
                                 CardRoute _ ->
-                                    Card.View.view model.cardModel
+                                    Cards.Item.View.view model.cardModel
                                         |> Html.map translateCardMsg
 
                                 CardsIndexRoute ->
-                                    Cards.View.view model.cardsModel
+                                    Cards.Index.View.view model.cardsModel
                                         |> Html.map translateCardsMsg
 
                         -- NewCardRoute ->
-                        --     NewCard.View.view model.newCardModel
+                        --     NewCards.Item.View.view model.newCardModel
                         --         |> Html.map translateNewCardMsg
                         NotFoundRoute _ ->
                             viewNotFound language
