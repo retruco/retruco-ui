@@ -12,6 +12,7 @@ import Types exposing (..)
 
 type ExternalMsg
     = Navigate String
+    | ValueUpserted DataId
 
 
 type alias FormErrors =
@@ -20,13 +21,13 @@ type alias FormErrors =
 
 type InternalMsg
     = CardsAutocompleteMsg Cards.Autocomplete.Types.InternalMsg
-    | Created (Result Http.Error DataIdBody)
     | FieldTypeChanged String
     | ImageRead Ports.ImagePortData
     | ImageSelected
     | ImageUploaded (Result Http.Error String)
     | LanguageChanged String
     | Submit
+    | Upserted (Result Http.Error DataIdBody)
     | ValueChanged String
     | ValueChecked Bool
 
@@ -54,6 +55,7 @@ type Msg
 type alias MsgTranslation parentMsg =
     { onInternalMsg : InternalMsg -> parentMsg
     , onNavigate : String -> parentMsg
+    , onValueUpserted : DataId -> parentMsg
     }
 
 
@@ -70,10 +72,13 @@ translateCardsAutocompleteMsg =
 
 
 translateMsg : MsgTranslation parentMsg -> MsgTranslator parentMsg
-translateMsg { onInternalMsg, onNavigate } msg =
+translateMsg { onInternalMsg, onNavigate, onValueUpserted } msg =
     case msg of
         ForParent (Navigate path) ->
             onNavigate path
+
+        ForParent (ValueUpserted data) ->
+            onValueUpserted data
 
         ForSelf internalMsg ->
             onInternalMsg internalMsg

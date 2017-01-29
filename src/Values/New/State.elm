@@ -203,6 +203,15 @@ convertControls model =
         }
 
 
+setContext : Maybe Authentication -> I18n.Language -> Model -> Model
+setContext authentication language model =
+    { model
+        | authentication = authentication
+        , language = language
+        , languageIso639_1 = I18n.iso639_1FromLanguage language
+    }
+
+
 subscriptions : Model -> Sub InternalMsg
 subscriptions model =
     Sub.batch
@@ -225,20 +234,6 @@ update msg model =
                 ( convertControls { model | cardsAutocompleteModel = cardsAutocompleteModel }
                 , Cmd.map translateCardsAutocompleteMsg childCmd
                 )
-
-        Created (Err httpError) ->
-            ( { model | httpError = Just httpError }, Cmd.none )
-
-        Created (Ok body) ->
-            ( { model | httpError = Nothing }
-            , Task.perform
-                (\_ ->
-                    ForParent <|
-                        Navigate <|
-                            Urls.languagePath model.language ("/values/" ++ body.data.id)
-                )
-                (Task.succeed ())
-            )
 
         FieldTypeChanged fieldType ->
             ( convertControls { model | fieldType = fieldType }
@@ -302,11 +297,19 @@ update msg model =
                         Requests.postValue
                             model.authentication
                             field
-                            |> Http.send (ForSelf << Created)
+                            |> Http.send (ForSelf << Upserted)
 
                     Nothing ->
                         Cmd.none
                 )
+
+        Upserted (Err httpError) ->
+            ( { model | httpError = Just httpError }, Cmd.none )
+
+        Upserted (Ok body) ->
+            ( { model | httpError = Nothing }
+            , Task.perform (\_ -> ForParent <| ValueUpserted body.data) (Task.succeed ())
+            )
 
         ValueChanged value ->
             ( convertControls { model | value = value }
@@ -321,11 +324,8 @@ update msg model =
 
 urlUpdate : Maybe Authentication -> I18n.Language -> Navigation.Location -> Model -> ( Model, Cmd Msg )
 urlUpdate authentication language location model =
-    ( { init
-        | authentication = authentication
-        , language = language
-        , languageIso639_1 = I18n.iso639_1FromLanguage language
-      }
+    ( init
+        |> setContext authentication language
     , Ports.setDocumentMetadata
         { description = I18n.translate language I18n.NewValueDescription
         , imageUrl = Urls.appLogoFullUrl

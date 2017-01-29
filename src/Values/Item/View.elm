@@ -24,6 +24,6 @@ view model =
 
                     WebData.Loaded body ->
                         div []
-                            [ viewValueIdLine language (Just (ForParent << Navigate)) body.data body.data.id ]
+                            [ viewValueIdLine language (Just (ForParent << Navigate)) body.data True body.data.id ]
             )
             model.webData

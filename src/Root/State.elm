@@ -253,6 +253,9 @@ update msg model =
                     , Cmd.map translateValuesMsg childCmd
                     )
 
+            ValueUpserted data ->
+                update (Navigate <| Urls.languagePath language ("/values/" ++ data.id)) model
+
 
 urlUpdate : Navigation.Location -> Model -> ( Model, Cmd Msg )
 urlUpdate location model =

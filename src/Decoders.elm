@@ -222,6 +222,9 @@ valueTypeDecoder schemaId widgetId =
                 ( "schema:card-ids-array", _ ) ->
                     list string |> map CardIdArrayValue
 
+                ( "schema:email", _ ) ->
+                    string |> map EmailValue
+
                 ( "schema:localized-string", _ ) ->
                     dict string |> map LocalizedStringValue
 
@@ -235,7 +238,7 @@ valueTypeDecoder schemaId widgetId =
                     string |> map ImagePathValue
 
                 ( "schema:uri", _ ) ->
-                    string |> map StringValue
+                    string |> map UrlValue
 
                 ( "schema:value-ids-array", _ ) ->
                     list string |> map ValueIdArrayValue

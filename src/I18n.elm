@@ -1342,6 +1342,9 @@ getManyStrings language keyIds card values =
                 CardIdValue cardId ->
                     []
 
+                EmailValue value ->
+                    [ value ]
+
                 ImagePathValue path ->
                     []
 
@@ -1357,6 +1360,9 @@ getManyStrings language keyIds card values =
                     []
 
                 StringValue value ->
+                    [ value ]
+
+                UrlValue value ->
                     [ value ]
 
                 ValueIdArrayValue ids ->
@@ -1413,8 +1419,11 @@ getOneStringFromValueType language values valueType =
         CardIdValue cardId ->
             Nothing
 
+        EmailValue value ->
+            Just value
+
         ImagePathValue path ->
-            Nothing
+            Just path
 
         LocalizedStringValue valueByLanguage ->
             getValueByPreferredLanguage language valueByLanguage
@@ -1423,6 +1432,9 @@ getOneStringFromValueType language values valueType =
             Nothing
 
         StringValue value ->
+            Just value
+
+        UrlValue value ->
             Just value
 
         ValueIdArrayValue [] ->

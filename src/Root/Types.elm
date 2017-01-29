@@ -48,6 +48,7 @@ type Msg
     | SearchMsg Search.InternalMsg
     | ValueMsg Values.Item.Types.InternalMsg
     | ValuesMsg Values.Index.Types.InternalMsg
+    | ValueUpserted Types.DataId
 
 
 translateAuthenticatorMsg : Authenticator.Types.MsgTranslator Msg
@@ -81,6 +82,7 @@ translateNewValueMsg =
     Values.New.Types.translateMsg
         { onInternalMsg = NewValueMsg
         , onNavigate = Navigate
+        , onValueUpserted = ValueUpserted
         }
 
 
