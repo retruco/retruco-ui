@@ -16,20 +16,33 @@ import Urls
 import Values.New.Types exposing (..)
 
 
-init : Model
-init =
-    { authentication = Nothing
-    , booleanValue = False
-    , cardsAutocompleteModel = Cards.Autocomplete.State.init
-    , errors = Dict.empty
-    , field = Nothing
-    , fieldType = "TextField"
-    , httpError = Nothing
-    , imageUploadStatus = ImageNotUploadedStatus
-    , language = I18n.English
-    , languageIso639_1 = ""
-    , value = ""
-    }
+init : List String -> Model
+init validFieldTypes =
+    let
+        fieldType =
+            case List.head validFieldTypes of
+                Just firstFieldType ->
+                    if List.member "TextField" validFieldTypes then
+                        "TextField"
+                    else
+                        firstFieldType
+
+                Nothing ->
+                    "TextField"
+    in
+        { authentication = Nothing
+        , booleanValue = False
+        , cardsAutocompleteModel = Cards.Autocomplete.State.init
+        , errors = Dict.empty
+        , field = Nothing
+        , fieldType = fieldType
+        , httpError = Nothing
+        , imageUploadStatus = ImageNotUploadedStatus
+        , language = I18n.English
+        , languageIso639_1 = ""
+        , validFieldTypes = validFieldTypes
+        , value = ""
+        }
 
 
 convertControls : Model -> Model
@@ -208,7 +221,6 @@ setContext authentication language model =
     { model
         | authentication = authentication
         , language = language
-        , languageIso639_1 = I18n.iso639_1FromLanguage language
     }
 
 
@@ -307,9 +319,18 @@ update msg model =
             ( { model | httpError = Just httpError }, Cmd.none )
 
         Upserted (Ok body) ->
-            ( { model | httpError = Nothing }
-            , Task.perform (\_ -> ForParent <| ValueUpserted body.data) (Task.succeed ())
-            )
+            let
+                initedModel =
+                    init model.validFieldTypes
+            in
+                ( { initedModel
+                    | authentication = model.authentication
+                    , fieldType = model.fieldType
+                    , language = model.language
+                    , languageIso639_1 = model.languageIso639_1
+                  }
+                , Task.perform (\_ -> ForParent <| ValueUpserted body.data) (Task.succeed ())
+                )
 
         ValueChanged value ->
             ( convertControls { model | value = value }
@@ -324,11 +345,17 @@ update msg model =
 
 urlUpdate : Maybe Authentication -> I18n.Language -> Navigation.Location -> Model -> ( Model, Cmd Msg )
 urlUpdate authentication language location model =
-    ( init
-        |> setContext authentication language
-    , Ports.setDocumentMetadata
-        { description = I18n.translate language I18n.NewValueDescription
-        , imageUrl = Urls.appLogoFullUrl
-        , title = I18n.translate language I18n.NewValue
-        }
-    )
+    let
+        initedModel =
+            init model.validFieldTypes
+    in
+        ( { initedModel
+            | languageIso639_1 = I18n.iso639_1FromLanguage language
+          }
+            |> setContext authentication language
+        , Ports.setDocumentMetadata
+            { description = I18n.translate language I18n.NewValueDescription
+            , imageUrl = Urls.appLogoFullUrl
+            , title = I18n.translate language I18n.NewValue
+            }
+        )

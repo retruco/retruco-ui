@@ -42,7 +42,7 @@ init flags location =
                 |> String.left 2
                 |> String.toLower
                 |> I18n.languageFromIso639_1
-        , newValueModel = Values.New.State.init
+        , newValueModel = Values.New.State.init []
         , page = "reference"
         , route = Routes.I18nRouteWithoutLanguage ""
         , searchCriteria = searchModel.searchCriteria
