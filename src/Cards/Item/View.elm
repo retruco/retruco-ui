@@ -3,7 +3,7 @@ module Cards.Item.View exposing (..)
 import Cards.Item.Types exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Values.ViewsParts exposing (..)
+import Values.ViewsHelpers exposing (..)
 import Views
 import WebData
 
