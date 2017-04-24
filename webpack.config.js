@@ -3,7 +3,6 @@ var path = require('path');
 var webpack = require('webpack');
 var merge = require('webpack-merge');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
-var autoprefixer = require('autoprefixer');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var CopyWebpackPlugin = require('copy-webpack-plugin');
 
@@ -18,21 +17,28 @@ var commonConfig = {
     filename: '[hash].js',
   },
   resolve: {
-    modulesDirectories: ['node_modules'],
-    extensions: ['', '.js', '.elm']
+    modules: ['node_modules'],
+    extensions: ['.js', '.json', '.elm']
   },
   module: {
     noParse: /\.elm$/,
-    loaders: [
+    rules: [
       {
         test: /\.(ttf|eot|svg)(\?[\s\S]+)?$/,
-        loader: 'file'
+        use: 'file-loader'
       },
       {
         test: /\.woff2?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        // Limiting the size of the woff fonts breaks font-awesome ONLY for the extract text plugin
-        // loader: 'url?limit=10000'
-        loader: 'url'
+        use: [
+          {
+            loader: 'url-loader',
+            options: {
+              // Limiting the size of the woff fonts breaks font-awesome ONLY for the extract text plugin
+              // limit:10000
+            }
+          }
+
+        ]
       }
     ]
   },
@@ -48,21 +54,19 @@ var commonConfig = {
       "window.jQuery": "jquery",
       Tether: "tether",
       "window.Tether": "tether",
-      Tooltip: "exports?Tooltip!bootstrap/js/dist/tooltip",
-      Alert: "exports?Alert!bootstrap/js/dist/alert",
-      Button: "exports?Button!bootstrap/js/dist/button",
-      Carousel: "exports?Carousel!bootstrap/js/dist/carousel",
-      Collapse: "exports?Collapse!bootstrap/js/dist/collapse",
-      Dropdown: "exports?Dropdown!bootstrap/js/dist/dropdown",
-      Modal: "exports?Modal!bootstrap/js/dist/modal",
-      Popover: "exports?Popover!bootstrap/js/dist/popover",
-      Scrollspy: "exports?Scrollspy!bootstrap/js/dist/scrollspy",
-      Tab: "exports?Tab!bootstrap/js/dist/tab",
-      Tooltip: "exports?Tooltip!bootstrap/js/dist/tooltip",
-      Util: "exports?Util!bootstrap/js/dist/util"
+      Alert: "exports-loader?Alert!bootstrap/js/dist/alert",
+      Button: "exports-loader?Button!bootstrap/js/dist/button",
+      Carousel: "exports-loader?Carousel!bootstrap/js/dist/carousel",
+      Collapse: "exports-loader?Collapse!bootstrap/js/dist/collapse",
+      Dropdown: "exports-loader?Dropdown!bootstrap/js/dist/dropdown",
+      Modal: "exports-loader?Modal!bootstrap/js/dist/modal",
+      Popover: "exports-loader?Popover!bootstrap/js/dist/popover",
+      Scrollspy: "exports-loader?Scrollspy!bootstrap/js/dist/scrollspy",
+      Tab: "exports-loader?Tab!bootstrap/js/dist/tab",
+      Tooltip: "exports-loader?Tooltip!bootstrap/js/dist/tooltip",
+      Util: "exports-loader?Util!bootstrap/js/dist/util",
     })
-  ],
-  postcss: [ autoprefixer( { browsers: ['last 2 versions'] } ) ],
+  ]
 }
 
 // additional webpack settings for local env (when invoked by 'npm start')
@@ -76,20 +80,30 @@ if (TARGET_ENV === 'development') {
       path.join(__dirname, 'static/index.js')
     ],
     devServer: {
-      historyApiFallback: true,
-      inline: true,
-      progress: true
+      historyApiFallback: true
+      // inline: true
+      // progress: true
     },
     module: {
-      loaders: [
+      rules: [
         {
           test: /\.elm$/,
           exclude: [/elm-stuff/, /node_modules/],
-          loader: 'elm-hot!elm-webpack?verbose=true&warn=true'
+          use: [
+            'elm-hot-loader',
+            {
+              loader: 'elm-webpack-loader',
+              options: {
+                // cwd: __dirname + '/src/',
+                debug: true,
+                verbose: true
+              }
+            }
+          ]
         },
         {
-          test: /\.(css|scss)$/, 
-          loaders: ['style', 'css', 'postcss', 'sass']
+          test: /\.(css|scss)$/,
+          use: ['style-loader', 'css-loader', 'postcss-loader', 'sass-loader']
         }
       ]
     }
@@ -107,16 +121,16 @@ if (TARGET_ENV === 'production') {
       path.join(__dirname, 'static/index.js')
     ],
     module: {
-      loaders: [
+      rules: [
         {
           test: /\.elm$/,
           exclude: [/elm-stuff/, /node_modules/],
-          loader: 'elm-webpack'
+          use: 'elm-webpack-loader'
         },
         {
           test: /\.(css|scss)$/,
-          loader: ExtractTextPlugin.extract('style-loader', [
-            'css', 'postcss', 'sass'
+          use: ExtractTextPlugin.extract('style-loader', [
+            'css-loader', 'postcss-loader', 'sass-loader'
           ])
         }
       ]
