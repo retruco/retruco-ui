@@ -42,32 +42,35 @@ view model =
     in
         div []
             [ nav
-                [ class "navbar navbar-light bg-faded" ]
-                [ ul [ class "navbar-nav float-lg-right" ]
-                    [ li [ class "nav-item" ]
-                        [ aForPath
-                            (ForParent << Navigate)
+                [ class "navbar navbar-light navbar-toggleable bg-faded" ]
+                [ div [ class "navbar-collapse" ]
+                    [ Html.form [ class "form-inline mr-auto", onSubmit (ForSelf Submit) ]
+                        [ viewInlineSearchSort
                             language
-                            "/values/new"
-                            [ class "btn btn-secondary", role "button" ]
-                            [ text <| I18n.translate language I18n.NewValue ]
+                            model.searchSort
+                            (Dict.get "searchSort" model.errors)
+                            (ForSelf << SearchSortChanged)
+                        , Views.viewInlineSearchTerm
+                            language
+                            model.searchTerm
+                            (Dict.get "searchTerm" model.errors)
+                            (ForSelf << SearchTermChanged)
+                        , button [ class "btn btn-primary", type_ "button" ]
+                            [ span [ class "fa fa-search" ] []
+                            , text " "
+                            , text <| I18n.translate language I18n.Search
+                            ]
                         ]
-                    ]
-                , Html.form [ class "form-inline", onSubmit (ForSelf Submit) ]
-                    [ viewInlineSearchSort
-                        language
-                        model.searchSort
-                        (Dict.get "searchSort" model.errors)
-                        (ForSelf << SearchSortChanged)
-                    , Views.viewInlineSearchTerm
-                        language
-                        model.searchTerm
-                        (Dict.get "searchTerm" model.errors)
-                        (ForSelf << SearchTermChanged)
-                    , button [ class "btn btn-primary", type_ "button" ]
-                        [ span [ class "fa fa-search" ] []
-                        , text " "
-                        , text <| I18n.translate language I18n.Search
+                    , text " "
+                    , ul [ class "navbar-nav" ]
+                        [ li [ class "nav-item" ]
+                            [ aForPath
+                                (ForParent << Navigate)
+                                language
+                                "/values/new"
+                                [ class "btn btn-secondary", role "button" ]
+                                [ text <| I18n.translate language I18n.NewValue ]
+                            ]
                         ]
                     ]
                 ]
