@@ -12,7 +12,7 @@ viewImageUploadStatus : I18n.Language -> ImageUploadStatus -> Html msg
 viewImageUploadStatus language imageUploadStatus =
     let
         missingImage messageI18n =
-            div [ class "text-xs-center" ]
+            div [ class "text-center" ]
                 [ span
                     [ attribute "aria-hidden" "true"
                     , class "fa fa-camera fa-4"
@@ -33,7 +33,7 @@ viewImageUploadStatus language imageUploadStatus =
 
             ImageUploadedStatus path ->
                 figure
-                    [ class "figure text-xs-center"
+                    [ class "figure text-center"
                     , style [ ( "width", "100%" ) ]
                     ]
                     [ img

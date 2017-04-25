@@ -79,7 +79,7 @@ view language model =
                             [ text (I18n.translate language I18n.SignUp) ]
                         , text " "
                         , button
-                            [ class "btn btn-warning float-xs-right"
+                            [ class "btn btn-warning float-right"
                             , type_ "button"
                             , onClick (ForSelf <| Cancel)
                             ]

@@ -873,7 +873,7 @@ viewOption selectedItem ( item, label ) =
 --                         [ div
 --                             [ ariaLabel "Rate statement"
 --                             , role "group"
---                             , class "btn-group-vertical btn-group-xs"
+--                             , class "btn-group-vertical btn-group"
 --                             ]
 --                             [ button
 --                                 ([ ariaLabel "Set rating for statement to 1"
@@ -917,7 +917,7 @@ viewOption selectedItem ( item, label ) =
 --                         , div
 --                             [ ariaLabel "Manage statement"
 --                             , role "group"
---                             , class "btn-group-vertical btn-group-xs"
+--                             , class "btn-group-vertical btn-group"
 --                             ]
 --                             [ button
 --                                 ([ ariaLabel "Erase rating for statement"

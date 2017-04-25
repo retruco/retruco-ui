@@ -43,7 +43,7 @@ view model =
         div []
             [ nav
                 [ class "navbar navbar-light bg-faded" ]
-                [ ul [ class "nav navbar-nav float-lg-right" ]
+                [ ul [ class "navbar-nav float-lg-right" ]
                     [ li [ class "nav-item" ]
                         [ aForPath
                             (ForParent << Navigate)

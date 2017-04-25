@@ -85,7 +85,7 @@ viewValueTypeLineContent language navigate data showDetails valueType =
 
         ImagePathValue path ->
             figure
-                [ class "figure text-xs-center" ]
+                [ class "figure text-center" ]
                 [ img
                     [ alt <| I18n.translate language I18n.ImageAlt
                     , class "figure-img img-fluid rounded"
