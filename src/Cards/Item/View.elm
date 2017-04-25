@@ -1,9 +1,9 @@
 module Cards.Item.View exposing (..)
 
+import Cards.ViewsHelpers exposing (..)
 import Cards.Item.Types exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Values.ViewsHelpers exposing (..)
 import Views
 import WebData
 
@@ -24,6 +24,6 @@ view model =
 
                     WebData.Loaded body ->
                         div []
-                            [ viewCardIdLine language (Just (ForParent << Navigate)) body.data body.data.id ]
+                            [ viewCardId language (ForParent << Navigate) body.data body.data.id ]
             )
             model.webData

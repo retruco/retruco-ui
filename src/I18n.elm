@@ -28,6 +28,7 @@ type TranslationId
     | AddNew
     | AddNewItemBox
     | AdditionalInformations
+    | Arguments
     | AuthenticationFailed
     | AuthenticationRequired
     | AuthenticationRequiredExplanation
@@ -124,6 +125,7 @@ type TranslationId
     | PasswordChangeFailed
     | PasswordLost
     | PasswordPlaceholder
+    | Properties
     | ReadingSelectedImage
     | ReadMore
     | Register
@@ -321,6 +323,12 @@ getTranslationSet translationId =
         AddNew ->
             { english = s "Add new"
             , french = s "Ajouter"
+            , spanish = todo
+            }
+
+        Arguments ->
+            { english = s "Arguments"
+            , french = s "Arguments"
             , spanish = todo
             }
 
@@ -909,6 +917,12 @@ getTranslationSet translationId =
         PasswordPlaceholder ->
             { english = s "Your secret password"
             , french = s "Votre mot de passe secret"
+            , spanish = todo
+            }
+
+        Properties ->
+            { english = s "Properties"
+            , french = s "Propriétés"
             , spanish = todo
             }
 
