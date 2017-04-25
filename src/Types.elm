@@ -6,6 +6,15 @@ import Dict exposing (Dict)
 import Json.Decode
 
 
+type alias Argument =
+    { keyId : String
+    , rating : Int
+    , ratingCount : Int
+    , ratingSum : Int
+    , valueId : String
+    }
+
+
 -- type alias Abuse =
 --     { statementId : String
 --     }
@@ -43,7 +52,8 @@ type alias BijectiveCardReference =
 
 
 type alias Card =
-    { createdAt : String
+    { arguments : List Argument
+    , createdAt : String
     , deleted : Bool
     , id : String
     , properties : Dict String String
@@ -206,7 +216,8 @@ type alias PopularTagsData =
 
 
 type alias Property =
-    { ballotId :
+    { arguments : List Argument
+    , ballotId :
         String
         -- TODO Use Maybe
     , createdAt : String
@@ -303,6 +314,18 @@ type alias TypedValue =
     }
 
 
+type alias TypedValueAutocompletion =
+    { autocomplete : String
+    , distance : Float
+    , value : TypedValue
+    }
+
+
+type alias TypedValuesAutocompletionBody =
+    { data : List TypedValueAutocompletion
+    }
+
+
 type alias User =
     { activated : Bool
     , apiKey : String
@@ -333,6 +356,12 @@ type ValueType
     | ValueIdArrayValue (List String)
     | ValueIdValue String
     | WrongValue String String
+
+
+cardSubTypeIdsIntersect : List String -> List String -> Bool
+cardSubTypeIdsIntersect cardSubTypeIds1 cardSubTypeIds2 =
+    List.any (\subTypeId -> List.member subTypeId cardSubTypeIds2)
+        cardSubTypeIds1
 
 
 
@@ -471,6 +500,40 @@ getValue values id =
             value
 
 
+initData : DataProxy {}
+initData =
+    { ballots = Dict.empty
+    , cards = Dict.empty
+    , collections = Dict.empty
+    , properties = Dict.empty
+    , users = Dict.empty
+    , values = Dict.empty
+    }
+
+
+initDataId : DataId
+initDataId =
+    { ballots = Dict.empty
+    , cards = Dict.empty
+    , collections = Dict.empty
+    , id = ""
+    , properties = Dict.empty
+    , users = Dict.empty
+    , values = Dict.empty
+    }
+
+
+initDataIds : DataIds
+initDataIds =
+    { ballots = Dict.empty
+    , cards = Dict.empty
+    , collections = Dict.empty
+    , ids = []
+    , properties = Dict.empty
+    , users = Dict.empty
+    , values = Dict.empty
+    }
+
 
 -- initEventForm : EventForm
 -- initEventForm =
@@ -513,6 +576,48 @@ getValue values id =
 --     , statementId = ""
 --     , twitterName = ""
 --     }
+
+
+mergeData : DataProxy a -> DataProxy b -> DataProxy b
+mergeData new old =
+    { old
+        | ballots = Dict.union new.ballots old.ballots
+        , cards = Dict.union new.cards old.cards
+        , collections = Dict.union new.collections old.collections
+        , properties = Dict.union new.properties old.properties
+        , users = Dict.union new.users old.users
+        , values = Dict.union new.values old.values
+    }
+
+
+mergeDataId : DataId -> DataId -> DataId
+mergeDataId new old =
+    let
+        mergedData =
+            mergeData new old
+    in
+        { mergedData
+            | id =
+                if String.isEmpty new.id then
+                    old.id
+                else
+                    new.id
+        }
+
+
+mergeDataIds : DataIds -> DataIds -> DataIds
+mergeDataIds new old =
+    let
+        mergedData =
+            mergeData new old
+    in
+        { mergedData
+            | ids = List.append old.ids new.ids
+        }
+
+
+
+-- KEYS
 
 
 nameKeys : List String

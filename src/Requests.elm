@@ -42,11 +42,11 @@ authenticationHeaders authentication =
 autocompleteCards :
     Maybe Authentication
     -> I18n.Language
-    -> Maybe String
+    -> List String
     -> String
     -> Int
     -> Http.Request CardsAutocompletionBody
-autocompleteCards authentication language subType term limit =
+autocompleteCards authentication language cardTypes term limit =
     Http.request
         { method = "GET"
         , headers = authenticationHeaders authentication
@@ -54,20 +54,21 @@ autocompleteCards authentication language subType term limit =
             apiUrl
                 ++ "cards/autocomplete"
                 ++ Urls.paramsToQuery
-                    [ ( "language", Just (I18n.iso639_1FromLanguage language) )
-                    , ( "limit", Just (toString limit) )
-                    , ( "term"
-                      , let
+                    ([ ( "language", Just (I18n.iso639_1FromLanguage language) )
+                     , ( "limit", Just (toString limit) )
+                     , ( "term"
+                       , let
                             cleanTerm =
                                 String.trim term
-                        in
+                         in
                             if String.isEmpty cleanTerm then
                                 Nothing
                             else
                                 Just cleanTerm
-                      )
-                    , ( "type", subType )
-                    ]
+                       )
+                     ]
+                        ++ List.map (\cardType -> ( "type", Just cardType )) cardTypes
+                    )
         , body = Http.emptyBody
         , expect = Http.expectJson cardsAutocompletionBodyDecoder
         , timeout = Nothing
@@ -99,12 +100,50 @@ autocompleteCards authentication language subType term limit =
 --         }
 
 
+autocompletePropertiesKeys :
+    Maybe Authentication
+    -> I18n.Language
+    -> List String
+    -> String
+    -> Int
+    -> Http.Request TypedValuesAutocompletionBody
+autocompletePropertiesKeys authentication language cardTypes term limit =
+    Http.request
+        { method = "GET"
+        , headers = authenticationHeaders authentication
+        , url =
+            apiUrl
+                ++ "properties/keys/autocomplete"
+                ++ Urls.paramsToQuery
+                    ([ ( "class", Just "Card" )
+                     , ( "language", Just (I18n.iso639_1FromLanguage language) )
+                     , ( "limit", Just (toString limit) )
+                     , ( "term"
+                       , let
+                            cleanTerm =
+                                String.trim term
+                         in
+                            if String.isEmpty cleanTerm then
+                                Nothing
+                            else
+                                Just cleanTerm
+                       )
+                     ]
+                        ++ List.map (\cardType -> ( "type", Just cardType )) cardTypes
+                    )
+        , body = Http.emptyBody
+        , expect = Http.expectJson typedValuesAutocompletionBodyDecoder
+        , timeout = Nothing
+        , withCredentials = False
+        }
+
+
 getCard : Maybe Authentication -> String -> Http.Request DataIdBody
 getCard authentication cardId =
     Http.request
         { method = "GET"
         , headers = authenticationHeaders authentication
-        , url = apiUrl ++ "objects/" ++ cardId ++ "?show=references&show=values&depth=2"
+        , url = apiUrl ++ "objects/" ++ cardId ++ "?depth=5&show=references&show=values"
         , body = Http.emptyBody
         , expect = Http.expectJson dataIdBodyDecoder
         , timeout = Nothing
@@ -112,33 +151,48 @@ getCard authentication cardId =
         }
 
 
-getCards : Maybe Authentication -> String -> Maybe Int -> List String -> List String -> Http.Request DataIdsBody
-getCards authentication term limit tagIds cardTypes =
+getCards : Maybe Authentication -> String -> Int -> Int -> List String -> List String -> Http.Request DataIdsBody
+getCards authentication term limit offset tagIds cardTypes =
     Http.request
         { method = "GET"
         , headers = authenticationHeaders authentication
         , url =
             apiUrl
-                ++ "cards?"
-                ++ (List.map (\cardType -> "type=" ++ cardType) cardTypes
-                        ++ (([ Just "show=values"
-                             , Just "depth=1"
-                             , (if String.isEmpty term then
-                                    Nothing
-                                else
-                                    Just ("term=" ++ term)
-                               )
-                             , limit |> Maybe.map (\limit -> "limit=" ++ (toString limit))
-                             ]
-                                |> List.filterMap identity
+                ++ "cards"
+                ++ Urls.paramsToQuery
+                    ([ ( "depth", Just "2" )
+                     , ( "limit", Just (toString limit) )
+                     , ( "offset", Just (toString offset) )
+                     , ( "show", Just "values" )
+                     , ( "term"
+                       , let
+                            cleanTerm =
+                                String.trim term
+                         in
+                            if String.isEmpty cleanTerm then
+                                Nothing
+                            else
+                                Just cleanTerm
+                       )
+                     ]
+                        ++ List.map
+                            (\tagId ->
+                                ( "tag"
+                                , let
+                                    cleanTagId =
+                                        String.trim tagId
+                                  in
+                                    if String.isEmpty cleanTagId then
+                                        Nothing
+                                    else
+                                        Just cleanTagId
+                                )
                             )
-                                ++ (tagIds
-                                        |> List.filter (\s -> not (String.isEmpty s))
-                                        |> List.map (\tagId -> "tag=" ++ tagId)
-                                   )
+                            tagIds
+                        ++ (cardTypes
+                                |> List.map (\cardType -> ( "type", Just cardType ))
                            )
-                        |> String.join "&"
-                   )
+                    )
         , body = Http.emptyBody
         , expect = Http.expectJson dataIdsBodyDecoder
         , timeout = Nothing
@@ -151,7 +205,7 @@ getCollection authentication collectionId =
     Http.request
         { method = "GET"
         , headers = authenticationHeaders authentication
-        , url = apiUrl ++ "collections/" ++ collectionId ++ "?show=values&depth=3"
+        , url = apiUrl ++ "collections/" ++ collectionId ++ "?show=values&depth=4"
         , body = Http.emptyBody
         , expect = Http.expectJson dataIdBodyDecoder
         , timeout = Nothing
@@ -187,6 +241,19 @@ getCollectionsForAuthor authentication =
         { method = "GET"
         , headers = authenticationHeaders (Just authentication)
         , url = apiUrl ++ "users/" ++ authentication.urlName ++ "/collections?show=values&depth=1"
+        , body = Http.emptyBody
+        , expect = Http.expectJson dataIdsBodyDecoder
+        , timeout = Nothing
+        , withCredentials = False
+        }
+
+
+getDebateProperties : Maybe Authentication -> String -> Http.Request DataIdsBody
+getDebateProperties authentication objectId =
+    Http.request
+        { method = "GET"
+        , headers = authenticationHeaders authentication
+        , url = apiUrl ++ "objects/" ++ objectId ++ "/debate-properties" ++ "?show=ballots&show=values&depth=1"
         , body = Http.emptyBody
         , expect = Http.expectJson dataIdsBodyDecoder
         , timeout = Nothing
@@ -276,16 +343,16 @@ getValues authentication term limit =
 postCard : Maybe Authentication -> Dict String String -> I18n.Language -> Http.Request DataIdBody
 postCard authentication fields language =
     let
-        languageIso639_1 =
+        languageCode =
             I18n.iso639_1FromLanguage language
 
         localizedStringEncoder x =
-            Encode.object [ ( languageIso639_1, Encode.string x ) ]
+            Encode.object [ ( languageCode, Encode.string x ) ]
 
         body =
             Encode.object
                 -- Always use en(glish) language because this is the language of the labels below.
-                -- [ ( "language", Encode.string languageIso639_1 )
+                -- [ ( "language", Encode.string languageCode )
                 [ ( "language", Encode.string "en" )
                 , ( "schemas"
                   , Encode.object
@@ -318,12 +385,31 @@ postCard authentication fields language =
         Http.request
             { method = "POST"
             , headers = authenticationHeaders authentication
-            , url = apiUrl ++ "cards/easy"
+            , url = apiUrl ++ "cards/easy" ++ "?depth=5&show=references&show=values"
             , body = body
             , expect = Http.expectJson dataIdBodyDecoder
             , timeout = Nothing
             , withCredentials = False
             }
+
+
+postCollection : Maybe Authentication -> Maybe String -> Encode.Value -> Http.Request DataIdBody
+postCollection authentication collectionId collectionJson =
+    Http.request
+        { method = "POST"
+        , headers = authenticationHeaders authentication
+        , url =
+            case collectionId of
+                Just collectionId ->
+                    apiUrl ++ "collections/" ++ collectionId
+
+                Nothing ->
+                    apiUrl ++ "collections"
+        , body = Http.jsonBody collectionJson
+        , expect = Http.expectJson dataIdBodyDecoder
+        , timeout = Nothing
+        , withCredentials = False
+        }
 
 
 postProperty : Maybe Authentication -> String -> String -> String -> Http.Request DataIdBody

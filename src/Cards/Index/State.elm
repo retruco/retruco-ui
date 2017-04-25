@@ -91,13 +91,17 @@ update msg model =
                 cmd =
                     let
                         limit =
-                            Just 10
+                            10
+
+                        offset =
+                            0
                     in
                         -- TODO: Handle sort order.
                         Requests.getCards
                             model.authentication
                             (Maybe.withDefault "" model.searchCriteria.term)
                             limit
+                            offset
                             []
                             []
                             |> Http.send (ForSelf << Found)

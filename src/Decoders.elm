@@ -7,6 +7,16 @@ import String
 import Types exposing (..)
 
 
+argumentDecoder : Decoder Argument
+argumentDecoder =
+    succeed Argument
+        |: (field "keyId" string)
+        |: oneOf [ (field "rating" int), succeed 0 ]
+        |: oneOf [ (field "ratingCount" int), succeed 0 ]
+        |: oneOf [ (field "ratingSum" int), succeed 0 ]
+        |: (field "valueId" string)
+
+
 ballotDecoder : Decoder Ballot
 ballotDecoder =
     succeed Ballot
@@ -25,9 +35,18 @@ bijectiveCardReferenceDecoder =
         |: (field "reverseKeyId" string)
 
 
+cardAutocompletionDecoder : Decoder CardAutocompletion
+cardAutocompletionDecoder =
+    succeed CardAutocompletion
+        |: (field "autocomplete" string)
+        |: (field "card" cardDecoder)
+        |: (field "distance" float)
+
+
 cardDecoder : Decoder Card
 cardDecoder =
     succeed Card
+        |: oneOf [ (field "arguments" (list argumentDecoder)), succeed [] ]
         |: (field "createdAt" string)
         |: oneOf [ (field "deleted" bool), succeed False ]
         |: (field "id" string)
@@ -45,15 +64,7 @@ cardDecoder =
 cardsAutocompletionBodyDecoder : Decoder CardsAutocompletionBody
 cardsAutocompletionBodyDecoder =
     succeed CardsAutocompletionBody
-        |: (field "data" (list cardsAutocompletionDecoder))
-
-
-cardsAutocompletionDecoder : Decoder CardAutocompletion
-cardsAutocompletionDecoder =
-    succeed CardAutocompletion
-        |: (field "autocomplete" string)
-        |: (field "card" cardDecoder)
-        |: (field "distance" float)
+        |: (field "data" (list cardAutocompletionDecoder))
 
 
 collectionDecoder : Decoder Collection
@@ -94,7 +105,7 @@ dataIdDecoder =
         |: (field "id" string)
         |: (oneOf [ (field "properties" (dict propertyDecoder)), succeed Dict.empty ])
         |: (oneOf [ (field "users" (dict userDecoder)), succeed Dict.empty ])
-        |: oneOf [ (field "values" (dict valueDecoder)), succeed Dict.empty ]
+        |: oneOf [ (field "values" (dict typedValueDecoder)), succeed Dict.empty ]
 
 
 dataIdsBodyDecoder : Decoder DataIdsBody
@@ -121,7 +132,7 @@ dataIdsDecoder =
                         (oneOf [ (field "cards" (dict cardDecoder)), succeed Dict.empty ])
                         (oneOf [ (field "collections" (dict collectionDecoder)), succeed Dict.empty ])
                         (oneOf [ (field "properties" (dict propertyDecoder)), succeed Dict.empty ])
-                        (oneOf [ (field "values" (dict valueDecoder)), succeed Dict.empty ])
+                        (oneOf [ (field "values" (dict typedValueDecoder)), succeed Dict.empty ])
                 )
                     |> map
                         (\( ballots, cards, collections, properties, values ) ->
@@ -147,7 +158,7 @@ popularTagsDataDecoder =
     (field "data"
         (succeed PopularTagsData
             |: (field "popularity" (list popularTagDecoder))
-            |: (oneOf [ (field "values" (dict valueDecoder)), succeed Dict.empty ])
+            |: (oneOf [ (field "values" (dict typedValueDecoder)), succeed Dict.empty ])
         )
     )
 
@@ -155,6 +166,7 @@ popularTagsDataDecoder =
 propertyDecoder : Decoder Property
 propertyDecoder =
     succeed Property
+        |: oneOf [ (field "arguments" (list argumentDecoder)), succeed [] ]
         |: oneOf [ (field "ballotId" string), succeed "" ]
         |: (field "createdAt" string)
         |: oneOf [ (field "deleted" bool), succeed False ]
@@ -170,6 +182,35 @@ propertyDecoder =
         |: oneOf [ (field "tags" (list (dict string))), succeed [] ]
         |: (field "type" string)
         |: (field "valueId" string)
+
+
+typedValueAutocompletionDecoder : Decoder TypedValueAutocompletion
+typedValueAutocompletionDecoder =
+    succeed TypedValueAutocompletion
+        |: (field "autocomplete" string)
+        |: (field "distance" float)
+        |: (field "value" typedValueDecoder)
+
+
+typedValueDecoder : Decoder Types.TypedValue
+typedValueDecoder =
+    map5 (,,,,)
+        (field "createdAt" string)
+        (field "id" string)
+        (field "schemaId" string)
+        (field "type" string)
+        (oneOf [ (field "widgetId" string), succeed "" ])
+        |> andThen
+            (\( createdAt, id, schemaId, type_, widgetId ) ->
+                (field "value" (valueTypeDecoder schemaId widgetId))
+                    |> map (\value -> Types.TypedValue createdAt id schemaId type_ value widgetId)
+            )
+
+
+typedValuesAutocompletionBodyDecoder : Decoder TypedValuesAutocompletionBody
+typedValuesAutocompletionBodyDecoder =
+    succeed TypedValuesAutocompletionBody
+        |: (field "data" (list typedValueAutocompletionDecoder))
 
 
 userBodyDecoder : Decoder UserBody
@@ -188,21 +229,6 @@ userDecoder =
         |: (field "isAdmin" bool)
         |: (field "name" string)
         |: (field "urlName" string)
-
-
-valueDecoder : Decoder Types.TypedValue
-valueDecoder =
-    map5 (,,,,)
-        (field "createdAt" string)
-        (field "id" string)
-        (field "schemaId" string)
-        (field "type" string)
-        (oneOf [ (field "widgetId" string), succeed "" ])
-        |> andThen
-            (\( createdAt, id, schemaId, type_, widgetId ) ->
-                (field "value" (valueTypeDecoder schemaId widgetId))
-                    |> map (\value -> Types.TypedValue createdAt id schemaId type_ value widgetId)
-            )
 
 
 valueTypeDecoder : String -> String -> Decoder ValueType
