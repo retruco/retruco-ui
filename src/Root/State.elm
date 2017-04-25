@@ -25,24 +25,31 @@ import Values.New.State
 init : Flags -> Navigation.Location -> ( Model, Cmd Msg )
 init flags location =
     let
+        authentication =
+            Json.Decode.decodeValue Decoders.userDecoder flags.authentication
+                |> Result.toMaybe
+
+        navigatorLanguage =
+            flags.language
+                |> String.left 2
+                |> String.toLower
+                |> I18n.languageFromIso639_1
+
+        language =
+            navigatorLanguage |> Maybe.withDefault I18n.English
+
         searchModel =
             Search.init
     in
-        { authentication =
-            Json.Decode.decodeValue Decoders.userDecoder flags.authentication
-                |> Result.toMaybe
+        { authentication = authentication
         , authenticatorCancelMsg = Nothing
         , authenticatorCompletionMsg = Nothing
         , authenticatorModel = Authenticator.State.init
         , cardModel = Cards.Item.State.init
         , cardsModel = Cards.Index.State.init
         , location = location
-        , navigatorLanguage =
-            flags.language
-                |> String.left 2
-                |> String.toLower
-                |> I18n.languageFromIso639_1
-        , newValueModel = Values.New.State.init []
+        , navigatorLanguage = navigatorLanguage
+        , newValueModel = Values.New.State.init authentication language (I18n.iso639_1FromLanguage language) []
         , page = "reference"
         , route = Routes.I18nRouteWithoutLanguage ""
         , searchCriteria = searchModel.searchCriteria
@@ -81,7 +88,8 @@ subscriptions model =
         -- TODO Fix duplicate messages with port "fileContentRead", that was worked around by a "ImageSelectedStatus"
         -- constructor.
         [ Sub.map NewValueMsg (Values.New.State.subscriptions model.newValueModel)
-          -- , Sub.map StatementsMsg (Statements.subscriptions model.statementsModel)
+
+        -- , Sub.map StatementsMsg (Statements.subscriptions model.statementsModel)
         ]
 
 

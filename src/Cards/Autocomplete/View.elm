@@ -12,8 +12,15 @@ import Types exposing (CardAutocompletion)
 import Views exposing (errorInfos)
 
 
-viewAutocomplete : I18n.Language -> String -> Maybe I18n.TranslationId -> Model -> Html Msg
-viewAutocomplete language parentId error model =
+viewAutocomplete :
+    I18n.Language
+    -> String
+    -> I18n.TranslationId
+    -> I18n.TranslationId
+    -> Maybe I18n.TranslationId
+    -> Model
+    -> Html Msg
+viewAutocomplete language parentId controlLabelI18n controlPlaceholderI18n error model =
     let
         controlId =
             if String.isEmpty parentId then
@@ -28,10 +35,10 @@ viewAutocomplete language parentId error model =
             I18n.translate language I18n.FindCard
 
         controlLabel =
-            I18n.translate language I18n.Card
+            I18n.translate language controlLabelI18n
 
         controlPlaceholder =
-            I18n.translate language I18n.CardPlaceholder
+            I18n.translate language controlPlaceholderI18n
 
         controlSelectOneOrTypeMoreCharacters =
             I18n.translate language I18n.SelectCardOrTypeMoreCharacters
@@ -138,7 +145,7 @@ viewAutocomplete language parentId error model =
                                             Just selected ->
                                                 [ span
                                                     [ ariaHidden True
-                                                    , class "text-success fa fa-check fa-fw"
+                                                    , class "fa fa-caret-down fa-fw"
                                                     ]
                                                     []
                                                 , span
@@ -188,10 +195,6 @@ viewAutocomplete language parentId error model =
                                         ]
                               )
                             ]
-                        , span [ class "input-group-btn" ]
-                            [ button [ class "btn btn-secondary" ]
-                                [ text <| I18n.translate language I18n.New ]
-                            ]
                         ]
                   , span [ class "sr-only" ] [ text <| I18n.translate language I18n.LoadingMenu ]
                   ]
@@ -201,8 +204,14 @@ viewAutocomplete language parentId error model =
             )
 
 
-viewAutocompleteFieldset : I18n.Language -> String -> String -> Maybe I18n.TranslationId -> Model -> Html Msg
-viewAutocompleteFieldset language fieldLabel fieldId error model =
+viewAutocompleteFieldset :
+    I18n.Language
+    -> String
+    -> I18n.TranslationId
+    -> Maybe I18n.TranslationId
+    -> Model
+    -> Html Msg
+viewAutocompleteFieldset language fieldId fieldLabelI18n error model =
     let
         prefix =
             if String.isEmpty fieldId then
@@ -211,8 +220,8 @@ viewAutocompleteFieldset language fieldLabel fieldId error model =
                 fieldId ++ "."
     in
         fieldset [ class "form-group" ]
-            [ legend [] [ text fieldLabel ]
-            , viewAutocomplete language fieldId error model
+            [ legend [] [ text <| I18n.translate language fieldLabelI18n ]
+            , viewAutocomplete language fieldId I18n.Card I18n.CardPlaceholder error model
             ]
 
 

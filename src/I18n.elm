@@ -1237,7 +1237,7 @@ getTranslationSet translationId =
             }
 
         ValueIdArray ->
-            { english = s "Array of links to valuess"
+            { english = s "Array of links to values"
             , french = s "Tableau de liens vers des valeurs"
             , spanish = todo
             }
@@ -1567,6 +1567,7 @@ try a couple different things, but there is no default value.
     oneOf [ Nothing, Just 42, Just 71 ] == Just 42
     oneOf [ Nothing, Nothing, Just 71 ] == Just 71
     oneOf [ Nothing, Nothing, Nothing ] == Nothing
+
 -}
 oneOfMaybes : List (Maybe a) -> Maybe a
 oneOfMaybes maybes =
@@ -1603,7 +1604,8 @@ translate language translationId =
         oneOfMaybes
             [ translateHelp language
             , translateHelp English
-              -- |> Maybe.map (\str -> "(EN) " ++ str)
+
+            -- |> Maybe.map (\str -> "(EN) " ++ str)
             ]
             |> Maybe.withDefault
                 ("TODO translate the ID "

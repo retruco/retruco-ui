@@ -81,7 +81,6 @@ translateNewValueMsg : Values.New.Types.MsgTranslator Msg
 translateNewValueMsg =
     Values.New.Types.translateMsg
         { onInternalMsg = NewValueMsg
-        , onNavigate = Navigate
         , onValueUpserted = ValueUpserted
         }
 

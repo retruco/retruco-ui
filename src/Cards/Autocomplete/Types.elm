@@ -12,15 +12,12 @@ type AutocompleteMenuState
     | AutocompleteMenuVisible
 
 
-type ExternalMsg
-    = Navigate String
-
-
 type alias Model =
     { autocomplete : String
     , autocompleteMenuState : AutocompleteMenuState
     , autocompleter : Autocomplete.State
     , autocompletions : List CardAutocompletion
+    , cardTypes : List String
     , selected : Maybe CardAutocompletion
     }
 
@@ -43,13 +40,11 @@ type InternalMsg
 
 
 type Msg
-    = ForParent ExternalMsg
-    | ForSelf InternalMsg
+    = ForSelf InternalMsg
 
 
 type alias MsgTranslation parentMsg =
     { onInternalMsg : InternalMsg -> parentMsg
-    , onNavigate : String -> parentMsg
     }
 
 
@@ -63,10 +58,7 @@ autocompleterSize =
 
 
 translateMsg : MsgTranslation parentMsg -> MsgTranslator parentMsg
-translateMsg { onInternalMsg, onNavigate } msg =
+translateMsg { onInternalMsg } msg =
     case msg of
-        ForParent (Navigate path) ->
-            onNavigate path
-
         ForSelf internalMsg ->
             onInternalMsg internalMsg

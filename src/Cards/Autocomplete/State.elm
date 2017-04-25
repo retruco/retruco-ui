@@ -1,5 +1,6 @@
 module Cards.Autocomplete.State exposing (..)
 
+import Authenticator.Types exposing (Authentication)
 import Autocomplete
 import Cards.Autocomplete.Types exposing (..)
 import Dom
@@ -30,12 +31,13 @@ idToAutocompletion id model =
         |> List.head
 
 
-init : Model
-init =
+init : List String -> Model
+init cardTypes =
     { autocomplete = ""
     , autocompleteMenuState = AutocompleteMenuHidden
     , autocompleter = Autocomplete.empty
     , autocompletions = []
+    , cardTypes = cardTypes
     , selected = Nothing
     }
 
@@ -99,8 +101,8 @@ subscriptions model =
     Sub.map AutocompleteMsg Autocomplete.subscription
 
 
-update : InternalMsg -> I18n.Language -> String -> Model -> ( Model, Cmd Msg )
-update msg language fieldId model =
+update : InternalMsg -> Maybe Authentication -> I18n.Language -> String -> Model -> ( Model, Cmd Msg )
+update msg authentication language fieldId model =
     case msg of
         AutocompleteMsg childMsg ->
             let
@@ -120,7 +122,7 @@ update msg language fieldId model =
                         ( newModel, Cmd.none )
 
                     Just newMsg ->
-                        update newMsg language fieldId newModel
+                        update newMsg authentication language fieldId newModel
 
         Focus ->
             model ! []
@@ -153,24 +155,30 @@ update msg language fieldId model =
 
         LoadMenu ->
             ( { model | autocompleteMenuState = AutocompleteMenuLoading }
-            , Requests.autocompleteCards Nothing language [] model.autocomplete autocompleterSize
+            , Requests.autocompleteCards
+                authentication
+                language
+                model.cardTypes
+                model.autocomplete
+                autocompleterSize
                 |> Http.send (ForSelf << MenuLoaded)
             )
 
         MenuLoaded (Err httpError) ->
-            let
-                _ =
-                    Debug.log "Cards.Autocomplete.State update MenuLoaded Err" httpError
-            in
-                case model.autocompleteMenuState of
-                    AutocompleteMenuSleeping ->
-                        ( { model | autocompleteMenuState = AutocompleteMenuLoading }
-                        , Requests.autocompleteCards Nothing language [] model.autocomplete autocompleterSize
-                            |> Http.send (ForSelf << MenuLoaded)
-                        )
+            case model.autocompleteMenuState of
+                AutocompleteMenuSleeping ->
+                    ( { model | autocompleteMenuState = AutocompleteMenuLoading }
+                    , Requests.autocompleteCards
+                        authentication
+                        language
+                        model.cardTypes
+                        model.autocomplete
+                        autocompleterSize
+                        |> Http.send (ForSelf << MenuLoaded)
+                    )
 
-                    _ ->
-                        ( { model | autocompleteMenuState = AutocompleteMenuHidden }, Cmd.none )
+                _ ->
+                    ( { model | autocompleteMenuState = AutocompleteMenuHidden }, Cmd.none )
 
         MenuLoaded (Ok cardsAutocompletionBody) ->
             ( { model
@@ -237,7 +245,7 @@ update msg language fieldId model =
         Wrap toTop ->
             case model.selected of
                 Just selected ->
-                    update Reset language fieldId model
+                    update Reset authentication language fieldId model
 
                 Nothing ->
                     let

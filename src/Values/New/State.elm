@@ -16,8 +16,8 @@ import Urls
 import Values.New.Types exposing (..)
 
 
-init : List String -> Model
-init validFieldTypes =
+init : Maybe Authentication -> I18n.Language -> String -> List String -> Model
+init authentication language languageIso639_1 validFieldTypes =
     let
         fieldType =
             case List.head validFieldTypes of
@@ -30,16 +30,16 @@ init validFieldTypes =
                 Nothing ->
                     "TextField"
     in
-        { authentication = Nothing
+        { authentication = authentication
         , booleanValue = False
-        , cardsAutocompleteModel = Cards.Autocomplete.State.init
+        , cardsAutocompleteModel = Cards.Autocomplete.State.init []
         , errors = Dict.empty
         , field = Nothing
         , fieldType = fieldType
         , httpError = Nothing
         , imageUploadStatus = ImageNotUploadedStatus
-        , language = I18n.English
-        , languageIso639_1 = ""
+        , language = language
+        , languageIso639_1 = languageIso639_1
         , validFieldTypes = validFieldTypes
         , value = ""
         }
@@ -238,7 +238,9 @@ update msg model =
         CardsAutocompleteMsg childMsg ->
             let
                 ( cardsAutocompleteModel, childCmd ) =
-                    Cards.Autocomplete.State.update childMsg
+                    Cards.Autocomplete.State.update
+                        childMsg
+                        model.authentication
                         model.language
                         "cardId"
                         model.cardsAutocompleteModel
@@ -321,14 +323,9 @@ update msg model =
         Upserted (Ok body) ->
             let
                 initedModel =
-                    init model.validFieldTypes
+                    init model.authentication model.language model.languageIso639_1 model.validFieldTypes
             in
-                ( { initedModel
-                    | authentication = model.authentication
-                    , fieldType = model.fieldType
-                    , language = model.language
-                    , languageIso639_1 = model.languageIso639_1
-                  }
+                ( { initedModel | fieldType = model.fieldType }
                 , Task.perform (\_ -> ForParent <| ValueUpserted body.data) (Task.succeed ())
                 )
 
@@ -345,17 +342,10 @@ update msg model =
 
 urlUpdate : Maybe Authentication -> I18n.Language -> Navigation.Location -> Model -> ( Model, Cmd Msg )
 urlUpdate authentication language location model =
-    let
-        initedModel =
-            init model.validFieldTypes
-    in
-        ( { initedModel
-            | languageIso639_1 = I18n.iso639_1FromLanguage language
-          }
-            |> setContext authentication language
-        , Ports.setDocumentMetadata
-            { description = I18n.translate language I18n.NewValueDescription
-            , imageUrl = Urls.appLogoFullUrl
-            , title = I18n.translate language I18n.NewValue
-            }
-        )
+    ( init authentication language (I18n.iso639_1FromLanguage language) model.validFieldTypes
+    , Ports.setDocumentMetadata
+        { description = I18n.translate language I18n.NewValueDescription
+        , imageUrl = Urls.appLogoFullUrl
+        , title = I18n.translate language I18n.NewValue
+        }
+    )
