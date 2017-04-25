@@ -75,20 +75,20 @@ view model =
             in
                 div
                     [ class "container-fluid" ]
-                    [ nav [ class "navbar navbar-fixed-top navbar-dark bg-inverse" ]
+                    [ nav [ class "navbar navbar-fixed-top navbar-inverse navbar-toggleable-md bg-inverse" ]
                         [ aForPath Navigate language "/" [ class "navbar-brand" ] [ text "Retruco.org" ]
                         , button
                             [ attribute "aria-controls" "collapsable-navbar"
                             , attribute "aria-expanded" "false"
                             , attribute "aria-label" "Toggle navigation"
-                            , class "navbar-toggler float-xs-right hidden-lg-up"
+                            , class "navbar-toggler navbar-toggler-right"
                             , attribute "data-target" "#collapsable-navbar"
                             , attribute "data-toggle" "collapse"
                             , type_ "button"
                             ]
-                            []
-                        , div [ class "collapse navbar-toggleable-md", id "collapsable-navbar" ]
-                            [ ul [ class "nav navbar-nav" ]
+                            [ span [ class "navbar-toggler-icon" ] [] ]
+                        , div [ class "collapse navbar-collapse", id "collapsable-navbar" ]
+                            [ ul [ class "navbar-nav mr-auto" ]
                                 -- [ li [ class "nav-item" ]
                                 --     [ aForPath Navigate
                                 --         language
@@ -129,13 +129,13 @@ view model =
                                         [ text <| I18n.translate language I18n.Values ]
                                     ]
                                 ]
-                            , ul [ class "nav navbar-nav float-xs-right" ]
+                            , ul [ class "navbar-nav" ]
                                 [ profileNavItem
                                 , signInOrOutNavItem
                                 , signUpNavItem
                                 ]
-                            , span [ class "navbar-text float-xs-right" ] [ text "   " ]
-                            , Html.form [ class "form-inline float-xs-right" ]
+                            , text " "
+                            , Html.form [ class "form-inline" ]
                                 [ input
                                     [ class "form-control"
                                     , placeholder <| I18n.translate language I18n.SearchPlaceholder
@@ -179,9 +179,10 @@ view model =
                             div []
                                 [ Html.map translateSearchMsg
                                     (Search.view model.authentication language model.searchModel)
-                                  -- , Html.map
-                                  --     translateStatementsMsg
-                                  --     (Statements.viewIndex model.authentication model.statementsModel)
+
+                                -- , Html.map
+                                --     translateStatementsMsg
+                                --     (Statements.viewIndex model.authentication model.statementsModel)
                                 ]
 
                         UserProfileRoute ->

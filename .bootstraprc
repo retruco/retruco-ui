@@ -97,17 +97,17 @@ styles:
   utilities: true
 
 ### Bootstrap scripts
-# scripts:
-#   alert: true
-#   button: true
-#   carousel: true
-#   collapse: true
-#   dropdown: true
-#   modal: true
-#   popover: true
-#   scrollspy: true
-#   tab: true
-#   tooltip: true
-#   util: true
+scripts:
+  alert: false
+  button: false
+  carousel: false
+  collapse: true
+  dropdown: true
+  modal: false
+  popover: false
+  scrollspy: false
+  tab: false
+  tooltip: false
+  util: false
 
-scripts: false
+# scripts: false
