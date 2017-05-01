@@ -2,5 +2,6 @@ module Cards.Item.Routes exposing (..)
 
 
 type Route
-    = IndexRoute
+    = ArgumentsRoute
+    | IndexRoute
     | SameKeyPropertiesRoute String

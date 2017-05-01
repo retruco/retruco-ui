@@ -30,6 +30,7 @@ type TranslationId
     | AddNewItemBox
     | AddPropertyKey
     | Arguments
+    | ArgumentsRetrievalFailed
     | AuthenticationFailed
     | AuthenticationRequired
     | AuthenticationRequiredExplanation
@@ -67,6 +68,10 @@ type TranslationId
     | CreateAccountNow
     | CreateYourAccount
     | Debate
+    | DebateArgumentAgainst
+    | DebateArgumentFor
+    | DebateConsLabel
+    | DebateProsLabel
     | Edit
     | Email
     | EmailPlaceholder
@@ -117,6 +122,8 @@ type TranslationId
     | NetworkError
     | NetworkErrorExplanation
     | New
+    | NewArgument
+    | NewArgumentDescription
     | NewCard
     | NewConcept
     | NewValue
@@ -337,10 +344,38 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        AddNew ->
+            { emptyTranslationSet
+                | english = s "Add new"
+                , french = s "Ajouter"
+                , spanish = todo
+            }
+
+        AddNewItemBox ->
+            { emptyTranslationSet
+                | english = s "Add a new item"
+                , french = s "Ajouter un nouvel élément"
+                , spanish = todo
+            }
+
         AddPropertyKey ->
             { emptyTranslationSet
                 | english = s "Add property"
                 , french = s "Ajouter une propriété"
+                , spanish = todo
+            }
+
+        Arguments ->
+            { emptyTranslationSet
+                | english = s "Arguments"
+                , french = s "Arguments"
+                , spanish = todo
+            }
+
+        ArgumentsRetrievalFailed ->
+            { emptyTranslationSet
+                | english = s "Retrieval of arguments failed"
+                , french = s "Échec de la récupération des arguments"
                 , spanish = todo
             }
 
@@ -362,27 +397,6 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "You must sign in to display this page."
                 , french = todo
-                , spanish = todo
-            }
-
-        AddNew ->
-            { emptyTranslationSet
-                | english = s "Add new"
-                , french = s "Ajouter"
-                , spanish = todo
-            }
-
-        Arguments ->
-            { emptyTranslationSet
-                | english = s "Arguments"
-                , french = s "Arguments"
-                , spanish = todo
-            }
-
-        AddNewItemBox ->
-            { emptyTranslationSet
-                | english = s "Add a new item"
-                , french = s "Ajouter un nouvel élément"
                 , spanish = todo
             }
 
@@ -631,6 +645,34 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Debate"
                 , french = s "Débattre"
+                , spanish = todo
+            }
+
+        DebateArgumentAgainst ->
+            { emptyTranslationSet
+                | english = s "Argument Against"
+                , french = s "Argument contre"
+                , spanish = todo
+            }
+
+        DebateArgumentFor ->
+            { emptyTranslationSet
+                | english = s "Argument For"
+                , french = s "Argument pour"
+                , spanish = todo
+            }
+
+        DebateConsLabel ->
+            { emptyTranslationSet
+                | english = s "- Argument Against"
+                , french = s "- Argument contre"
+                , spanish = todo
+            }
+
+        DebateProsLabel ->
+            { emptyTranslationSet
+                | english = s "+ Argument For"
+                , french = s "+ Argument pour"
                 , spanish = todo
             }
 
@@ -991,6 +1033,20 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "New"
                 , french = s "Nouveau"
+                , spanish = todo
+            }
+
+        NewArgument ->
+            { emptyTranslationSet
+                | english = s "New Argument"
+                , french = s "Nouvel argument"
+                , spanish = todo
+            }
+
+        NewArgumentDescription ->
+            { emptyTranslationSet
+                | english = s "Form to enter a new argument"
+                , french = s "Formulaire de création d'un nouvel argument"
                 , spanish = todo
             }
 

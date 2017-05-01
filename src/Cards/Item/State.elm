@@ -1,5 +1,6 @@
 module Cards.Item.State exposing (..)
 
+import Arguments.Index.State
 import Authenticator.Types exposing (Authentication)
 import Cards.Item.Routes exposing (..)
 import Cards.Item.Types exposing (..)
@@ -17,7 +18,8 @@ import Urls
 
 init : Model
 init =
-    { authentication = Nothing
+    { argumentsModel = Nothing
+    , authentication = Nothing
     , data = initData
     , httpError = Nothing
     , id = ""
@@ -34,7 +36,14 @@ mergeModelData data model =
             mergeData data model.data
     in
         { model
-            | data = mergedData
+            | argumentsModel =
+                case model.argumentsModel of
+                    Just argumentsModel ->
+                        Just <| Arguments.Index.State.mergeModelData mergedData argumentsModel
+
+                    Nothing ->
+                        Nothing
+            , data = mergedData
             , sameKeyPropertiesModel =
                 case model.sameKeyPropertiesModel of
                     Just sameKeyPropertiesModel ->
@@ -48,7 +57,13 @@ mergeModelData data model =
 subscriptions : Model -> Sub InternalMsg
 subscriptions model =
     List.filterMap identity
-        [ Just <|
+        [ case model.argumentsModel of
+            Just argumentsModel ->
+                Just <| Sub.map ArgumentsMsg (Arguments.Index.State.subscriptions argumentsModel)
+
+            Nothing ->
+                Nothing
+        , Just <|
             Sub.map KeysAutocompleteMsg (Properties.KeysAutocomplete.State.subscriptions model.keysAutocompleteModel)
         , case model.sameKeyPropertiesModel of
             Just sameKeyPropertiesModel ->
@@ -67,6 +82,20 @@ update msg model =
             -- TODO
             -- update (LoadProperties typedValue.id) model
             ( model, Cmd.none )
+
+        ArgumentsMsg childMsg ->
+            case model.argumentsModel of
+                Just argumentsModel ->
+                    let
+                        ( updatedArgumentsModel, childCmd ) =
+                            Arguments.Index.State.update childMsg argumentsModel
+                    in
+                        ( { model | argumentsModel = Just updatedArgumentsModel }
+                        , Cmd.map translateArgumentsMsg childCmd
+                        )
+
+                Nothing ->
+                    ( model, Cmd.none )
 
         CreateKey keyName ->
             case model.authentication of
@@ -180,8 +209,29 @@ urlUpdate authentication language location id route model =
                 }
     in
         case route of
+            ArgumentsRoute ->
+                let
+                    argumentsModel =
+                        Arguments.Index.State.init authentication language id
+
+                    ( updatedArgumentsModel, updatedArgumentsCmd ) =
+                        Arguments.Index.State.urlUpdate location argumentsModel
+                in
+                    { updatedModel
+                        | argumentsModel = Just updatedArgumentsModel
+                        , sameKeyPropertiesModel = Nothing
+                    }
+                        ! [ updatedCmd
+                          , Cmd.map translateArgumentsMsg updatedArgumentsCmd
+                          ]
+
             IndexRoute ->
-                ( { updatedModel | sameKeyPropertiesModel = Nothing }, updatedCmd )
+                ( { updatedModel
+                    | argumentsModel = Nothing
+                    , sameKeyPropertiesModel = Nothing
+                  }
+                , updatedCmd
+                )
 
             SameKeyPropertiesRoute keyId ->
                 let
@@ -191,7 +241,10 @@ urlUpdate authentication language location id route model =
                     ( updatedSameKeyPropertiesModel, updatedSameKeyPropertiesCmd ) =
                         SameKeyProperties.State.urlUpdate location sameKeyPropertiesModel
                 in
-                    { updatedModel | sameKeyPropertiesModel = Just updatedSameKeyPropertiesModel }
+                    { updatedModel
+                        | argumentsModel = Nothing
+                        , sameKeyPropertiesModel = Just updatedSameKeyPropertiesModel
+                    }
                         ! [ updatedCmd
                           , Cmd.map translateSameKeyPropertiesMsg updatedSameKeyPropertiesCmd
                           ]

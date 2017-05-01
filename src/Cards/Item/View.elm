@@ -1,5 +1,6 @@
 module Cards.Item.View exposing (..)
 
+import Arguments.Index.View
 import Cards.Item.Types exposing (..)
 import Dict exposing (Dict)
 import Html exposing (..)
@@ -17,12 +18,16 @@ import Views
 
 view : Model -> Html Msg
 view model =
-    case model.sameKeyPropertiesModel of
-        Just sameKeyPropertiesModel ->
+    case ( model.argumentsModel, model.sameKeyPropertiesModel ) of
+        ( Just argumentsModel, _ ) ->
+            Arguments.Index.View.view argumentsModel
+                |> Html.map translateArgumentsMsg
+
+        ( _, Just sameKeyPropertiesModel ) ->
             SameKeyProperties.View.view sameKeyPropertiesModel
                 |> Html.map translateSameKeyPropertiesMsg
 
-        Nothing ->
+        ( Nothing, Nothing ) ->
             let
                 data =
                     model.data
@@ -65,17 +70,12 @@ view model =
                                             False
                                             argument.valueId
                                         ]
-                                    , button
-                                        [ class "btn btn-default"
-
-                                        -- , onClick
-                                        --     (ForSelf
-                                        --         (LoadDebateProperties
-                                        --             [ argument.valueId ]
-                                        --         )
-                                        --     )
-                                        , type_ "button"
-                                        ]
+                                    , -- TODO
+                                      aForPath
+                                        (ForParent << Navigate)
+                                        language
+                                        ("/cards/" ++ model.id ++ "/arguments")
+                                        [ class "btn btn-secondary" ]
                                         [ text (I18n.translate language (I18n.Debate)) ]
                                     ]
 
@@ -137,17 +137,11 @@ view model =
                                 , hr [] []
                                 , h2 [ class "d-flex justify-content-between" ]
                                     [ span [] [ text <| I18n.translate language I18n.Arguments ]
-                                    , button
-                                        [ class "btn btn-default"
-
-                                        -- , onClick
-                                        --     (ForSelf
-                                        --         (LoadDebateProperties
-                                        --             []
-                                        --         )
-                                        --     )
-                                        , type_ "button"
-                                        ]
+                                    , aForPath
+                                        (ForParent << Navigate)
+                                        language
+                                        ("/cards/" ++ model.id ++ "/arguments")
+                                        [ class "btn btn-secondary" ]
                                         [ text (I18n.translate language (I18n.Debate)) ]
                                     ]
                                 , ul [ class "list-group" ]

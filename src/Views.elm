@@ -818,50 +818,50 @@ viewOption selectedItem ( item, label ) =
 --                     deleteRatingAttributes =
 --                         case ballotMaybe of
 --                             Just ballot ->
---                                 [ class "btn btn-default"
+--                                 [ class "btn btn-secondary"
 --                                 , onClick (ratingChanged Nothing statement.id)
 --                                 ]
 --                             Nothing ->
---                                 [ class "btn btn-default"
+--                                 [ class "btn btn-secondary"
 --                                 , disabled (not authenticated)
 --                                 ]
 --                     negativeRatingAttributes =
 --                         if hasBallotRating -1 ballotMaybe then
 --                             [ ariaPressed True
---                             , class "active btn btn-default"
+--                             , class "active btn btn-secondary"
 --                             ]
 --                         else if authenticated then
---                             [ class "btn btn-default"
+--                             [ class "btn btn-secondary"
 --                             , onClick (ratingChanged (Just -1) statement.id)
 --                             ]
 --                         else
---                             [ class "btn btn-default"
+--                             [ class "btn btn-secondary"
 --                             , disabled True
 --                             ]
 --                     positiveRatingAttributes =
 --                         if hasBallotRating 1 ballotMaybe then
 --                             [ ariaPressed True
---                             , class "active btn btn-default"
+--                             , class "active btn btn-secondary"
 --                             ]
 --                         else if authenticated then
---                             [ class "btn btn-default"
+--                             [ class "btn btn-secondary"
 --                             , onClick (ratingChanged (Just 1) statement.id)
 --                             ]
 --                         else
---                             [ class "btn btn-default"
+--                             [ class "btn btn-secondary"
 --                             , disabled True
 --                             ]
 --                     zeroRatingAttributes =
 --                         if hasBallotRating 0 ballotMaybe then
 --                             [ ariaPressed True
---                             , class "active btn btn-default"
+--                             , class "active btn btn-secondary"
 --                             ]
 --                         else if authenticated then
---                             [ class "btn btn-default"
+--                             [ class "btn btn-secondary"
 --                             , onClick (ratingChanged (Just 0) statement.id)
 --                             ]
 --                         else
---                             [ class "btn btn-default"
+--                             [ class "btn btn-secondary"
 --                             , disabled True
 --                             ]
 --                 in
@@ -935,7 +935,7 @@ viewOption selectedItem ( item, label ) =
 --                                 ]
 --                             , button
 --                                 [ ariaLabel "Sum and count of ratings"
---                                 , class "btn btn-default"
+--                                 , class "btn btn-secondary"
 --                                 , disabled True
 --                                   -- , role "button"
 --                                 , title "Sum and count of ratings"
@@ -945,7 +945,7 @@ viewOption selectedItem ( item, label ) =
 --                                 ]
 --                             , button
 --                                 ([ ariaLabel "Set statement rating to -1"
---                                  , class "btn btn-default"
+--                                  , class "btn btn-secondary"
 --                                  , role "button"
 --                                  , title "Sum and count of ratings"
 --                                  , type_ "button"

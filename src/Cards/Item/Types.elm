@@ -1,5 +1,6 @@
 module Cards.Item.Types exposing (..)
 
+import Arguments.Index.Types
 import Authenticator.Types exposing (Authentication)
 import Http
 import I18n
@@ -15,6 +16,7 @@ type ExternalMsg
 
 type InternalMsg
     = AddKey TypedValue
+    | ArgumentsMsg Arguments.Index.Types.InternalMsg
     | CreateKey String
     | KeyUpserted (Result Http.Error DataIdBody)
     | KeysAutocompleteMsg Properties.KeysAutocomplete.Types.InternalMsg
@@ -24,7 +26,8 @@ type InternalMsg
 
 
 type alias Model =
-    { authentication : Maybe Authentication
+    { argumentsModel : Maybe Arguments.Index.Types.Model
+    , authentication : Maybe Authentication
     , data : DataProxy {}
     , id : String
     , keysAutocompleteModel : Properties.KeysAutocomplete.Types.Model
@@ -48,6 +51,14 @@ type alias MsgTranslation parentMsg =
 
 type alias MsgTranslator parentMsg =
     Msg -> parentMsg
+
+
+translateArgumentsMsg : Arguments.Index.Types.MsgTranslator Msg
+translateArgumentsMsg =
+    Arguments.Index.Types.translateMsg
+        { onInternalMsg = ForSelf << ArgumentsMsg
+        , onNavigate = ForParent << Navigate
+        }
 
 
 translateKeysAutocompleteMsg : Properties.KeysAutocomplete.Types.MsgTranslator Msg

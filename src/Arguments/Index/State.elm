@@ -1,25 +1,24 @@
-module SameKeyProperties.State exposing (..)
+module Arguments.Index.State exposing (..)
 
+import Arguments.Index.Types exposing (..)
+import Arguments.New.State
 import Authenticator.Types exposing (Authentication)
 import Http
 import I18n
 import Navigation
 import Ports
 import Requests
-import SameKeyProperties.Types exposing (..)
 import Types exposing (..)
 import Urls
-import Values.New.State
 
 
-init : Maybe Authentication -> I18n.Language -> String -> String -> Model
-init authentication language objectId keyId =
+init : Maybe Authentication -> I18n.Language -> String -> Model
+init authentication language objectId =
     { authentication = authentication
     , data = initData
     , httpError = Nothing
-    , keyId = keyId
     , language = language
-    , newValueModel = Values.New.State.init authentication language []
+    , newArgumentModel = Arguments.New.State.init authentication language objectId []
     , objectId = objectId
     , propertyIds = Nothing
     }
@@ -33,27 +32,27 @@ mergeModelData data model =
     in
         { model
             | data = mergedData
-            , newValueModel = Values.New.State.mergeModelData mergedData model.newValueModel
+            , newArgumentModel = Arguments.New.State.mergeModelData mergedData model.newArgumentModel
         }
 
 
 subscriptions : Model -> Sub InternalMsg
 subscriptions model =
     Sub.batch
-        [ Sub.map NewValueMsg (Values.New.State.subscriptions model.newValueModel)
+        [ Sub.map NewArgumentMsg (Arguments.New.State.subscriptions model.newArgumentModel)
         ]
 
 
 update : InternalMsg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NewValueMsg childMsg ->
+        NewArgumentMsg childMsg ->
             let
-                ( updatedNewValueModel, childCmd ) =
-                    Values.New.State.update childMsg model.newValueModel
+                ( updatedNewArgumentModel, childCmd ) =
+                    Arguments.New.State.update childMsg model.newArgumentModel
             in
-                ( { model | newValueModel = updatedNewValueModel }
-                , Cmd.map translateNewValueMsg childCmd
+                ( { model | newArgumentModel = updatedNewArgumentModel }
+                , Cmd.map translateNewArgumentMsg childCmd
                 )
 
         RatingPosted (Err httpError) ->
@@ -71,7 +70,7 @@ update msg model =
                 | httpError = Nothing
                 , propertyIds = Nothing
               }
-            , Requests.getObjectProperties model.authentication model.objectId model.keyId
+            , Requests.getDebateProperties model.authentication model.objectId
                 |> Http.send (ForSelf << Retrieved)
             )
 
@@ -101,14 +100,7 @@ update msg model =
                     }
                 )
 
-        Upserted (Err httpError) ->
-            ( { model
-                | httpError = Just httpError
-              }
-            , Cmd.none
-            )
-
-        Upserted (Ok { data }) ->
+        Upserted data ->
             let
                 mergedModel =
                     mergeModelData data model
@@ -130,12 +122,6 @@ update msg model =
                   }
                 , Cmd.none
                 )
-
-        ValueUpserted data ->
-            ( mergeModelData data model
-            , Requests.postProperty model.authentication model.objectId model.keyId data.id
-                |> Http.send (ForSelf << Upserted)
-            )
 
         VotePropertyDown propertyId ->
             ( model

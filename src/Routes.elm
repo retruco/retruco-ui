@@ -48,6 +48,7 @@ cardRouteParser : Parser (Cards.Item.Routes.Route -> a) a
 cardRouteParser =
     oneOf
         [ map Cards.Item.Routes.IndexRoute top
+        , map Cards.Item.Routes.ArgumentsRoute (s "arguments")
         , map Cards.Item.Routes.SameKeyPropertiesRoute (s "properties" </> idParser)
         ]
 
