@@ -11,13 +11,13 @@ import Navigation
 import Ports
 import Requests
 import Task
-import Types exposing (Field(..))
+import Types exposing (DataProxy, Field(..))
 import Urls
 import Values.New.Types exposing (..)
 
 
-init : Maybe Authentication -> I18n.Language -> String -> List String -> Model
-init authentication language languageIso639_1 validFieldTypes =
+init : Maybe Authentication -> I18n.Language -> List String -> Model
+init authentication language validFieldTypes =
     let
         fieldType =
             case List.head validFieldTypes of
@@ -39,7 +39,7 @@ init authentication language languageIso639_1 validFieldTypes =
         , httpError = Nothing
         , imageUploadStatus = ImageNotUploadedStatus
         , language = language
-        , languageIso639_1 = languageIso639_1
+        , languageIso639_1 = I18n.iso639_1FromLanguage language
         , validFieldTypes = validFieldTypes
         , value = ""
         }
@@ -216,6 +216,11 @@ convertControls model =
         }
 
 
+mergeModelData : DataProxy a -> Model -> Model
+mergeModelData data model =
+    model
+
+
 setContext : Maybe Authentication -> I18n.Language -> Model -> Model
 setContext authentication language model =
     { model
@@ -321,13 +326,18 @@ update msg model =
             ( { model | httpError = Just httpError }, Cmd.none )
 
         Upserted (Ok body) ->
-            let
-                initedModel =
-                    init model.authentication model.language model.languageIso639_1 model.validFieldTypes
-            in
-                ( { initedModel | fieldType = model.fieldType }
-                , Task.perform (\_ -> ForParent <| ValueUpserted body.data) (Task.succeed ())
-                )
+            ( -- Reset fields.
+              { model
+                | booleanValue = False
+                , cardsAutocompleteModel = Cards.Autocomplete.State.init []
+                , errors = Dict.empty
+                , field = Nothing
+                , httpError = Nothing
+                , imageUploadStatus = ImageNotUploadedStatus
+                , value = ""
+              }
+            , Task.perform (\_ -> ForParent <| ValueUpserted body.data) (Task.succeed ())
+            )
 
         ValueChanged value ->
             ( convertControls { model | value = value }
@@ -340,12 +350,16 @@ update msg model =
             )
 
 
-urlUpdate : Maybe Authentication -> I18n.Language -> Navigation.Location -> Model -> ( Model, Cmd Msg )
-urlUpdate authentication language location model =
-    ( init authentication language (I18n.iso639_1FromLanguage language) model.validFieldTypes
-    , Ports.setDocumentMetadata
-        { description = I18n.translate language I18n.NewValueDescription
-        , imageUrl = Urls.appLogoFullUrl
-        , title = I18n.translate language I18n.NewValue
-        }
-    )
+urlUpdate : Navigation.Location -> Model -> ( Model, Cmd Msg )
+urlUpdate location model =
+    let
+        language =
+            model.language
+    in
+        ( model
+        , Ports.setDocumentMetadata
+            { description = I18n.translate language I18n.NewValueDescription
+            , imageUrl = Urls.appLogoFullUrl
+            , title = I18n.translate language I18n.NewValue
+            }
+        )

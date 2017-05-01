@@ -49,7 +49,7 @@ init flags location =
         , cardsModel = Cards.Index.State.init
         , location = location
         , navigatorLanguage = navigatorLanguage
-        , newValueModel = Values.New.State.init authentication language (I18n.iso639_1FromLanguage language) []
+        , newValueModel = Nothing
         , page = "reference"
         , route = Routes.I18nRouteWithoutLanguage ""
         , searchCriteria = searchModel.searchCriteria
@@ -84,13 +84,20 @@ requireSignIn language location model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch
-        -- TODO Fix duplicate messages with port "fileContentRead", that was worked around by a "ImageSelectedStatus"
-        -- constructor.
-        [ Sub.map NewValueMsg (Values.New.State.subscriptions model.newValueModel)
+    -- TODO Fix duplicate messages with port "fileContentRead", that was worked around by a "ImageSelectedStatus"
+    -- constructor.
+    List.filterMap identity
+        [ Just <| Sub.map CardMsg (Cards.Item.State.subscriptions model.cardModel)
+        , case model.newValueModel of
+            Just newValueModel ->
+                Just <| Sub.map NewValueMsg (Values.New.State.subscriptions newValueModel)
 
-        -- , Sub.map StatementsMsg (Statements.subscriptions model.statementsModel)
+            Nothing ->
+                Nothing
+
+        -- , Just <| Sub.map StatementsMsg (Statements.subscriptions model.statementsModel)
         ]
+        |> Sub.batch
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -212,16 +219,28 @@ update msg model =
                 ( model, navigate model path )
 
             NewValueMsg childMsg ->
-                let
-                    ( newValueModel, childCmd ) =
-                        Values.New.State.update childMsg model.newValueModel
-                in
-                    ( { model | newValueModel = newValueModel }
-                    , Cmd.map translateNewValueMsg childCmd
-                    )
+                case model.newValueModel of
+                    Just newValueModel ->
+                        let
+                            ( updatedNewValueModel, childCmd ) =
+                                Values.New.State.update childMsg newValueModel
+                        in
+                            ( { model | newValueModel = Just updatedNewValueModel }
+                            , Cmd.map translateNewValueMsg childCmd
+                            )
+
+                    Nothing ->
+                        ( model, Cmd.none )
 
             NoOp ->
                 ( model, Cmd.none )
+
+            RequireSignInForCard cardCompletionMsg ->
+                if model.authentication == Nothing then
+                    -- update (StartAuthenticator Nothing (Just (CardMsg cardCompletionMsg)) SignInRoute) model
+                    requireSignIn language model.location model
+                else
+                    update (CardMsg cardCompletionMsg) model
 
             SearchMsg childMsg ->
                 -- let
@@ -271,6 +290,11 @@ urlUpdate location model =
         searchQuery =
             Urls.querySearchTerm location
 
+        unroutedModel =
+            { model
+                | newValueModel = Nothing
+            }
+
         ( newModel, cmd ) =
             case parseLocation location of
                 Just ((I18nRouteWithLanguage language localizedRoute) as route) ->
@@ -278,7 +302,7 @@ urlUpdate location model =
                         ( localizedModel, localizedCmd ) =
                             case localizedRoute of
                                 AboutRoute ->
-                                    ( model, Cmd.none )
+                                    ( unroutedModel, Cmd.none )
 
                                 AuthenticatorRoute authenticatorRoute ->
                                     let
@@ -289,7 +313,7 @@ urlUpdate location model =
                                                 authenticatorRoute
                                                 model.authenticatorModel
                                     in
-                                        ( { model
+                                        ( { unroutedModel
                                             | authenticatorModel = authenticatorModel
                                             , authenticatorCancelMsg =
                                                 if model.authenticatorCancelMsg == Nothing then
@@ -308,9 +332,9 @@ urlUpdate location model =
                                         , Cmd.map translateAuthenticatorMsg childCmd
                                         )
 
-                                CardsRoute childRoute ->
-                                    case childRoute of
-                                        CardRoute cardId ->
+                                CardsRoute cardsRoute ->
+                                    case cardsRoute of
+                                        CardRoute cardId cardRoute ->
                                             let
                                                 ( cardModel, childCmd ) =
                                                     Cards.Item.State.urlUpdate
@@ -318,9 +342,10 @@ urlUpdate location model =
                                                         language
                                                         location
                                                         cardId
+                                                        cardRoute
                                                         model.cardModel
                                             in
-                                                ( { model | cardModel = cardModel }
+                                                ( { unroutedModel | cardModel = cardModel }
                                                 , Cmd.map translateCardMsg childCmd
                                                 )
 
@@ -333,7 +358,7 @@ urlUpdate location model =
                                                         location
                                                         model.cardsModel
                                             in
-                                                ( { model | cardsModel = cardsModel }
+                                                ( { unroutedModel | cardsModel = cardsModel }
                                                 , Cmd.map translateCardsMsg childCmd
                                                 )
 
@@ -348,7 +373,7 @@ urlUpdate location model =
                                 --                         location
                                 --                         model.newCardModel
                                 --             in
-                                --                 ( { model
+                                --                 ( { unroutedModel
                                 --                     | newCardModel = newCardModel
                                 --                     , signOutMsg =
                                 --                         Just <|
@@ -358,9 +383,9 @@ urlUpdate location model =
                                 --                 , Cmd.map translateNewCardMsg childCmd
                                 --                 )
                                 --         Nothing ->
-                                --             requireSignIn language location model
+                                --             requireSignIn language location unroutedModel
                                 NotFoundRoute _ ->
-                                    ( model
+                                    ( unroutedModel
                                     , Ports.setDocumentMetadata
                                         { description = I18n.translate language I18n.PageNotFoundDescription
                                         , imageUrl = Urls.appLogoFullUrl
@@ -369,11 +394,11 @@ urlUpdate location model =
                                     )
 
                                 SearchRoute ->
-                                    -- ( model, Cmd.map translateStatementsMsg (Statements.load) )
-                                    ( model, Cmd.none )
+                                    -- ( unroutedModel, Cmd.map translateStatementsMsg (Statements.load) )
+                                    ( unroutedModel, Cmd.none )
 
                                 UserProfileRoute ->
-                                    ( model, Cmd.none )
+                                    ( unroutedModel, Cmd.none )
 
                                 ValuesRoute childRoute ->
                                     case childRoute of
@@ -381,25 +406,24 @@ urlUpdate location model =
                                             case model.authentication of
                                                 Just _ ->
                                                     let
-                                                        ( newValueModel, childCmd ) =
-                                                            Values.New.State.urlUpdate
-                                                                model.authentication
-                                                                language
-                                                                location
-                                                                model.newValueModel
+                                                        newValueModel =
+                                                            Values.New.State.init model.authentication language []
+
+                                                        ( updatedNewValueModel, updatedNewValueCmd ) =
+                                                            Values.New.State.urlUpdate location newValueModel
                                                     in
-                                                        ( { model
-                                                            | newValueModel = newValueModel
+                                                        ( { unroutedModel
+                                                            | newValueModel = Just updatedNewValueModel
                                                             , signOutMsg =
                                                                 Just <|
                                                                     NavigateFromAuthenticator <|
                                                                         Urls.languagePath language "/values"
                                                           }
-                                                        , Cmd.map translateNewValueMsg childCmd
+                                                        , Cmd.map translateNewValueMsg updatedNewValueCmd
                                                         )
 
                                                 Nothing ->
-                                                    requireSignIn language location model
+                                                    requireSignIn language location unroutedModel
 
                                         ValueRoute valueId ->
                                             let
@@ -411,7 +435,7 @@ urlUpdate location model =
                                                         valueId
                                                         model.valueModel
                                             in
-                                                ( { model | valueModel = valueModel }
+                                                ( { unroutedModel | valueModel = valueModel }
                                                 , Cmd.map translateValueMsg childCmd
                                                 )
 
@@ -424,7 +448,7 @@ urlUpdate location model =
                                                         location
                                                         model.valuesModel
                                             in
-                                                ( { model | valuesModel = valuesModel }
+                                                ( { unroutedModel | valuesModel = valuesModel }
                                                 , Cmd.map translateValuesMsg childCmd
                                                 )
                     in
@@ -440,7 +464,7 @@ urlUpdate location model =
                                 (path ++ (Urls.queryStringForParams [ "q", "tagIds" ] location))
                                 |> Navigation.modifyUrl
                     in
-                        ( { model | route = route }, command )
+                        ( { unroutedModel | route = route }, command )
 
                 Nothing ->
                     let
@@ -454,7 +478,7 @@ urlUpdate location model =
                         newUrl =
                             { url | path = (I18n.iso639_1FromLanguage language) :: url.path }
                     in
-                        ( model, Navigation.modifyUrl (Erl.toString newUrl) )
+                        ( unroutedModel, Navigation.modifyUrl (Erl.toString newUrl) )
     in
         { newModel | location = location }
             ! [ Task.attempt

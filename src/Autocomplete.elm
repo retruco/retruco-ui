@@ -228,7 +228,7 @@ keyedDiv attributes children =
 
 view : ViewConfig data -> Int -> State -> List data -> Html Msg
 view config howManyToShow state data =
-    Html.div [ Html.Attributes.class "dropdown open", Html.Attributes.id config.menuId ]
+    Html.div [ Html.Attributes.class "dropdown show", Html.Attributes.id config.menuId ]
         [ viewList config howManyToShow state data ]
 
 

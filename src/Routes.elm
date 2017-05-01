@@ -1,13 +1,14 @@
 module Routes exposing (..)
 
 import Authenticator.Routes
+import Cards.Item.Routes
 import I18n
 import Navigation
 import UrlParser exposing ((</>), map, oneOf, parsePath, Parser, remaining, s, string, top)
 
 
 type CardsRoute
-    = CardRoute String
+    = CardRoute String Cards.Item.Routes.Route
     | CardsIndexRoute
 
 
@@ -43,12 +44,21 @@ type ValuesRoute
     | ValuesIndexRoute
 
 
+cardRouteParser : Parser (Cards.Item.Routes.Route -> a) a
+cardRouteParser =
+    oneOf
+        [ map Cards.Item.Routes.IndexRoute top
+        , map Cards.Item.Routes.SameKeyPropertiesRoute (s "properties" </> idParser)
+        ]
+
+
 cardsRouteParser : Parser (CardsRoute -> a) a
 cardsRouteParser =
     oneOf
         [ map CardsIndexRoute top
-          -- , map NewCardRoute (s "new")
-        , map CardRoute idParser
+
+        -- , map NewCardRoute (s "new")
+        , map CardRoute (idParser </> cardRouteParser)
         ]
 
 
@@ -72,7 +82,8 @@ localizedRouteParser =
         [ map SearchRoute top
         , map AboutRoute (s "about")
         , map CardsRoute (s "cards" </> cardsRouteParser)
-          -- , map ConceptsRoute (s "concepts" </> conceptsRouteParser)
+
+        -- , map ConceptsRoute (s "concepts" </> conceptsRouteParser)
         , map UserProfileRoute (s "profile")
         , map (AuthenticatorRoute Authenticator.Routes.ResetPasswordRoute) (s "reset_password")
         , map (AuthenticatorRoute Authenticator.Routes.SignInRoute) (s "sign_in")

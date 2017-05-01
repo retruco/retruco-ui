@@ -23,7 +23,7 @@ type alias Model =
     , cardsModel : Cards.Index.Types.Model
     , location : Navigation.Location
     , navigatorLanguage : Maybe I18n.Language
-    , newValueModel : Values.New.Types.Model
+    , newValueModel : Maybe Values.New.Types.Model
     , page : String
     , route : Routes.Route
     , searchCriteria : Types.SearchCriteria
@@ -45,6 +45,7 @@ type Msg
     | NavigateFromAuthenticator String
     | NewValueMsg Values.New.Types.InternalMsg
     | NoOp
+    | RequireSignInForCard Cards.Item.Types.InternalMsg
     | SearchMsg Search.InternalMsg
     | ValueMsg Values.Item.Types.InternalMsg
     | ValuesMsg Values.Index.Types.InternalMsg
@@ -66,6 +67,7 @@ translateCardMsg =
     Cards.Item.Types.translateMsg
         { onInternalMsg = CardMsg
         , onNavigate = Navigate
+        , onRequireSignIn = RequireSignInForCard
         }
 
 
