@@ -55,7 +55,7 @@ init flags location =
         , searchCriteria = searchModel.searchCriteria
         , searchModel = searchModel
         , signOutMsg = Nothing
-        , valueModel = Values.Item.State.init
+        , valueModel = Nothing
         , valuesModel = Nothing
         }
             |> update (LocationChanged location)
@@ -276,13 +276,18 @@ update msg model =
                 ( model, Cmd.none )
 
             ValueMsg childMsg ->
-                let
-                    ( valueModel, childCmd ) =
-                        Values.Item.State.update childMsg model.valueModel
-                in
-                    ( { model | valueModel = valueModel }
-                    , Cmd.map translateValueMsg childCmd
-                    )
+                case model.valueModel of
+                    Just valueModel ->
+                        let
+                            ( updatedValueModel, childCmd ) =
+                                Values.Item.State.update childMsg valueModel
+                        in
+                            ( { model | valueModel = Just updatedValueModel }
+                            , Cmd.map translateValueMsg childCmd
+                            )
+
+                    Nothing ->
+                        ( model, Cmd.none )
 
             ValuesMsg childMsg ->
                 case model.valuesModel of
@@ -313,6 +318,7 @@ urlUpdate location model =
                 | cardModel = Nothing
                 , cardsModel = Nothing
                 , newValueModel = Nothing
+                , valueModel = Nothing
                 , valuesModel = Nothing
             }
 
@@ -449,16 +455,14 @@ urlUpdate location model =
 
                                         ValueRoute valueId ->
                                             let
-                                                ( valueModel, childCmd ) =
-                                                    Values.Item.State.urlUpdate
-                                                        model.authentication
-                                                        language
-                                                        location
-                                                        valueId
-                                                        model.valueModel
+                                                valueModel =
+                                                    Values.Item.State.init model.authentication language valueId
+
+                                                ( updatedValueModel, updatedValueCmd ) =
+                                                    Values.Item.State.urlUpdate location valueModel
                                             in
-                                                ( { unroutedModel | valueModel = valueModel }
-                                                , Cmd.map translateValueMsg childCmd
+                                                ( { unroutedModel | valueModel = Just updatedValueModel }
+                                                , Cmd.map translateValueMsg updatedValueCmd
                                                 )
 
                                         ValuesIndexRoute ->

@@ -210,8 +210,13 @@ view model =
                                             text "This should not occur: newValueModel == Nothing!"
 
                                 ValueRoute _ ->
-                                    Values.Item.View.view model.valueModel
-                                        |> Html.map translateValueMsg
+                                    case model.valueModel of
+                                        Just valueModel ->
+                                            Values.Item.View.view valueModel
+                                                |> Html.map translateValueMsg
+
+                                        Nothing ->
+                                            text "This should not occur: valueModel == Nothing!"
 
                                 ValuesIndexRoute ->
                                     case model.valuesModel of

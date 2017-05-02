@@ -29,7 +29,7 @@ type alias Model =
     , searchCriteria : Types.SearchCriteria
     , searchModel : Search.Model
     , signOutMsg : Maybe Msg
-    , valueModel : Values.Item.Types.Model
+    , valueModel : Maybe Values.Item.Types.Model
     , valuesModel : Maybe Values.Index.Types.Model
     }
 

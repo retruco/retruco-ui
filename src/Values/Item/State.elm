@@ -12,11 +12,11 @@ import Values.Item.Types exposing (..)
 import WebData exposing (..)
 
 
-init : Model
-init =
-    { authentication = Nothing
-    , id = ""
-    , language = I18n.English
+init : Maybe Authentication -> I18n.Language -> String -> Model
+init authentication language id =
+    { authentication = authentication
+    , id = id
+    , language = language
     , webData = NotAsked
     }
 
@@ -74,11 +74,6 @@ update msg model =
                 )
 
 
-urlUpdate : Maybe Authentication -> I18n.Language -> Navigation.Location -> String -> Model -> ( Model, Cmd Msg )
-urlUpdate authentication language location id model =
-    update Retrieve
-        { init
-            | authentication = authentication
-            , id = id
-            , language = language
-        }
+urlUpdate : Navigation.Location -> Model -> ( Model, Cmd Msg )
+urlUpdate location model =
+    update Retrieve model
