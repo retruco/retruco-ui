@@ -16,15 +16,15 @@ import Types exposing (..)
 import Urls
 
 
-init : Model
-init =
+init : Maybe Authentication -> I18n.Language -> String -> Model
+init authentication language id =
     { argumentsModel = Nothing
-    , authentication = Nothing
+    , authentication = authentication
     , data = initData
     , httpError = Nothing
-    , id = ""
+    , id = id
     , keysAutocompleteModel = Properties.KeysAutocomplete.State.init [] True
-    , language = I18n.English
+    , language = language
     , sameKeyPropertiesModel = Nothing
     }
 
@@ -190,23 +190,26 @@ update msg model =
                     ( model, Cmd.none )
 
 
-urlUpdate :
-    Maybe Authentication
-    -> I18n.Language
-    -> Navigation.Location
-    -> String
-    -> Route
-    -> Model
-    -> ( Model, Cmd Msg )
-urlUpdate authentication language location id route model =
+urlUpdate : Navigation.Location -> Route -> Model -> ( Model, Cmd Msg )
+urlUpdate location route model =
     let
+        authentication =
+            model.authentication
+
+        id =
+            model.id
+
+        language =
+            model.language
+
+        unroutedModel =
+            { model
+                | argumentsModel = Nothing
+                , sameKeyPropertiesModel = Nothing
+            }
+
         ( updatedModel, updatedCmd ) =
-            update Retrieve
-                { init
-                    | authentication = authentication
-                    , id = id
-                    , language = language
-                }
+            update Retrieve unroutedModel
     in
         case route of
             ArgumentsRoute ->
@@ -217,21 +220,13 @@ urlUpdate authentication language location id route model =
                     ( updatedArgumentsModel, updatedArgumentsCmd ) =
                         Arguments.Index.State.urlUpdate location argumentsModel
                 in
-                    { updatedModel
-                        | argumentsModel = Just updatedArgumentsModel
-                        , sameKeyPropertiesModel = Nothing
-                    }
+                    { updatedModel | argumentsModel = Just updatedArgumentsModel }
                         ! [ updatedCmd
                           , Cmd.map translateArgumentsMsg updatedArgumentsCmd
                           ]
 
             IndexRoute ->
-                ( { updatedModel
-                    | argumentsModel = Nothing
-                    , sameKeyPropertiesModel = Nothing
-                  }
-                , updatedCmd
-                )
+                ( updatedModel, updatedCmd )
 
             SameKeyPropertiesRoute keyId ->
                 let
@@ -241,10 +236,7 @@ urlUpdate authentication language location id route model =
                     ( updatedSameKeyPropertiesModel, updatedSameKeyPropertiesCmd ) =
                         SameKeyProperties.State.urlUpdate location sameKeyPropertiesModel
                 in
-                    { updatedModel
-                        | argumentsModel = Nothing
-                        , sameKeyPropertiesModel = Just updatedSameKeyPropertiesModel
-                    }
+                    { updatedModel | sameKeyPropertiesModel = Just updatedSameKeyPropertiesModel }
                         ! [ updatedCmd
                           , Cmd.map translateSameKeyPropertiesMsg updatedSameKeyPropertiesCmd
                           ]

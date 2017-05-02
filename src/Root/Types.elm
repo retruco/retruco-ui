@@ -19,7 +19,7 @@ type alias Model =
     , authenticatorCancelMsg : Maybe Msg
     , authenticatorCompletionMsg : Maybe Msg
     , authenticatorModel : Authenticator.Types.Model
-    , cardModel : Cards.Item.Types.Model
+    , cardModel : Maybe Cards.Item.Types.Model
     , cardsModel : Cards.Index.Types.Model
     , location : Navigation.Location
     , navigatorLanguage : Maybe I18n.Language

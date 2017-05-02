@@ -45,7 +45,7 @@ init flags location =
         , authenticatorCancelMsg = Nothing
         , authenticatorCompletionMsg = Nothing
         , authenticatorModel = Authenticator.State.init
-        , cardModel = Cards.Item.State.init
+        , cardModel = Nothing
         , cardsModel = Cards.Index.State.init
         , location = location
         , navigatorLanguage = navigatorLanguage
@@ -87,15 +87,18 @@ subscriptions model =
     -- TODO Fix duplicate messages with port "fileContentRead", that was worked around by a "ImageSelectedStatus"
     -- constructor.
     List.filterMap identity
-        [ Just <| Sub.map CardMsg (Cards.Item.State.subscriptions model.cardModel)
+        [ case model.cardModel of
+            Just cardModel ->
+                Just <| Sub.map CardMsg (Cards.Item.State.subscriptions cardModel)
+
+            Nothing ->
+                Nothing
         , case model.newValueModel of
             Just newValueModel ->
                 Just <| Sub.map NewValueMsg (Values.New.State.subscriptions newValueModel)
 
             Nothing ->
                 Nothing
-
-        -- , Just <| Sub.map StatementsMsg (Statements.subscriptions model.statementsModel)
         ]
         |> Sub.batch
 
@@ -159,13 +162,18 @@ update msg model =
                               ]
 
             CardMsg childMsg ->
-                let
-                    ( cardModel, childCmd ) =
-                        Cards.Item.State.update childMsg model.cardModel
-                in
-                    ( { model | cardModel = cardModel }
-                    , Cmd.map translateCardMsg childCmd
-                    )
+                case model.cardModel of
+                    Just cardModel ->
+                        let
+                            ( updatedCardModel, childCmd ) =
+                                Cards.Item.State.update childMsg cardModel
+                        in
+                            ( { model | cardModel = Just updatedCardModel }
+                            , Cmd.map translateCardMsg childCmd
+                            )
+
+                    Nothing ->
+                        ( model, Cmd.none )
 
             CardsMsg childMsg ->
                 let
@@ -292,7 +300,8 @@ urlUpdate location model =
 
         unroutedModel =
             { model
-                | newValueModel = Nothing
+                | cardModel = Nothing
+                , newValueModel = Nothing
             }
 
         ( newModel, cmd ) =
@@ -336,17 +345,17 @@ urlUpdate location model =
                                     case cardsRoute of
                                         CardRoute cardId cardRoute ->
                                             let
-                                                ( cardModel, childCmd ) =
+                                                cardModel =
+                                                    Cards.Item.State.init model.authentication language cardId
+
+                                                ( updatedCardModel, updatedCardCmd ) =
                                                     Cards.Item.State.urlUpdate
-                                                        model.authentication
-                                                        language
                                                         location
-                                                        cardId
                                                         cardRoute
-                                                        model.cardModel
+                                                        cardModel
                                             in
-                                                ( { unroutedModel | cardModel = cardModel }
-                                                , Cmd.map translateCardMsg childCmd
+                                                ( { unroutedModel | cardModel = Just updatedCardModel }
+                                                , Cmd.map translateCardMsg updatedCardCmd
                                                 )
 
                                         CardsIndexRoute ->

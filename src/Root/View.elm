@@ -162,8 +162,13 @@ view model =
                         CardsRoute childRoute ->
                             case childRoute of
                                 CardRoute _ _ ->
-                                    Cards.Item.View.view model.cardModel
-                                        |> Html.map translateCardMsg
+                                    case model.cardModel of
+                                        Just cardModel ->
+                                            Cards.Item.View.view cardModel
+                                                |> Html.map translateCardMsg
+
+                                        Nothing ->
+                                            text "This should not occur: cardModel == Nothing!"
 
                                 CardsIndexRoute ->
                                     Cards.Index.View.view model.cardsModel
@@ -197,7 +202,7 @@ view model =
                                                 |> Html.map translateNewValueMsg
 
                                         Nothing ->
-                                            text "This should not occur"
+                                            text "This should not occur: newValueModel == Nothing!"
 
                                 ValueRoute _ ->
                                     Values.Item.View.view model.valueModel
