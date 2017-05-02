@@ -46,7 +46,7 @@ init flags location =
         , authenticatorCompletionMsg = Nothing
         , authenticatorModel = Authenticator.State.init
         , cardModel = Nothing
-        , cardsModel = Cards.Index.State.init
+        , cardsModel = Nothing
         , location = location
         , navigatorLanguage = navigatorLanguage
         , newValueModel = Nothing
@@ -176,13 +176,18 @@ update msg model =
                         ( model, Cmd.none )
 
             CardsMsg childMsg ->
-                let
-                    ( cardsModel, childCmd ) =
-                        Cards.Index.State.update childMsg model.cardsModel
-                in
-                    ( { model | cardsModel = cardsModel }
-                    , Cmd.map translateCardsMsg childCmd
-                    )
+                case model.cardsModel of
+                    Just cardsModel ->
+                        let
+                            ( updatedCardsModel, childCmd ) =
+                                Cards.Index.State.update childMsg cardsModel
+                        in
+                            ( { model | cardsModel = Just updatedCardsModel }
+                            , Cmd.map translateCardsMsg childCmd
+                            )
+
+                    Nothing ->
+                        ( model, Cmd.none )
 
             ChangeAuthenticatorRoute authenticatorRoute ->
                 let
@@ -301,6 +306,7 @@ urlUpdate location model =
         unroutedModel =
             { model
                 | cardModel = Nothing
+                , cardsModel = Nothing
                 , newValueModel = Nothing
             }
 
@@ -360,14 +366,15 @@ urlUpdate location model =
 
                                         CardsIndexRoute ->
                                             let
-                                                ( cardsModel, childCmd ) =
+                                                cardsModel =
+                                                    Cards.Index.State.init model.authentication language
+
+                                                ( updatedCardsModel, childCmd ) =
                                                     Cards.Index.State.urlUpdate
-                                                        model.authentication
-                                                        language
                                                         location
-                                                        model.cardsModel
+                                                        cardsModel
                                             in
-                                                ( { unroutedModel | cardsModel = cardsModel }
+                                                ( { unroutedModel | cardsModel = Just updatedCardsModel }
                                                 , Cmd.map translateCardsMsg childCmd
                                                 )
 

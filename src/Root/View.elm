@@ -171,8 +171,13 @@ view model =
                                             text "This should not occur: cardModel == Nothing!"
 
                                 CardsIndexRoute ->
-                                    Cards.Index.View.view model.cardsModel
-                                        |> Html.map translateCardsMsg
+                                    case model.cardsModel of
+                                        Just cardsModel ->
+                                            Cards.Index.View.view cardsModel
+                                                |> Html.map translateCardsMsg
+
+                                        Nothing ->
+                                            text "This should not occur: cardsModel == Nothing!"
 
                         -- NewCardRoute ->
                         --     NewCards.Item.View.view model.newCardModel

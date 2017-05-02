@@ -12,11 +12,11 @@ import Urls
 import WebData exposing (..)
 
 
-init : Model
-init =
+init : Maybe Authentication -> I18n.Language -> Model
+init authentication language =
     { authentication = Nothing
     , errors = Dict.empty
-    , language = I18n.English
+    , language = language
     , searchCriteria =
         { sort = "latest"
         , term = Nothing
@@ -125,17 +125,14 @@ update msg model =
                         { model | errors = Dict.empty, searchCriteria = searchCriteria }
 
 
-urlUpdate : Maybe Authentication -> I18n.Language -> Navigation.Location -> Model -> ( Model, Cmd Msg )
-urlUpdate authentication language location model =
+urlUpdate : Navigation.Location -> Model -> ( Model, Cmd Msg )
+urlUpdate location model =
     let
+        language =
+            model.language
+
         ( newModel, cmd ) =
-            update
-                Submit
-                { init
-                    | authentication = authentication
-                    , language = language
-                    , searchTerm = Urls.querySearchTerm location
-                }
+            update Submit { model | searchTerm = Urls.querySearchTerm location }
     in
         newModel
             ! [ cmd
