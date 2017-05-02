@@ -14,7 +14,7 @@ import WebData exposing (..)
 
 init : Maybe Authentication -> I18n.Language -> Model
 init authentication language =
-    { authentication = Nothing
+    { authentication = authentication
     , errors = Dict.empty
     , language = language
     , searchCriteria =

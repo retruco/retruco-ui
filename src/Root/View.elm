@@ -214,8 +214,13 @@ view model =
                                         |> Html.map translateValueMsg
 
                                 ValuesIndexRoute ->
-                                    Values.Index.View.view model.valuesModel
-                                        |> Html.map translateValuesMsg
+                                    case model.valuesModel of
+                                        Just valuesModel ->
+                                            Values.Index.View.view valuesModel
+                                                |> Html.map translateValuesMsg
+
+                                        Nothing ->
+                                            text "This should not occur: valuesModel == Nothing!"
                     ]
 
         I18nRouteWithoutLanguage _ ->

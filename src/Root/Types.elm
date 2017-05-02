@@ -30,7 +30,7 @@ type alias Model =
     , searchModel : Search.Model
     , signOutMsg : Maybe Msg
     , valueModel : Values.Item.Types.Model
-    , valuesModel : Values.Index.Types.Model
+    , valuesModel : Maybe Values.Index.Types.Model
     }
 
 
