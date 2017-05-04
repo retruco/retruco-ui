@@ -11,6 +11,7 @@ import Http.Error
 import I18n
 import Properties.KeysAutocomplete.View
 import SameKeyProperties.View
+import Statements.ViewsHelpers exposing (viewArgumentsBlock)
 import Types exposing (..)
 import Values.ViewsHelpers exposing (..)
 import Views
@@ -44,40 +45,6 @@ view model =
 
                             values =
                                 data.values
-
-                            viewCardArgumentsItem argument =
-                                li [ class "list-group-item justify-content-between" ]
-                                    [ div [ class "d-inline-flex" ]
-                                        [ span
-                                            [ ariaHidden True
-                                            , class
-                                                ("fa "
-                                                    ++ (if argument.keyId == "cons" then
-                                                            "fa-minus"
-                                                        else if argument.keyId == "pros" then
-                                                            "fa-plus"
-                                                        else
-                                                            "fa-circle"
-                                                       )
-                                                    ++ " fa-fw mr-2"
-                                                )
-                                            ]
-                                            []
-                                        , viewValueIdLine
-                                            language
-                                            (Just (ForParent << Navigate))
-                                            data
-                                            False
-                                            argument.valueId
-                                        ]
-                                    , -- TODO
-                                      aForPath
-                                        (ForParent << Navigate)
-                                        language
-                                        ("/cards/" ++ model.id ++ "/arguments")
-                                        [ class "btn btn-secondary" ]
-                                        [ text (I18n.translate language (I18n.Debate)) ]
-                                    ]
 
                             viewCardPropertiesItem keyId valueId =
                                 li [ class "list-group-item justify-content-between" ]
@@ -135,19 +102,13 @@ view model =
                                         model.keysAutocompleteModel
                                         |> Html.map translateKeysAutocompleteMsg
                                 , hr [] []
-                                , h2 [ class "d-flex justify-content-between" ]
-                                    [ span [] [ text <| I18n.translate language I18n.Arguments ]
-                                    , aForPath
-                                        (ForParent << Navigate)
-                                        language
-                                        ("/cards/" ++ model.id ++ "/arguments")
-                                        [ class "btn btn-secondary" ]
-                                        [ text (I18n.translate language (I18n.Debate)) ]
-                                    ]
-                                , ul [ class "list-group" ]
-                                    (card.arguments
-                                        |> List.map viewCardArgumentsItem
-                                    )
+                                , viewArgumentsBlock
+                                    language
+                                    (ForParent << Navigate)
+                                    data
+                                    "cards"
+                                    card.id
+                                    card.arguments
                                 ]
 
                     Nothing ->

@@ -68,22 +68,7 @@ convertControlsToSearchCriteria model =
 update : InternalMsg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Found (Err err) ->
-            let
-                _ =
-                    Debug.log "Values.State update Loaded Err" err
-
-                newModel =
-                    { model | webData = Failure err }
-            in
-                ( newModel, Cmd.none )
-
-        Found (Ok body) ->
-            ( { model | webData = Data (Loaded body) }
-            , Cmd.none
-            )
-
-        Search ->
+        Retrieve ->
             let
                 newModel =
                     { model | webData = Data (Loading (getData model.webData)) }
@@ -98,9 +83,25 @@ update msg model =
                             model.authentication
                             model.searchCriteria.term
                             limit
-                            |> Http.send (ForSelf << Found)
+                            False
+                            |> Http.send (ForSelf << Retrieved)
             in
                 ( newModel, cmd )
+
+        Retrieved (Err err) ->
+            let
+                _ =
+                    Debug.log "Values.State update Loaded Err" err
+
+                newModel =
+                    { model | webData = Failure err }
+            in
+                ( newModel, Cmd.none )
+
+        Retrieved (Ok body) ->
+            ( { model | webData = Data (Loaded body) }
+            , Cmd.none
+            )
 
         SearchSortChanged searchSort ->
             ( { model | searchSort = searchSort }, Cmd.none )
@@ -115,7 +116,7 @@ update msg model =
 
                 Ok searchCriteria ->
                     update
-                        Search
+                        Retrieve
                         { model | errors = Dict.empty, searchCriteria = searchCriteria }
 
 

@@ -4,6 +4,8 @@ import Authenticator.Routes
 import Authenticator.Types exposing (Authentication)
 import Cards.Index.Types
 import Cards.Item.Types
+import Concepts.Index.Types
+import Concepts.New.Types
 import I18n
 import Navigation
 import Routes
@@ -21,8 +23,10 @@ type alias Model =
     , authenticatorModel : Authenticator.Types.Model
     , cardModel : Maybe Cards.Item.Types.Model
     , cardsModel : Maybe Cards.Index.Types.Model
+    , conceptsModel : Maybe Concepts.Index.Types.Model
     , location : Navigation.Location
     , navigatorLanguage : Maybe I18n.Language
+    , newConceptModel : Maybe Concepts.New.Types.Model
     , newValueModel : Maybe Values.New.Types.Model
     , page : String
     , route : Routes.Route
@@ -40,9 +44,11 @@ type Msg
     | CardMsg Cards.Item.Types.InternalMsg
     | CardsMsg Cards.Index.Types.InternalMsg
     | ChangeAuthenticatorRoute Authenticator.Routes.Route
+    | ConceptsMsg Concepts.Index.Types.InternalMsg
     | LocationChanged Navigation.Location
     | Navigate String
     | NavigateFromAuthenticator String
+    | NewConceptMsg Concepts.New.Types.InternalMsg
     | NewValueMsg Values.New.Types.InternalMsg
     | NoOp
     | RequireSignInForCard Cards.Item.Types.InternalMsg
@@ -76,6 +82,22 @@ translateCardsMsg =
     Cards.Index.Types.translateMsg
         { onInternalMsg = CardsMsg
         , onNavigate = Navigate
+        }
+
+
+translateConceptsMsg : Concepts.Index.Types.MsgTranslator Msg
+translateConceptsMsg =
+    Concepts.Index.Types.translateMsg
+        { onInternalMsg = ConceptsMsg
+        , onNavigate = Navigate
+        }
+
+
+translateNewConceptMsg : Concepts.New.Types.MsgTranslator Msg
+translateNewConceptMsg =
+    Concepts.New.Types.translateMsg
+        { onInternalMsg = NewConceptMsg
+        , onConceptUpserted = ValueUpserted
         }
 
 

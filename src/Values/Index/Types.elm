@@ -17,8 +17,8 @@ type alias FormErrors =
 
 
 type InternalMsg
-    = Found (Result Http.Error DataIdsBody)
-    | Search
+    = Retrieve
+    | Retrieved (Result Http.Error DataIdsBody)
     | SearchSortChanged String
     | SearchTermChanged String
     | Submit

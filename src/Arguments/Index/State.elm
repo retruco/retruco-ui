@@ -59,11 +59,7 @@ update msg model =
             ( { model | httpError = Just httpError }, Cmd.none )
 
         RatingPosted (Ok body) ->
-            ( { model
-                | data = mergeData body.data model.data
-              }
-            , Cmd.none
-            )
+            ( mergeModelData body.data model, Cmd.none )
 
         Retrieve ->
             ( { model
@@ -123,15 +119,15 @@ update msg model =
                 , Cmd.none
                 )
 
-        VotePropertyDown propertyId ->
+        VoteRatingDown statementId ->
             ( model
-            , Requests.rateProperty model.authentication propertyId -1
+            , Requests.rateStatement model.authentication statementId -1
                 |> Http.send (ForSelf << RatingPosted)
             )
 
-        VotePropertyUp propertyId ->
+        VoteRatingUp statementId ->
             ( model
-            , Requests.rateProperty model.authentication propertyId 1
+            , Requests.rateStatement model.authentication statementId 1
                 |> Http.send (ForSelf << RatingPosted)
             )
 

@@ -4,6 +4,8 @@ import Authenticator.Routes exposing (..)
 import Authenticator.State
 import Cards.Index.State
 import Cards.Item.State
+import Concepts.Index.State
+import Concepts.New.State
 import Decoders
 import Dom.Scroll
 import Erl
@@ -47,8 +49,10 @@ init flags location =
         , authenticatorModel = Authenticator.State.init
         , cardModel = Nothing
         , cardsModel = Nothing
+        , conceptsModel = Nothing
         , location = location
         , navigatorLanguage = navigatorLanguage
+        , newConceptModel = Nothing
         , newValueModel = Nothing
         , page = "reference"
         , route = Routes.I18nRouteWithoutLanguage ""
@@ -93,9 +97,21 @@ subscriptions model =
 
             Nothing ->
                 Nothing
+        , case model.newConceptModel of
+            Just newConceptModel ->
+                Just <| Sub.map NewConceptMsg (Concepts.New.State.subscriptions newConceptModel)
+
+            Nothing ->
+                Nothing
         , case model.newValueModel of
             Just newValueModel ->
                 Just <| Sub.map NewValueMsg (Values.New.State.subscriptions newValueModel)
+
+            Nothing ->
+                Nothing
+        , case model.valueModel of
+            Just valueModel ->
+                Just <| Sub.map ValueMsg (Values.Item.State.subscriptions valueModel)
 
             Nothing ->
                 Nothing
@@ -215,6 +231,20 @@ update msg model =
                     , navigate model <| Urls.languagePath language path
                     )
 
+            ConceptsMsg childMsg ->
+                case model.conceptsModel of
+                    Just conceptsModel ->
+                        let
+                            ( updatedConceptsModel, childCmd ) =
+                                Concepts.Index.State.update childMsg conceptsModel
+                        in
+                            ( { model | conceptsModel = Just updatedConceptsModel }
+                            , Cmd.map translateConceptsMsg childCmd
+                            )
+
+                    Nothing ->
+                        ( model, Cmd.none )
+
             LocationChanged location ->
                 urlUpdate location model
 
@@ -230,6 +260,20 @@ update msg model =
 
             NavigateFromAuthenticator path ->
                 ( model, navigate model path )
+
+            NewConceptMsg childMsg ->
+                case model.newConceptModel of
+                    Just newConceptModel ->
+                        let
+                            ( updatedNewConceptModel, childCmd ) =
+                                Concepts.New.State.update childMsg newConceptModel
+                        in
+                            ( { model | newConceptModel = Just updatedNewConceptModel }
+                            , Cmd.map translateNewConceptMsg childCmd
+                            )
+
+                    Nothing ->
+                        ( model, Cmd.none )
 
             NewValueMsg childMsg ->
                 case model.newValueModel of
@@ -317,6 +361,8 @@ urlUpdate location model =
             { model
                 | cardModel = Nothing
                 , cardsModel = Nothing
+                , conceptsModel = Nothing
+                , newConceptModel = Nothing
                 , newValueModel = Nothing
                 , valueModel = Nothing
                 , valuesModel = Nothing
@@ -390,6 +436,43 @@ urlUpdate location model =
                                                 , Cmd.map translateCardsMsg childCmd
                                                 )
 
+                                ConceptsRoute childRoute ->
+                                    case childRoute of
+                                        NewConceptRoute ->
+                                            case model.authentication of
+                                                Just _ ->
+                                                    let
+                                                        newConceptModel =
+                                                            Concepts.New.State.init model.authentication language []
+
+                                                        ( updatedNewConceptModel, updatedNewConceptCmd ) =
+                                                            Concepts.New.State.urlUpdate location newConceptModel
+                                                    in
+                                                        ( { unroutedModel
+                                                            | newConceptModel = Just updatedNewConceptModel
+                                                            , signOutMsg =
+                                                                Just <|
+                                                                    NavigateFromAuthenticator <|
+                                                                        Urls.languagePath language "/concepts"
+                                                          }
+                                                        , Cmd.map translateNewConceptMsg updatedNewConceptCmd
+                                                        )
+
+                                                Nothing ->
+                                                    requireSignIn language location unroutedModel
+
+                                        ConceptsIndexRoute ->
+                                            let
+                                                conceptsModel =
+                                                    Concepts.Index.State.init model.authentication language
+
+                                                ( updatedConceptsModel, childCmd ) =
+                                                    Concepts.Index.State.urlUpdate location conceptsModel
+                                            in
+                                                ( { unroutedModel | conceptsModel = Just updatedConceptsModel }
+                                                , Cmd.map translateConceptsMsg childCmd
+                                                )
+
                                 -- NewCardRoute ->
                                 --     case model.authentication of
                                 --         Just _ ->
@@ -453,13 +536,13 @@ urlUpdate location model =
                                                 Nothing ->
                                                     requireSignIn language location unroutedModel
 
-                                        ValueRoute valueId ->
+                                        ValueRoute valueId valueRoute ->
                                             let
                                                 valueModel =
                                                     Values.Item.State.init model.authentication language valueId
 
                                                 ( updatedValueModel, updatedValueCmd ) =
-                                                    Values.Item.State.urlUpdate location valueModel
+                                                    Values.Item.State.urlUpdate location valueRoute valueModel
                                             in
                                                 ( { unroutedModel | valueModel = Just updatedValueModel }
                                                 , Cmd.map translateValueMsg updatedValueCmd

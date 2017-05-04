@@ -1,29 +1,67 @@
 module Values.Item.View exposing (..)
 
+import Arguments.Index.View
+import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Attributes.Aria exposing (..)
+import Http.Error
+import I18n
+import Statements.ViewsHelpers exposing (viewArgumentsBlock)
 import Values.Item.Types exposing (..)
-import Values.ViewsHelpers exposing (..)
+import Values.ViewsHelpers exposing (viewValueTypeLine)
 import Views
-import WebData
 
 
 view : Model -> Html Msg
 view model =
-    let
-        language =
-            model.language
-    in
-        Views.viewWebData
-            language
-            (\loadingStatus ->
-                case loadingStatus of
-                    WebData.Loading _ ->
-                        div [ class "text-center" ]
-                            [ Views.viewLoading language ]
+    case model.argumentsModel of
+        Just argumentsModel ->
+            Arguments.Index.View.view argumentsModel
+                |> Html.map translateArgumentsMsg
 
-                    WebData.Loaded body ->
+        Nothing ->
+            let
+                data =
+                    model.data
+
+                language =
+                    model.language
+            in
+                case Dict.get model.id data.values of
+                    Just typedValue ->
                         div []
-                            [ viewValueIdLine language (Just (ForParent << Navigate)) body.data True body.data.id ]
-            )
-            model.webData
+                            [ viewValueTypeLine
+                                language
+                                (Just (ForParent << Navigate))
+                                data
+                                True
+                                typedValue.value
+                            , hr [] []
+                            , viewArgumentsBlock
+                                language
+                                (ForParent << Navigate)
+                                data
+                                "values"
+                                typedValue.id
+                                typedValue.arguments
+                            ]
+
+                    Nothing ->
+                        case model.httpError of
+                            Just httpError ->
+                                div
+                                    [ class "alert alert-danger"
+                                    , role "alert"
+                                    ]
+                                    [ strong []
+                                        [ text <|
+                                            I18n.translate language I18n.ValueRetrievalFailed
+                                                ++ I18n.translate language I18n.Colon
+                                        ]
+                                    , text <| Http.Error.toString language httpError
+                                    ]
+
+                            Nothing ->
+                                div [ class "text-center" ]
+                                    [ Views.viewLoading language ]

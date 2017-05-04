@@ -5,7 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Html.Events exposing (..)
-import Html.Helpers exposing (aForPath, aIfIsUrl)
+import Html.Helpers exposing (aForPath)
 import I18n
 import Json.Decode
 import Values.Index.Types exposing (..)

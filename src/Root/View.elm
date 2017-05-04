@@ -3,6 +3,8 @@ module Root.View exposing (..)
 import Authenticator.View
 import Cards.Index.View
 import Cards.Item.View
+import Concepts.Index.View
+import Concepts.New.View
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Helpers exposing (aForPath)
@@ -179,6 +181,26 @@ view model =
                                         Nothing ->
                                             text "This should not occur: cardsModel == Nothing!"
 
+                        ConceptsRoute childRoute ->
+                            case childRoute of
+                                NewConceptRoute ->
+                                    case model.newConceptModel of
+                                        Just newConceptModel ->
+                                            Concepts.New.View.view newConceptModel
+                                                |> Html.map translateNewConceptMsg
+
+                                        Nothing ->
+                                            text "This should not occur: newConceptModel == Nothing!"
+
+                                ConceptsIndexRoute ->
+                                    case model.conceptsModel of
+                                        Just conceptsModel ->
+                                            Concepts.Index.View.view conceptsModel
+                                                |> Html.map translateConceptsMsg
+
+                                        Nothing ->
+                                            text "This should not occur: conceptsModel == Nothing!"
+
                         -- NewCardRoute ->
                         --     NewCards.Item.View.view model.newCardModel
                         --         |> Html.map translateNewCardMsg
@@ -209,7 +231,7 @@ view model =
                                         Nothing ->
                                             text "This should not occur: newValueModel == Nothing!"
 
-                                ValueRoute _ ->
+                                ValueRoute _ _ ->
                                     case model.valueModel of
                                         Just valueModel ->
                                             Values.Item.View.view valueModel

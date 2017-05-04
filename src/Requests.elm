@@ -32,7 +32,8 @@ authenticationHeaders authentication =
         Just authentication ->
             [ Http.header "Retruco-API-Key" authentication.apiKey
             , Http.header "Cache-Control" "no-cache"
-              -- Don't cache API requests when user is logged.
+
+            -- Don't cache API requests when user is logged.
             ]
 
         Nothing ->
@@ -299,7 +300,7 @@ getValue authentication id =
     Http.request
         { method = "GET"
         , headers = authenticationHeaders authentication
-        , url = apiUrl ++ "objects/" ++ id ++ "?depth=3&show=properties&show=values"
+        , url = apiUrl ++ "objects/" ++ id ++ "?depth=3&show=ballots&show=properties&show=values"
         , body = Http.emptyBody
         , expect = Http.expectJson dataIdBodyDecoder
         , timeout = Nothing
@@ -307,8 +308,8 @@ getValue authentication id =
         }
 
 
-getValues : Maybe Authentication -> Maybe String -> Maybe Int -> Http.Request DataIdsBody
-getValues authentication term limit =
+getValues : Maybe Authentication -> Maybe String -> Maybe Int -> Bool -> Http.Request DataIdsBody
+getValues authentication term limit ratedOnly =
     Http.request
         { method = "GET"
         , headers = authenticationHeaders authentication
@@ -316,6 +317,11 @@ getValues authentication term limit =
             apiUrl
                 ++ "values?"
                 ++ ([ Just "depth=3"
+                    , if ratedOnly then
+                        Just "rated=true"
+                      else
+                        Nothing
+                    , Just "show=ballots"
                     , Just "show=properties"
                     , Just "show=values"
                     , (case term of
@@ -514,33 +520,12 @@ postValue authentication field =
             }
 
 
-rateProperty : Maybe Authentication -> String -> Int -> Http.Request DataIdBody
-rateProperty authentication propertyId rating =
+rateStatement : Maybe Authentication -> String -> Int -> Http.Request DataIdBody
+rateStatement authentication statementId rating =
     Http.request
         { method = "POST"
         , headers = authenticationHeaders authentication
-        , url = apiUrl ++ "statements/" ++ propertyId ++ "/rating?show=ballots&depth=1"
-        , body = Encode.object [ ( "rating", Encode.int rating ) ] |> Http.jsonBody
-        , expect = Http.expectJson dataIdBodyDecoder
-        , timeout = Nothing
-        , withCredentials = False
-        }
-
-
-rateStatement : Authentication -> Int -> String -> Http.Request DataIdBody
-rateStatement authentication rating statementId =
-    Http.request
-        { method = "POST"
-        , headers = authenticationHeaders (Just authentication)
-        , url =
-            (apiUrl
-                ++ "statements/"
-                ++ statementId
-                -- TODO: query parameters
-                ++
-                    "/rating?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=properties"
-                ++ "&show=references&show=tags"
-            )
+        , url = apiUrl ++ "statements/" ++ statementId ++ "/rating?show=ballots&depth=1"
         , body = Encode.object [ ( "rating", Encode.int rating ) ] |> Http.jsonBody
         , expect = Http.expectJson dataIdBodyDecoder
         , timeout = Nothing

@@ -11,7 +11,6 @@ argumentDecoder : Decoder Argument
 argumentDecoder =
     succeed Argument
         |: (field "keyId" string)
-        |: oneOf [ (field "rating" int), succeed 0 ]
         |: oneOf [ (field "ratingCount" int), succeed 0 ]
         |: oneOf [ (field "ratingSum" int), succeed 0 ]
         |: (field "valueId" string)
@@ -51,7 +50,6 @@ cardDecoder =
         |: oneOf [ (field "deleted" bool), succeed False ]
         |: (field "id" string)
         |: (field "properties" (dict string))
-        |: oneOf [ (field "rating" int), succeed 0 ]
         |: oneOf [ (field "ratingCount" int), succeed 0 ]
         |: oneOf [ (field "ratingSum" int), succeed 0 ]
         |: oneOf [ (field "references" (dict (list string))), succeed Dict.empty ]
@@ -174,7 +172,6 @@ propertyDecoder =
         |: (field "keyId" string)
         |: (field "objectId" string)
         |: oneOf [ (field "properties" (dict string)), succeed Dict.empty ]
-        |: oneOf [ (field "rating" int), succeed 0 ]
         |: oneOf [ (field "ratingCount" int), succeed 0 ]
         |: oneOf [ (field "ratingSum" int), succeed 0 ]
         |: oneOf [ (field "references" (dict (list string))), succeed Dict.empty ]
@@ -192,18 +189,34 @@ typedValueAutocompletionDecoder =
         |: (field "value" typedValueDecoder)
 
 
-typedValueDecoder : Decoder Types.TypedValue
+typedValueDecoder : Decoder TypedValue
 typedValueDecoder =
-    map5 (,,,,)
-        (field "createdAt" string)
+    map8 (,,,,,,,)
+        (oneOf [ (field "arguments" (list argumentDecoder)), succeed [] ])
+        (oneOf [ (field "ballotId" string), succeed "" ])
+        -- (field "createdAt" string) -- Removed because a JSON decoder can decode only 8 fields at max.
         (field "id" string)
+        (oneOf [ (field "ratingCount" int), succeed 0 ])
+        (oneOf [ (field "ratingSum" int), succeed 0 ])
         (field "schemaId" string)
         (field "type" string)
         (oneOf [ (field "widgetId" string), succeed "" ])
         |> andThen
-            (\( createdAt, id, schemaId, type_, widgetId ) ->
+            (\( arguments, ballotId, id, ratingCount, ratingSum, schemaId, type_, widgetId ) ->
                 (field "value" (valueTypeDecoder schemaId widgetId))
-                    |> map (\value -> Types.TypedValue createdAt id schemaId type_ value widgetId)
+                    |> map
+                        (\value ->
+                            TypedValue
+                                arguments
+                                ballotId
+                                id
+                                ratingCount
+                                ratingSum
+                                schemaId
+                                type_
+                                value
+                                widgetId
+                        )
             )
 
 

@@ -62,6 +62,7 @@ type TranslationId
     | Colon
     | Concepts
     | ConceptsDescription
+    | ConceptsRetrievalFailed
     | Copyright
     | CountVersionsAvailable Int
     | Create
@@ -126,6 +127,7 @@ type TranslationId
     | NewArgumentDescription
     | NewCard
     | NewConcept
+    | NewConceptDescription
     | NewValue
     | NewValueDescription
     | Number
@@ -201,6 +203,7 @@ type TranslationId
     | ValueId
     | ValueIdArray
     | ValuePlaceholder
+    | ValueRetrievalFailed
     | Values
     | ValuesDescription
     | VoteBestContributions
@@ -585,6 +588,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "List of concepts"
                 , french = s "Liste de concepts"
+                , spanish = todo
+            }
+
+        ConceptsRetrievalFailed ->
+            { emptyTranslationSet
+                | english = s "Retrieval of concepts failed"
+                , french = s "Échec de la récupération des concepts"
                 , spanish = todo
             }
 
@@ -1061,6 +1071,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "New Concept"
                 , french = s "Nouveau concept"
+                , spanish = todo
+            }
+
+        NewConceptDescription ->
+            { emptyTranslationSet
+                | english = s "Form to enter a new concept"
+                , french = s "Formulaire de création d'un nouveau concept"
                 , spanish = todo
             }
 
@@ -1586,6 +1603,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "The value..."
                 , french = s "La valeur"
+                , spanish = todo
+            }
+
+        ValueRetrievalFailed ->
+            { emptyTranslationSet
+                | english = s "Value retrieval failed"
+                , french = s "Échec de la récupération de la valeur"
                 , spanish = todo
             }
 

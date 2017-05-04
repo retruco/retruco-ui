@@ -137,15 +137,15 @@ update msg model =
                 |> Http.send (ForSelf << Upserted)
             )
 
-        VotePropertyDown propertyId ->
+        VoteRatingDown statementId ->
             ( model
-            , Requests.rateProperty model.authentication propertyId -1
+            , Requests.rateStatement model.authentication statementId -1
                 |> Http.send (ForSelf << RatingPosted)
             )
 
-        VotePropertyUp propertyId ->
+        VoteRatingUp statementId ->
             ( model
-            , Requests.rateProperty model.authentication propertyId 1
+            , Requests.rateStatement model.authentication statementId 1
                 |> Http.send (ForSelf << RatingPosted)
             )
 

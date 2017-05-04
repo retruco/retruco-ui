@@ -1,6 +1,7 @@
-module SameKeyProperties.Types exposing (..)
+module Concepts.New.Types exposing (..)
 
 import Authenticator.Types exposing (Authentication)
+import Dict exposing (Dict)
 import Http
 import I18n
 import Types exposing (..)
@@ -8,29 +9,27 @@ import Values.New.Types
 
 
 type ExternalMsg
-    = Navigate String
+    = ConceptUpserted DataId
+
+
+type alias FormErrors =
+    Dict String I18n.TranslationId
 
 
 type InternalMsg
     = NewValueMsg Values.New.Types.InternalMsg
-    | RatingPosted (Result Http.Error DataIdBody)
-    | Retrieve
-    | Retrieved (Result Http.Error DataIdsBody)
-    | Upserted (Result Http.Error DataIdBody)
-    | ValueUpserted Types.DataId
-    | VoteRatingDown String
-    | VoteRatingUp String
+    | Submit
+    | Rated (Result Http.Error DataIdBody)
+    | Upserted DataId
 
 
 type alias Model =
     { authentication : Maybe Authentication
-    , data : DataProxy {}
+    , data : DataId
     , httpError : Maybe Http.Error
-    , keyId : String
     , language : I18n.Language
     , newValueModel : Values.New.Types.Model
-    , objectId : String
-    , propertyIds : Maybe (List String)
+    , validFieldTypes : List String
     }
 
 
@@ -40,8 +39,8 @@ type Msg
 
 
 type alias MsgTranslation parentMsg =
-    { onInternalMsg : InternalMsg -> parentMsg
-    , onNavigate : String -> parentMsg
+    { onConceptUpserted : DataId -> parentMsg
+    , onInternalMsg : InternalMsg -> parentMsg
     }
 
 
@@ -50,10 +49,10 @@ type alias MsgTranslator parentMsg =
 
 
 translateMsg : MsgTranslation parentMsg -> MsgTranslator parentMsg
-translateMsg { onInternalMsg, onNavigate } msg =
+translateMsg { onConceptUpserted, onInternalMsg } msg =
     case msg of
-        ForParent (Navigate path) ->
-            onNavigate path
+        ForParent (ConceptUpserted data) ->
+            onConceptUpserted data
 
         ForSelf internalMsg ->
             onInternalMsg internalMsg
@@ -63,5 +62,5 @@ translateNewValueMsg : Values.New.Types.MsgTranslator Msg
 translateNewValueMsg =
     Values.New.Types.translateMsg
         { onInternalMsg = ForSelf << NewValueMsg
-        , onValueUpserted = ForSelf << ValueUpserted
+        , onValueUpserted = ForSelf << Upserted
         }

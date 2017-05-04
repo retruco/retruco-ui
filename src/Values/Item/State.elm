@@ -1,5 +1,6 @@
 module Values.Item.State exposing (..)
 
+import Arguments.Index.State
 import Authenticator.Types exposing (Authentication)
 import Dict exposing (Dict)
 import Http
@@ -7,73 +8,162 @@ import I18n
 import Navigation
 import Ports
 import Requests
+import Types exposing (..)
 import Urls
+import Values.Item.Routes exposing (..)
 import Values.Item.Types exposing (..)
-import WebData exposing (..)
 
 
 init : Maybe Authentication -> I18n.Language -> String -> Model
 init authentication language id =
-    { authentication = authentication
+    { argumentsModel = Nothing
+    , authentication = authentication
+    , data = initData
+    , httpError = Nothing
     , id = id
     , language = language
-    , webData = NotAsked
+
+    -- , sameKeyPropertiesModel = Nothing
     }
+
+
+mergeModelData : DataProxy a -> Model -> Model
+mergeModelData data model =
+    let
+        mergedData =
+            mergeData data model.data
+    in
+        { model
+            | argumentsModel =
+                case model.argumentsModel of
+                    Just argumentsModel ->
+                        Just <| Arguments.Index.State.mergeModelData mergedData argumentsModel
+
+                    Nothing ->
+                        Nothing
+            , data = mergedData
+
+            -- , sameKeyPropertiesModel =
+            --     case model.sameKeyPropertiesModel of
+            --         Just sameKeyPropertiesModel ->
+            --             Just <| SameKeyProperties.State.mergeModelData mergedData sameKeyPropertiesModel
+            --         Nothing ->
+            --             Nothing
+        }
+
+
+subscriptions : Model -> Sub InternalMsg
+subscriptions model =
+    List.filterMap identity
+        [ case model.argumentsModel of
+            Just argumentsModel ->
+                Just <| Sub.map ArgumentsMsg (Arguments.Index.State.subscriptions argumentsModel)
+
+            Nothing ->
+                Nothing
+
+        -- , Just <|
+        --     Sub.map KeysAutocompleteMsg (Properties.KeysAutocomplete.State.subscriptions model.keysAutocompleteModel)
+        -- , case model.sameKeyPropertiesModel of
+        --     Just sameKeyPropertiesModel ->
+        --         Just <| Sub.map SameKeyPropertiesMsg (SameKeyProperties.State.subscriptions sameKeyPropertiesModel)
+        --     Nothing ->
+        --         Nothing
+        ]
+        |> Sub.batch
 
 
 update : InternalMsg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Retrieve ->
-            let
-                newModel =
-                    { model | webData = Data (Loading (getData model.webData)) }
-
-                cmd =
+        ArgumentsMsg childMsg ->
+            case model.argumentsModel of
+                Just argumentsModel ->
                     let
-                        limit =
-                            Just 10
+                        ( updatedArgumentsModel, childCmd ) =
+                            Arguments.Index.State.update childMsg argumentsModel
                     in
-                        Requests.getValue
-                            model.authentication
-                            model.id
-                            |> Http.send (ForSelf << Retrieved)
-            in
-                ( newModel, cmd )
+                        ( { model | argumentsModel = Just updatedArgumentsModel }
+                        , Cmd.map translateArgumentsMsg childCmd
+                        )
 
-        Retrieved (Err err) ->
+                Nothing ->
+                    ( model, Cmd.none )
+
+        Retrieve ->
+            ( { model | httpError = Nothing }
+            , Requests.getValue model.authentication model.id
+                |> Http.send (ForSelf << Retrieved)
+            )
+
+        Retrieved (Err httpError) ->
+            ( { model
+                | httpError = Just httpError
+
+                -- , keysAutocompleteModel = Properties.KeysAutocomplete.State.init [] True
+              }
+            , Cmd.none
+            )
+
+        Retrieved (Ok { data }) ->
             let
-                _ =
-                    Debug.log "Value.State update Loaded Err" err
-
-                newModel =
-                    { model | webData = Failure err }
-            in
-                ( newModel, Cmd.none )
-
-        Retrieved (Ok body) ->
-            let
-                data =
-                    body.data
+                mergedModel =
+                    mergeModelData data model
 
                 typedValue =
                     Dict.get data.id data.values
-            in
-                ( { model | webData = Data (Loaded body) }
-                , case typedValue of
-                    Just value ->
-                        -- TODO
-                        Ports.setDocumentMetadata
-                            { description = I18n.translate model.language I18n.ValuesDescription
-                            , imageUrl = Urls.appLogoFullUrl
-                            , title = I18n.translate model.language I18n.Values
-                            }
 
-                    Nothing ->
-                        Cmd.none
+                language =
+                    model.language
+            in
+                -- ( { mergedModel
+                --     | keysAutocompleteModel = Properties.KeysAutocomplete.State.init card.subTypeIds True
+                --   }
+                ( mergedModel
+                , -- TODO
+                  Ports.setDocumentMetadata
+                    { description = I18n.translate model.language I18n.ValuesDescription
+                    , imageUrl = Urls.appLogoFullUrl
+                    , title = I18n.translate model.language I18n.Values
+                    }
                 )
 
 
-urlUpdate : Navigation.Location -> Model -> ( Model, Cmd Msg )
-urlUpdate location model =
-    update Retrieve model
+urlUpdate : Navigation.Location -> Route -> Model -> ( Model, Cmd Msg )
+urlUpdate location route model =
+    let
+        authentication =
+            model.authentication
+
+        id =
+            model.id
+
+        language =
+            model.language
+
+        unroutedModel =
+            { model
+                | argumentsModel = Nothing
+
+                -- , sameKeyPropertiesModel = Nothing
+            }
+
+        ( updatedModel, updatedCmd ) =
+            update Retrieve unroutedModel
+    in
+        case route of
+            ArgumentsRoute ->
+                let
+                    argumentsModel =
+                        Arguments.Index.State.init authentication language id
+
+                    ( updatedArgumentsModel, updatedArgumentsCmd ) =
+                        Arguments.Index.State.urlUpdate location argumentsModel
+                in
+                    { updatedModel | argumentsModel = Just updatedArgumentsModel }
+                        ! [ updatedCmd
+                          , Cmd.map translateArgumentsMsg updatedArgumentsCmd
+                          ]
+
+            IndexRoute ->
+                ( updatedModel, updatedCmd )

@@ -1,10 +1,10 @@
 module Values.Item.Types exposing (..)
 
+import Arguments.Index.Types
 import Authenticator.Types exposing (Authentication)
 import Http
 import I18n
 import Types exposing (..)
-import WebData exposing (..)
 
 
 type ExternalMsg
@@ -12,15 +12,24 @@ type ExternalMsg
 
 
 type InternalMsg
-    = Retrieve
+    = ArgumentsMsg Arguments.Index.Types.InternalMsg
+    | Retrieve
     | Retrieved (Result Http.Error DataIdBody)
 
 
+
+-- | SameKeyPropertiesMsg SameKeyProperties.Types.InternalMsg
+
+
 type alias Model =
-    { authentication : Maybe Authentication
+    { argumentsModel : Maybe Arguments.Index.Types.Model
+    , authentication : Maybe Authentication
+    , data : DataProxy {}
+    , httpError : Maybe Http.Error
     , id : String
     , language : I18n.Language
-    , webData : WebData DataIdBody
+
+    -- , sameKeyPropertiesModel : Maybe SameKeyProperties.Types.Model
     }
 
 
@@ -39,6 +48,14 @@ type alias MsgTranslator parentMsg =
     Msg -> parentMsg
 
 
+translateArgumentsMsg : Arguments.Index.Types.MsgTranslator Msg
+translateArgumentsMsg =
+    Arguments.Index.Types.translateMsg
+        { onInternalMsg = ForSelf << ArgumentsMsg
+        , onNavigate = ForParent << Navigate
+        }
+
+
 translateMsg : MsgTranslation parentMsg -> MsgTranslator parentMsg
 translateMsg { onInternalMsg, onNavigate } msg =
     case msg of
@@ -47,6 +64,15 @@ translateMsg { onInternalMsg, onNavigate } msg =
 
         ForSelf internalMsg ->
             onInternalMsg internalMsg
+
+
+
+-- translateSameKeyPropertiesMsg : SameKeyProperties.Types.MsgTranslator Msg
+-- translateSameKeyPropertiesMsg =
+--     SameKeyProperties.Types.translateMsg
+--         { onInternalMsg = ForSelf << SameKeyPropertiesMsg
+--         , onNavigate = ForParent << Navigate
+--         }
 
 
 valueTypeToTypeLabel : I18n.Language -> ValueType -> String

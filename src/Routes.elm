@@ -5,6 +5,7 @@ import Cards.Item.Routes
 import I18n
 import Navigation
 import UrlParser exposing ((</>), map, oneOf, parsePath, Parser, remaining, s, string, top)
+import Values.Item.Routes
 
 
 type CardsRoute
@@ -18,7 +19,6 @@ type CardsRoute
 
 type ConceptsRoute
     = NewConceptRoute
-    | ConceptRoute String
     | ConceptsIndexRoute
 
 
@@ -26,7 +26,7 @@ type LocalizedRoute
     = AboutRoute
     | AuthenticatorRoute Authenticator.Routes.Route
     | CardsRoute CardsRoute
-      -- | ConceptsRoute ConceptsRoute
+    | ConceptsRoute ConceptsRoute
     | NotFoundRoute (List String)
     | SearchRoute
     | UserProfileRoute
@@ -40,7 +40,7 @@ type Route
 
 type ValuesRoute
     = NewValueRoute
-    | ValueRoute String
+    | ValueRoute String Values.Item.Routes.Route
     | ValuesIndexRoute
 
 
@@ -68,7 +68,6 @@ conceptsRouteParser =
     oneOf
         [ map ConceptsIndexRoute top
         , map NewConceptRoute (s "new")
-        , map ConceptRoute idParser
         ]
 
 
@@ -83,8 +82,7 @@ localizedRouteParser =
         [ map SearchRoute top
         , map AboutRoute (s "about")
         , map CardsRoute (s "cards" </> cardsRouteParser)
-
-        -- , map ConceptsRoute (s "concepts" </> conceptsRouteParser)
+        , map ConceptsRoute (s "concepts" </> conceptsRouteParser)
         , map UserProfileRoute (s "profile")
         , map (AuthenticatorRoute Authenticator.Routes.ResetPasswordRoute) (s "reset_password")
         , map (AuthenticatorRoute Authenticator.Routes.SignInRoute) (s "sign_in")
@@ -120,10 +118,20 @@ routeParser =
         )
 
 
+valueRouteParser : Parser (Values.Item.Routes.Route -> a) a
+valueRouteParser =
+    oneOf
+        [ map Values.Item.Routes.IndexRoute top
+        , map Values.Item.Routes.ArgumentsRoute (s "arguments")
+
+        -- , map Values.Item.Routes.SameKeyPropertiesRoute (s "properties" </> idParser)
+        ]
+
+
 valuesRouteParser : Parser (ValuesRoute -> a) a
 valuesRouteParser =
     oneOf
         [ map ValuesIndexRoute top
         , map NewValueRoute (s "new")
-        , map ValueRoute idParser
+        , map ValueRoute (idParser </> valueRouteParser)
         ]

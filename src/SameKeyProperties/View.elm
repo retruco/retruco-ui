@@ -52,7 +52,7 @@ view model =
                                                                 , ( "btn", True )
                                                                 , ( "btn-secondary", True )
                                                                 ]
-                                                            , onClick (ForSelf (VotePropertyUp property.id))
+                                                            , onClick (ForSelf (VoteRatingUp property.id))
                                                             , type_ "button"
                                                             ]
                                                             [ span
@@ -78,7 +78,7 @@ view model =
                                                                 , ( "btn", True )
                                                                 , ( "btn-secondary", True )
                                                                 ]
-                                                            , onClick (ForSelf (VotePropertyDown property.id))
+                                                            , onClick (ForSelf (VoteRatingDown property.id))
                                                             , type_ "button"
                                                             ]
                                                             [ span

@@ -8,11 +8,11 @@ import Json.Decode
 
 type alias Argument =
     { keyId : String
-    , rating : Int
     , ratingCount : Int
     , ratingSum : Int
     , valueId : String
     }
+
 
 
 -- type alias Abuse =
@@ -57,7 +57,6 @@ type alias Card =
     , deleted : Bool
     , id : String
     , properties : Dict String String
-    , rating : Int
     , ratingCount : Int
     , ratingSum : Int
     , references : Dict String (List String)
@@ -217,16 +216,14 @@ type alias PopularTagsData =
 
 type alias Property =
     { arguments : List Argument
-    , ballotId :
-        String
-        -- TODO Use Maybe
+    , -- TODO Use Maybe
+      ballotId : String
     , createdAt : String
     , deleted : Bool
     , id : String
     , keyId : String
     , objectId : String
     , properties : Dict String String
-    , rating : Int
     , ratingCount : Int
     , ratingSum : Int
     , references : Dict String (List String)
@@ -305,8 +302,14 @@ type alias SearchCriteria =
 
 
 type alias TypedValue =
-    { createdAt : String
+    { arguments : List Argument
+    , -- TODO Use Maybe
+      ballotId : String
+
+    -- , createdAt : String -- Removed because a JSON decoder can decode only 8 fields at max.
     , id : String
+    , ratingCount : Int
+    , ratingSum : Int
     , schemaId : String
     , type_ : String
     , value : ValueType
@@ -533,6 +536,7 @@ initDataIds =
     , users = Dict.empty
     , values = Dict.empty
     }
+
 
 
 -- initEventForm : EventForm
