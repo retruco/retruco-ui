@@ -30,7 +30,9 @@ type TranslationId
     | AddNewItemBox
     | AddPropertyKey
     | Arguments
+    | ArgumentsAbout
     | ArgumentsRetrievalFailed
+    | ArgumentType
     | AuthenticationFailed
     | AuthenticationRequired
     | AuthenticationRequiredExplanation
@@ -118,6 +120,7 @@ type TranslationId
     | License
     | LoadingMenu
     | LocalizedString
+    | MissingArguments
     | MissingDescription
     | MissingValue
     | NetworkError
@@ -206,6 +209,7 @@ type TranslationId
     | ValueRetrievalFailed
     | Values
     | ValuesDescription
+    | ValueType
     | VoteBestContributions
     | Website
 
@@ -375,10 +379,24 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        ArgumentsAbout ->
+            { emptyTranslationSet
+                | english = s "Arguments about"
+                , french = s "Arguments sur"
+                , spanish = todo
+            }
+
         ArgumentsRetrievalFailed ->
             { emptyTranslationSet
                 | english = s "Retrieval of arguments failed"
                 , french = s "Échec de la récupération des arguments"
+                , spanish = todo
+            }
+
+        ArgumentType ->
+            { emptyTranslationSet
+                | english = s "Argument Type"
+                , french = s "Type d'argument"
                 , spanish = todo
             }
 
@@ -1011,6 +1029,13 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        MissingArguments ->
+            { emptyTranslationSet
+                | english = s "No arguments. Let's be the first to express your opinion!"
+                , french = s "Aucun argument. Soyez le premier à donner votre avis !"
+                , spanish = todo
+            }
+
         MissingDescription ->
             { emptyTranslationSet
                 | english = s "Missing description"
@@ -1624,6 +1649,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "List of values"
                 , french = s "Liste de valeurs"
+                , spanish = todo
+            }
+
+        ValueType ->
+            { emptyTranslationSet
+                | english = s "Value Type"
+                , french = s "Type de valeur"
                 , spanish = todo
             }
 

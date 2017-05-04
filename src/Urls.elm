@@ -1,12 +1,14 @@
 module Urls exposing (..)
 
 import Configuration
+import Dict exposing (Dict)
 import Erl
 import Http
 import I18n
 import List.Extra
 import Navigation
 import Regex
+import Types exposing (DataProxy)
 
 
 appLogoFullUrl : String
@@ -62,6 +64,22 @@ fullUrl url =
 languagePath : I18n.Language -> String -> String
 languagePath language path =
     "/" ++ (I18n.iso639_1FromLanguage language) ++ path
+
+
+objectIdPath : String -> DataProxy a -> String
+objectIdPath id data =
+    case Dict.get id data.cards of
+        Just _ ->
+            "/cards/" ++ id
+
+        Nothing ->
+            case Dict.get id data.values of
+                Just _ ->
+                    "/values/" ++ id
+
+                Nothing ->
+                    -- This path doesn't exist, but function needs to return a path.
+                    "/objects/" ++ id
 
 
 paramsToQuery : List ( String, Maybe String ) -> String
@@ -147,6 +165,21 @@ replaceLanguageInLocation language location =
             { url | path = path }
     in
         Erl.toString newUrl
+
+
+
+-- statementIdPath : String -> DataProxy a -> String
+-- statementIdPath id data =
+--     case Dict.get id data.cards of
+--         Just _ ->
+--             "/cards/" ++ id
+--         Nothing ->
+--             case Dict.get id data.values of
+--                 Just _ ->
+--                     "/concepts/" ++ id
+--                 Nothing ->
+--                     -- This path doesn't exist, but function needs to return a path.
+--                     "/statements/" ++ id
 
 
 urlToId : String -> Maybe String

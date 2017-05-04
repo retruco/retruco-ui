@@ -83,7 +83,7 @@ viewFormControls model =
             div [ class ("form-group" ++ errorClass) ]
                 ([ label
                     [ class "control-label", for controlId ]
-                    [ text <| I18n.translate language I18n.Type ]
+                    [ text <| I18n.translate language I18n.ArgumentType ]
                  , select
                     ([ class "form-control"
                      , id controlId

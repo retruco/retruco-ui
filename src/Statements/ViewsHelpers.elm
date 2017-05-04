@@ -6,6 +6,7 @@ import Html.Attributes.Aria exposing (..)
 import Html.Helpers exposing (aForPath)
 import I18n
 import Types exposing (Argument, DataProxy)
+import Urls
 import Values.ViewsHelpers
 
 
@@ -37,11 +38,10 @@ viewArgumentsBlock language navigate data objectsUrlName objectId arguments =
                         False
                         argument.valueId
                     ]
-                , -- TODO
-                  aForPath
+                , aForPath
                     navigate
                     language
-                    ("/" ++ "TODO-type" ++ "/" ++ "TODO-id" ++ "/arguments")
+                    ((Urls.objectIdPath argument.valueId data) ++ "/arguments")
                     [ class "btn btn-secondary" ]
                     [ text (I18n.translate language (I18n.Debate)) ]
                 ]
