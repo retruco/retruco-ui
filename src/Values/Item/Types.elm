@@ -9,6 +9,7 @@ import Types exposing (..)
 
 type ExternalMsg
     = Navigate String
+    | RequireSignIn InternalMsg
 
 
 type InternalMsg
@@ -41,6 +42,7 @@ type Msg
 type alias MsgTranslation parentMsg =
     { onInternalMsg : InternalMsg -> parentMsg
     , onNavigate : String -> parentMsg
+    , onRequireSignIn : InternalMsg -> parentMsg
     }
 
 
@@ -53,14 +55,18 @@ translateArgumentsMsg =
     Arguments.Index.Types.translateMsg
         { onInternalMsg = ForSelf << ArgumentsMsg
         , onNavigate = ForParent << Navigate
+        , onRequireSignIn = ForParent << RequireSignIn << ArgumentsMsg
         }
 
 
 translateMsg : MsgTranslation parentMsg -> MsgTranslator parentMsg
-translateMsg { onInternalMsg, onNavigate } msg =
+translateMsg { onInternalMsg, onNavigate, onRequireSignIn } msg =
     case msg of
         ForParent (Navigate path) ->
             onNavigate path
+
+        ForParent (RequireSignIn completionMsg) ->
+            onRequireSignIn completionMsg
 
         ForSelf internalMsg ->
             onInternalMsg internalMsg

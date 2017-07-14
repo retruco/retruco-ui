@@ -1,6 +1,7 @@
-module Concepts.Index.View exposing (..)
+module Assertions.Item.View exposing (..)
 
-import Concepts.Index.Types exposing (..)
+import Arguments.New.View
+import Assertions.Item.Types exposing (..)
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -9,8 +10,16 @@ import Html.Events exposing (..)
 import Html.Helpers exposing (aForPath)
 import Http.Error
 import I18n
-import Values.ViewsHelpers exposing (viewValueTypeLine)
+import Urls
+import Values.ViewsHelpers exposing (viewValueIdLine)
 import Views
+
+
+keyIdLabelCouples : List ( String, I18n.TranslationId )
+keyIdLabelCouples =
+    [ ( "pros", I18n.DebateArgumentFor )
+    , ( "cons", I18n.DebateArgumentAgainst )
+    ]
 
 
 view : Model -> Html Msg
@@ -22,68 +31,80 @@ view model =
         language =
             model.language
     in
-        div []
-            [ nav
-                [ class "navbar navbar-light navbar-toggleable bg-faded" ]
-                [ div [ class "navbar-collapse" ]
-                    [ Html.form [ class "form-inline mr-auto", onSubmit (ForSelf Submit) ]
-                        [ Views.viewInlineSearchSort
-                            -- language
-                            model.searchSort
-                            (Dict.get "searchSort" model.errors)
-                            (ForSelf << SearchSortChanged)
-                        , Views.viewInlineSearchTerm
-                            language
-                            model.searchTerm
-                            (Dict.get "searchTerm" model.errors)
-                            (ForSelf << SearchTermChanged)
-                        , button [ class "btn btn-primary", type_ "button" ]
-                            [ span [ class "fa fa-search" ] []
-                            , text " "
-                            , text <| I18n.translate language I18n.Search
-                            ]
-                        ]
-                    , text " "
-                    , ul [ class "navbar-nav" ]
-                        [ li [ class "nav-item" ]
+        case model.propertyIds of
+            Just propertyIds ->
+                div []
+                    [ h1 [ class "d-flex" ]
+                        [ span [ class "mr-3" ] [ text <| I18n.translate language I18n.ArgumentsAbout ]
+                        , em []
                             [ aForPath
                                 (ForParent << Navigate)
                                 language
-                                "/concepts/new"
-                                [ class "btn btn-secondary", role "button" ]
-                                [ text <| I18n.translate language I18n.NewConcept ]
+                                (Urls.statementIdPath model.id data)
+                                []
+                                [ viewValueIdLine
+                                    language
+                                    Nothing
+                                    data
+                                    False
+                                    model.id
+                                ]
                             ]
                         ]
-                    ]
-                ]
-            , case model.ids of
-                Just ids ->
-                    div []
-                        [ ul [ class "list-group" ]
+                    , if List.isEmpty propertyIds then
+                        p [] [ text <| I18n.translate language I18n.MissingArguments ]
+                      else
+                        ul [ class "list-group" ]
                             (List.filterMap
-                                (\valueId ->
-                                    case Dict.get valueId data.values of
-                                        Just typedValue ->
+                                (\propertyId ->
+                                    case Dict.get propertyId data.properties of
+                                        Just property ->
                                             let
                                                 ballot =
-                                                    Dict.get typedValue.ballotId data.ballots
+                                                    Dict.get property.ballotId data.ballots
 
                                                 ballotRating =
                                                     Maybe.map .rating ballot
+
+                                                keyLabel =
+                                                    Dict.get property.keyId (Dict.fromList keyIdLabelCouples)
+                                                        |> Maybe.map (I18n.translate language)
+                                                        |> Maybe.withDefault property.keyId
                                             in
                                                 Just <|
                                                     li [ class "flex-nowrap justify-content-between list-group-item" ]
-                                                        [ viewValueTypeLine
-                                                            language
-                                                            (Just (ForParent << Navigate))
-                                                            data
-                                                            False
-                                                            typedValue.value
+                                                        [ div [ class "align-items-baseline d-flex flex-nowrap" ]
+                                                            [ span
+                                                                [ ariaHidden True
+                                                                , classList
+                                                                    [ ( "fa", True )
+                                                                    , ( if property.keyId == "cons" then
+                                                                            "fa-minus"
+                                                                        else if property.keyId == "pros" then
+                                                                            "fa-plus"
+                                                                        else
+                                                                            "fa-info"
+                                                                      , True
+                                                                      )
+                                                                    , ( "mr-2", True )
+                                                                    ]
+                                                                ]
+                                                                []
+                                                            , div []
+                                                                [ h4 [] [ text keyLabel ]
+                                                                , viewValueIdLine
+                                                                    language
+                                                                    (Just (ForParent << Navigate))
+                                                                    data
+                                                                    False
+                                                                    property.valueId
+                                                                ]
+                                                            ]
                                                         , div []
                                                             [ aForPath
                                                                 (ForParent << Navigate)
                                                                 language
-                                                                ("/values/" ++ typedValue.id ++ "/arguments")
+                                                                ("/values/" ++ property.valueId ++ "/arguments")
                                                                 [ class "btn btn-secondary" ]
                                                                 [ text (I18n.translate language (I18n.Debate)) ]
                                                             , div
@@ -98,7 +119,7 @@ view model =
                                                                         , ( "btn", True )
                                                                         , ( "btn-secondary", True )
                                                                         ]
-                                                                    , onClick (ForSelf (VoteRatingUp typedValue.id))
+                                                                    , onClick (ForSelf (VoteRatingUp property.id))
                                                                     , type_ "button"
                                                                     ]
                                                                     [ span
@@ -120,9 +141,9 @@ view model =
                                                                     , type_ "button"
                                                                     ]
                                                                     [ text
-                                                                        ((toString typedValue.ratingSum)
+                                                                        ((toString property.ratingSum)
                                                                             ++ " / "
-                                                                            ++ (toString typedValue.ratingCount)
+                                                                            ++ (toString property.ratingCount)
                                                                         )
                                                                     ]
                                                                 , button
@@ -132,7 +153,7 @@ view model =
                                                                         , ( "btn", True )
                                                                         , ( "btn-secondary", True )
                                                                         ]
-                                                                    , onClick (ForSelf (VoteRatingDown typedValue.id))
+                                                                    , onClick (ForSelf (VoteRatingDown property.id))
                                                                     , type_ "button"
                                                                     ]
                                                                     [ span
@@ -155,26 +176,28 @@ view model =
                                         Nothing ->
                                             Nothing
                                 )
-                                ids
+                                propertyIds
                             )
-                        ]
+                    , hr [] []
+                    , Arguments.New.View.view model.newArgumentModel
+                        |> Html.map translateNewArgumentMsg
+                    ]
 
-                Nothing ->
-                    case model.httpError of
-                        Just httpError ->
-                            div
-                                [ class "alert alert-danger"
-                                , role "alert"
+            Nothing ->
+                case model.httpError of
+                    Just httpError ->
+                        div
+                            [ class "alert alert-danger"
+                            , role "alert"
+                            ]
+                            [ strong []
+                                [ text <|
+                                    I18n.translate language I18n.ArgumentsRetrievalFailed
+                                        ++ I18n.translate language I18n.Colon
                                 ]
-                                [ strong []
-                                    [ text <|
-                                        I18n.translate language I18n.ConceptsRetrievalFailed
-                                            ++ I18n.translate language I18n.Colon
-                                    ]
-                                , text <| Http.Error.toString language httpError
-                                ]
+                            , text <| Http.Error.toString language httpError
+                            ]
 
-                        Nothing ->
-                            div [ class "text-center" ]
-                                [ Views.viewLoading language ]
-            ]
+                    Nothing ->
+                        div [ class "text-center" ]
+                            [ Views.viewLoading language ]

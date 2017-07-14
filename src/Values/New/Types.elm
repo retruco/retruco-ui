@@ -11,7 +11,8 @@ import Types exposing (..)
 
 
 type ExternalMsg
-    = ValueUpserted DataId
+    = RequireSignIn InternalMsg
+    | ValueUpserted DataId
 
 
 type alias FormErrors =
@@ -54,6 +55,7 @@ type Msg
 
 type alias MsgTranslation parentMsg =
     { onInternalMsg : InternalMsg -> parentMsg
+    , onRequireSignIn : InternalMsg -> parentMsg
     , onValueUpserted : DataId -> parentMsg
     }
 
@@ -70,10 +72,13 @@ translateCardsAutocompleteMsg =
 
 
 translateMsg : MsgTranslation parentMsg -> MsgTranslator parentMsg
-translateMsg { onInternalMsg, onValueUpserted } msg =
+translateMsg { onInternalMsg, onRequireSignIn, onValueUpserted } msg =
     case msg of
         ForParent (ValueUpserted data) ->
             onValueUpserted data
+
+        ForParent (RequireSignIn completionMsg) ->
+            onRequireSignIn completionMsg
 
         ForSelf internalMsg ->
             onInternalMsg internalMsg

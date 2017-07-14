@@ -1,7 +1,7 @@
-module Concepts.Index.Types exposing (..)
+module Assertions.Item.Types exposing (..)
 
+import Arguments.New.Types
 import Authenticator.Types exposing (Authentication)
-import Dict exposing (Dict)
 import Http
 import I18n
 import Types exposing (..)
@@ -9,19 +9,15 @@ import Types exposing (..)
 
 type ExternalMsg
     = Navigate String
-
-
-type alias FormErrors =
-    Dict String String
+    | RequireSignIn InternalMsg
 
 
 type InternalMsg
-    = RatingPosted (Result Http.Error DataIdBody)
+    = NewArgumentMsg Arguments.New.Types.InternalMsg
+    | RatingPosted (Result Http.Error DataIdBody)
     | Retrieve
     | Retrieved (Result Http.Error DataIdsBody)
-    | SearchSortChanged String
-    | SearchTermChanged String
-    | Submit
+    | Upserted Types.DataId
     | VoteRatingDown String
     | VoteRatingUp String
 
@@ -29,13 +25,11 @@ type InternalMsg
 type alias Model =
     { authentication : Maybe Authentication
     , data : DataProxy {}
-    , errors : FormErrors
     , httpError : Maybe Http.Error
-    , ids : Maybe (List String)
+    , id : String
     , language : I18n.Language
-    , searchCriteria : SearchCriteria
-    , searchSort : String
-    , searchTerm : String
+    , newArgumentModel : Arguments.New.Types.Model
+    , propertyIds : Maybe (List String)
     }
 
 
@@ -47,6 +41,7 @@ type Msg
 type alias MsgTranslation parentMsg =
     { onInternalMsg : InternalMsg -> parentMsg
     , onNavigate : String -> parentMsg
+    , onRequireSignIn : InternalMsg -> parentMsg
     }
 
 
@@ -54,17 +49,23 @@ type alias MsgTranslator parentMsg =
     Msg -> parentMsg
 
 
-type alias SearchCriteria =
-    { sort : String
-    , term : Maybe String
-    }
-
-
 translateMsg : MsgTranslation parentMsg -> MsgTranslator parentMsg
-translateMsg { onInternalMsg, onNavigate } msg =
+translateMsg { onInternalMsg, onNavigate, onRequireSignIn } msg =
     case msg of
         ForParent (Navigate path) ->
             onNavigate path
 
+        ForParent (RequireSignIn completionMsg) ->
+            onRequireSignIn completionMsg
+
         ForSelf internalMsg ->
             onInternalMsg internalMsg
+
+
+translateNewArgumentMsg : Arguments.New.Types.MsgTranslator Msg
+translateNewArgumentMsg =
+    Arguments.New.Types.translateMsg
+        { onInternalMsg = ForSelf << NewArgumentMsg
+        , onPropertyUpserted = ForSelf << Upserted
+        , onRequireSignIn = ForParent << RequireSignIn << NewArgumentMsg
+        }

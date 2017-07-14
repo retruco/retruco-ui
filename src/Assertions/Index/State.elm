@@ -1,7 +1,7 @@
-module Concepts.Index.State exposing (..)
+module Assertions.Index.State exposing (..)
 
+import Assertions.Index.Types exposing (..)
 import Authenticator.Types exposing (Authentication)
-import Concepts.Index.Types exposing (..)
 import Dict exposing (Dict)
 import Http
 import I18n
@@ -178,20 +178,20 @@ urlUpdate location model =
 --     , data = initData
 --     , httpError = Nothing
 --     , language = language
---     , newConceptModel = Concepts.New.State.init authentication language objectId []
+--     , newAssertionModel = Assertions.New.State.init authentication language objectId []
 --     , objectId = objectId
 --     , propertyIds = Nothing
 --     }
 -- update : InternalMsg -> Model -> ( Model, Cmd Msg )
 -- update msg model =
 --     case msg of
---         NewConceptMsg childMsg ->
+--         NewAssertionMsg childMsg ->
 --             let
---                 ( updatedNewConceptModel, childCmd ) =
---                     Concepts.New.State.update childMsg model.newConceptModel
+--                 ( updatedNewAssertionModel, childCmd ) =
+--                     Assertions.New.State.update childMsg model.newAssertionModel
 --             in
---                 ( { model | newConceptModel = updatedNewConceptModel }
---                 , Cmd.map translateNewConceptMsg childCmd
+--                 ( { model | newAssertionModel = updatedNewAssertionModel }
+--                 , Cmd.map translateNewAssertionMsg childCmd
 --                 )
 --         RatingPosted (Err httpError) ->
 --             ( { model | httpError = Just httpError }, Cmd.none )

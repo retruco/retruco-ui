@@ -1,6 +1,6 @@
-module Concepts.New.State exposing (..)
+module Assertions.New.State exposing (..)
 
-import Concepts.New.Types exposing (..)
+import Assertions.New.Types exposing (..)
 import Authenticator.Types exposing (Authentication)
 import Dict exposing (Dict)
 import Http
@@ -86,7 +86,7 @@ update msg model =
                                 { mergedData | id = ballot.statementId }
                         in
                             ( { mergedModel | data = data }
-                            , Task.perform (\_ -> ForParent <| ConceptUpserted data) (Task.succeed ())
+                            , Task.perform (\_ -> ForParent <| AssertionUpserted data) (Task.succeed ())
                             )
 
                     Nothing ->
@@ -110,8 +110,8 @@ urlUpdate location model =
     in
         ( model
         , Ports.setDocumentMetadata
-            { description = I18n.translate language I18n.NewConceptDescription
+            { description = I18n.translate language I18n.NewAssertionDescription
             , imageUrl = Urls.appLogoFullUrl
-            , title = I18n.translate language I18n.NewConcept
+            , title = I18n.translate language I18n.NewAssertion
             }
         )

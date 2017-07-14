@@ -1,10 +1,11 @@
 module Root.View exposing (..)
 
+import Assertions.Index.View
+import Assertions.Item.View
+import Assertions.New.View
 import Authenticator.View
 import Cards.Index.View
 import Cards.Item.View
-import Concepts.Index.View
-import Concepts.New.View
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Helpers exposing (aForPath)
@@ -119,9 +120,9 @@ view model =
                                 , li [ class "nav-item" ]
                                     [ aForPath Navigate
                                         language
-                                        "/concepts"
+                                        "/assertions"
                                         [ class "nav-link" ]
-                                        [ text <| I18n.translate language I18n.Concepts ]
+                                        [ text <| I18n.translate language I18n.Assertions ]
                                     ]
                                 , li [ class "nav-item" ]
                                     [ aForPath Navigate
@@ -157,6 +158,35 @@ view model =
                                 , text "About Retruco"
                                 ]
 
+                        AssertionsRoute childRoute ->
+                            case childRoute of
+                                AssertionRoute _ _ ->
+                                    case model.assertionModel of
+                                        Just assertionModel ->
+                                            Assertions.Item.View.view assertionModel
+                                                |> Html.map translateAssertionMsg
+
+                                        Nothing ->
+                                            text "This should not occur: assertionModel == Nothing!"
+
+                                AssertionsIndexRoute ->
+                                    case model.assertionsModel of
+                                        Just assertionsModel ->
+                                            Assertions.Index.View.view assertionsModel
+                                                |> Html.map translateAssertionsMsg
+
+                                        Nothing ->
+                                            text "This should not occur: assertionsModel == Nothing!"
+
+                                NewAssertionRoute ->
+                                    case model.newAssertionModel of
+                                        Just newAssertionModel ->
+                                            Assertions.New.View.view newAssertionModel
+                                                |> Html.map translateNewAssertionMsg
+
+                                        Nothing ->
+                                            text "This should not occur: newAssertionModel == Nothing!"
+
                         AuthenticatorRoute childRoute ->
                             Authenticator.View.view childRoute model.authenticatorModel
                                 |> Html.map translateAuthenticatorMsg
@@ -180,26 +210,6 @@ view model =
 
                                         Nothing ->
                                             text "This should not occur: cardsModel == Nothing!"
-
-                        ConceptsRoute childRoute ->
-                            case childRoute of
-                                NewConceptRoute ->
-                                    case model.newConceptModel of
-                                        Just newConceptModel ->
-                                            Concepts.New.View.view newConceptModel
-                                                |> Html.map translateNewConceptMsg
-
-                                        Nothing ->
-                                            text "This should not occur: newConceptModel == Nothing!"
-
-                                ConceptsIndexRoute ->
-                                    case model.conceptsModel of
-                                        Just conceptsModel ->
-                                            Concepts.Index.View.view conceptsModel
-                                                |> Html.map translateConceptsMsg
-
-                                        Nothing ->
-                                            text "This should not occur: conceptsModel == Nothing!"
 
                         -- NewCardRoute ->
                         --     NewCards.Item.View.view model.newCardModel

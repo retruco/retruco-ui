@@ -1,6 +1,6 @@
-module Concepts.New.View exposing (..)
+module Assertions.New.View exposing (..)
 
-import Concepts.New.Types exposing (..)
+import Assertions.New.Types exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
@@ -20,7 +20,7 @@ keyIdLabelCouples =
 view : Model -> Html Msg
 view model =
     section []
-        [ h1 [] [ text <| I18n.translate model.language I18n.NewConcept ]
+        [ h1 [] [ text <| I18n.translate model.language I18n.NewAssertion ]
         , viewForm I18n.Create model
         ]
 

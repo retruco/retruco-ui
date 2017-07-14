@@ -1,4 +1,4 @@
-module Concepts.New.Types exposing (..)
+module Assertions.New.Types exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import Dict exposing (Dict)
@@ -9,7 +9,8 @@ import Values.New.Types
 
 
 type ExternalMsg
-    = ConceptUpserted DataId
+    = AssertionUpserted DataId
+    | RequireSignIn InternalMsg
 
 
 type alias FormErrors =
@@ -39,8 +40,9 @@ type Msg
 
 
 type alias MsgTranslation parentMsg =
-    { onConceptUpserted : DataId -> parentMsg
+    { onAssertionUpserted : DataId -> parentMsg
     , onInternalMsg : InternalMsg -> parentMsg
+    , onRequireSignIn : InternalMsg -> parentMsg
     }
 
 
@@ -49,10 +51,13 @@ type alias MsgTranslator parentMsg =
 
 
 translateMsg : MsgTranslation parentMsg -> MsgTranslator parentMsg
-translateMsg { onConceptUpserted, onInternalMsg } msg =
+translateMsg { onAssertionUpserted, onInternalMsg, onRequireSignIn } msg =
     case msg of
-        ForParent (ConceptUpserted data) ->
-            onConceptUpserted data
+        ForParent (AssertionUpserted data) ->
+            onAssertionUpserted data
+
+        ForParent (RequireSignIn completionMsg) ->
+            onRequireSignIn completionMsg
 
         ForSelf internalMsg ->
             onInternalMsg internalMsg
@@ -62,5 +67,6 @@ translateNewValueMsg : Values.New.Types.MsgTranslator Msg
 translateNewValueMsg =
     Values.New.Types.translateMsg
         { onInternalMsg = ForSelf << NewValueMsg
+        , onRequireSignIn = ForParent << RequireSignIn << NewValueMsg
         , onValueUpserted = ForSelf << Upserted
         }

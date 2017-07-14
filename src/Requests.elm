@@ -452,7 +452,7 @@ postUploadImage authentication contents =
         }
 
 
-postValue : Maybe Authentication -> Field -> Http.Request DataIdBody
+postValue : Authentication -> Field -> Http.Request DataIdBody
 postValue authentication field =
     let
         ( schemaId, widgetId, encodedValue ) =
@@ -505,7 +505,7 @@ postValue authentication field =
     in
         Http.request
             { method = "POST"
-            , headers = authenticationHeaders authentication
+            , headers = authenticationHeaders (Just authentication)
             , url = apiUrl ++ "values"
             , body =
                 Encode.object

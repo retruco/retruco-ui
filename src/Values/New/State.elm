@@ -313,10 +313,17 @@ update msg model =
                 ( newModel
                 , case newModel.field of
                     Just field ->
-                        Requests.postValue
-                            model.authentication
-                            field
-                            |> Http.send (ForSelf << Upserted)
+                        case model.authentication of
+                            Just authentication ->
+                                Requests.postValue
+                                    authentication
+                                    field
+                                    |> Http.send (ForSelf << Upserted)
+
+                            Nothing ->
+                                Task.perform
+                                    (\_ -> ForParent <| RequireSignIn <| Submit)
+                                    (Task.succeed ())
 
                     Nothing ->
                         Cmd.none

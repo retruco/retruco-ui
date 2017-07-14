@@ -1,11 +1,12 @@
 module Root.State exposing (..)
 
+import Assertions.Index.State
+import Assertions.Item.State
+import Assertions.New.State
 import Authenticator.Routes exposing (..)
 import Authenticator.State
 import Cards.Index.State
 import Cards.Item.State
-import Concepts.Index.State
-import Concepts.New.State
 import Decoders
 import Dom.Scroll
 import Erl
@@ -43,16 +44,17 @@ init flags location =
         searchModel =
             Search.init
     in
-        { authentication = authentication
+        { assertionModel = Nothing
+        , assertionsModel = Nothing
+        , authentication = authentication
         , authenticatorCancelMsg = Nothing
         , authenticatorCompletionMsg = Nothing
         , authenticatorModel = Authenticator.State.init
         , cardModel = Nothing
         , cardsModel = Nothing
-        , conceptsModel = Nothing
         , location = location
         , navigatorLanguage = navigatorLanguage
-        , newConceptModel = Nothing
+        , newAssertionModel = Nothing
         , newValueModel = Nothing
         , page = "reference"
         , route = Routes.I18nRouteWithoutLanguage ""
@@ -91,15 +93,21 @@ subscriptions model =
     -- TODO Fix duplicate messages with port "fileContentRead", that was worked around by a "ImageSelectedStatus"
     -- constructor.
     List.filterMap identity
-        [ case model.cardModel of
+        [ case model.assertionModel of
+            Just assertionModel ->
+                Just <| Sub.map AssertionMsg (Assertions.Item.State.subscriptions assertionModel)
+
+            Nothing ->
+                Nothing
+        , case model.cardModel of
             Just cardModel ->
                 Just <| Sub.map CardMsg (Cards.Item.State.subscriptions cardModel)
 
             Nothing ->
                 Nothing
-        , case model.newConceptModel of
-            Just newConceptModel ->
-                Just <| Sub.map NewConceptMsg (Concepts.New.State.subscriptions newConceptModel)
+        , case model.newAssertionModel of
+            Just newAssertionModel ->
+                Just <| Sub.map NewAssertionMsg (Assertions.New.State.subscriptions newAssertionModel)
 
             Nothing ->
                 Nothing
@@ -129,8 +137,44 @@ update msg model =
 
                 _ ->
                     I18n.English
+
+        requireSignInOrUpdate : Msg -> ( Model, Cmd Msg )
+        requireSignInOrUpdate completionMsg =
+            if model.authentication == Nothing then
+                -- update (StartAuthenticator Nothing (Just completionMsg) SignInRoute) model
+                requireSignIn language model.location model
+            else
+                update completionMsg model
     in
         case msg of
+            AssertionMsg childMsg ->
+                case model.assertionModel of
+                    Just assertionModel ->
+                        let
+                            ( updatedAssertionModel, childCmd ) =
+                                Assertions.Item.State.update childMsg assertionModel
+                        in
+                            ( { model | assertionModel = Just updatedAssertionModel }
+                            , Cmd.map translateAssertionMsg childCmd
+                            )
+
+                    Nothing ->
+                        ( model, Cmd.none )
+
+            AssertionsMsg childMsg ->
+                case model.assertionsModel of
+                    Just assertionsModel ->
+                        let
+                            ( updatedAssertionsModel, childCmd ) =
+                                Assertions.Index.State.update childMsg assertionsModel
+                        in
+                            ( { model | assertionsModel = Just updatedAssertionsModel }
+                            , Cmd.map translateAssertionsMsg childCmd
+                            )
+
+                    Nothing ->
+                        ( model, Cmd.none )
+
             AuthenticatorMsg childMsg ->
                 let
                     ( authenticatorModel, childCmd ) =
@@ -231,20 +275,6 @@ update msg model =
                     , navigate model <| Urls.languagePath language path
                     )
 
-            ConceptsMsg childMsg ->
-                case model.conceptsModel of
-                    Just conceptsModel ->
-                        let
-                            ( updatedConceptsModel, childCmd ) =
-                                Concepts.Index.State.update childMsg conceptsModel
-                        in
-                            ( { model | conceptsModel = Just updatedConceptsModel }
-                            , Cmd.map translateConceptsMsg childCmd
-                            )
-
-                    Nothing ->
-                        ( model, Cmd.none )
-
             LocationChanged location ->
                 urlUpdate location model
 
@@ -261,15 +291,15 @@ update msg model =
             NavigateFromAuthenticator path ->
                 ( model, navigate model path )
 
-            NewConceptMsg childMsg ->
-                case model.newConceptModel of
-                    Just newConceptModel ->
+            NewAssertionMsg childMsg ->
+                case model.newAssertionModel of
+                    Just newAssertionModel ->
                         let
-                            ( updatedNewConceptModel, childCmd ) =
-                                Concepts.New.State.update childMsg newConceptModel
+                            ( updatedNewAssertionModel, childCmd ) =
+                                Assertions.New.State.update childMsg newAssertionModel
                         in
-                            ( { model | newConceptModel = Just updatedNewConceptModel }
-                            , Cmd.map translateNewConceptMsg childCmd
+                            ( { model | newAssertionModel = Just updatedNewAssertionModel }
+                            , Cmd.map translateNewAssertionMsg childCmd
                             )
 
                     Nothing ->
@@ -292,12 +322,20 @@ update msg model =
             NoOp ->
                 ( model, Cmd.none )
 
+            RequireSignInForAssertion assertionCompletionMsg ->
+                requireSignInOrUpdate <| AssertionMsg assertionCompletionMsg
+
             RequireSignInForCard cardCompletionMsg ->
-                if model.authentication == Nothing then
-                    -- update (StartAuthenticator Nothing (Just (CardMsg cardCompletionMsg)) SignInRoute) model
-                    requireSignIn language model.location model
-                else
-                    update (CardMsg cardCompletionMsg) model
+                requireSignInOrUpdate <| CardMsg cardCompletionMsg
+
+            RequireSignInForNewAssertion newAssertionCompletionMsg ->
+                requireSignInOrUpdate <| NewAssertionMsg newAssertionCompletionMsg
+
+            RequireSignInForNewValue newValueCompletionMsg ->
+                requireSignInOrUpdate <| NewValueMsg newValueCompletionMsg
+
+            RequireSignInForValue valueCompletionMsg ->
+                requireSignInOrUpdate <| ValueMsg valueCompletionMsg
 
             SearchMsg childMsg ->
                 -- let
@@ -359,10 +397,11 @@ urlUpdate location model =
 
         unroutedModel =
             { model
-                | cardModel = Nothing
+                | assertionModel = Nothing
+                , assertionsModel = Nothing
+                , cardModel = Nothing
                 , cardsModel = Nothing
-                , conceptsModel = Nothing
-                , newConceptModel = Nothing
+                , newAssertionModel = Nothing
                 , newValueModel = Nothing
                 , valueModel = Nothing
                 , valuesModel = Nothing
@@ -376,6 +415,58 @@ urlUpdate location model =
                             case localizedRoute of
                                 AboutRoute ->
                                     ( unroutedModel, Cmd.none )
+
+                                AssertionsRoute childRoute ->
+                                    case childRoute of
+                                        AssertionRoute assertionId assertionRoute ->
+                                            let
+                                                assertionModel =
+                                                    Assertions.Item.State.init model.authentication language assertionId
+
+                                                ( updatedAssertionModel, updatedAssertionCmd ) =
+                                                    Assertions.Item.State.urlUpdate
+                                                        location
+                                                        assertionRoute
+                                                        assertionModel
+                                            in
+                                                ( { unroutedModel | assertionModel = Just updatedAssertionModel }
+                                                , Cmd.map translateAssertionMsg updatedAssertionCmd
+                                                )
+
+                                        AssertionsIndexRoute ->
+                                            let
+                                                assertionsModel =
+                                                    Assertions.Index.State.init model.authentication language
+
+                                                ( updatedAssertionsModel, childCmd ) =
+                                                    Assertions.Index.State.urlUpdate location assertionsModel
+                                            in
+                                                ( { unroutedModel | assertionsModel = Just updatedAssertionsModel }
+                                                , Cmd.map translateAssertionsMsg childCmd
+                                                )
+
+                                        NewAssertionRoute ->
+                                            case model.authentication of
+                                                Just _ ->
+                                                    let
+                                                        newAssertionModel =
+                                                            Assertions.New.State.init model.authentication language []
+
+                                                        ( updatedNewAssertionModel, updatedNewAssertionCmd ) =
+                                                            Assertions.New.State.urlUpdate location newAssertionModel
+                                                    in
+                                                        ( { unroutedModel
+                                                            | newAssertionModel = Just updatedNewAssertionModel
+                                                            , signOutMsg =
+                                                                Just <|
+                                                                    NavigateFromAuthenticator <|
+                                                                        Urls.languagePath language "/assertions"
+                                                          }
+                                                        , Cmd.map translateNewAssertionMsg updatedNewAssertionCmd
+                                                        )
+
+                                                Nothing ->
+                                                    requireSignIn language location unroutedModel
 
                                 AuthenticatorRoute authenticatorRoute ->
                                     let
@@ -434,43 +525,6 @@ urlUpdate location model =
                                             in
                                                 ( { unroutedModel | cardsModel = Just updatedCardsModel }
                                                 , Cmd.map translateCardsMsg childCmd
-                                                )
-
-                                ConceptsRoute childRoute ->
-                                    case childRoute of
-                                        NewConceptRoute ->
-                                            case model.authentication of
-                                                Just _ ->
-                                                    let
-                                                        newConceptModel =
-                                                            Concepts.New.State.init model.authentication language []
-
-                                                        ( updatedNewConceptModel, updatedNewConceptCmd ) =
-                                                            Concepts.New.State.urlUpdate location newConceptModel
-                                                    in
-                                                        ( { unroutedModel
-                                                            | newConceptModel = Just updatedNewConceptModel
-                                                            , signOutMsg =
-                                                                Just <|
-                                                                    NavigateFromAuthenticator <|
-                                                                        Urls.languagePath language "/concepts"
-                                                          }
-                                                        , Cmd.map translateNewConceptMsg updatedNewConceptCmd
-                                                        )
-
-                                                Nothing ->
-                                                    requireSignIn language location unroutedModel
-
-                                        ConceptsIndexRoute ->
-                                            let
-                                                conceptsModel =
-                                                    Concepts.Index.State.init model.authentication language
-
-                                                ( updatedConceptsModel, childCmd ) =
-                                                    Concepts.Index.State.urlUpdate location conceptsModel
-                                            in
-                                                ( { unroutedModel | conceptsModel = Just updatedConceptsModel }
-                                                , Cmd.map translateConceptsMsg childCmd
                                                 )
 
                                 -- NewCardRoute ->

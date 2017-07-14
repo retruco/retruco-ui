@@ -58,6 +58,7 @@ translateArgumentsMsg =
     Arguments.Index.Types.translateMsg
         { onInternalMsg = ForSelf << ArgumentsMsg
         , onNavigate = ForParent << Navigate
+        , onRequireSignIn = ForParent << RequireSignIn << ArgumentsMsg
         }
 
 
@@ -88,4 +89,5 @@ translateSameKeyPropertiesMsg =
     SameKeyProperties.Types.translateMsg
         { onInternalMsg = ForSelf << SameKeyPropertiesMsg
         , onNavigate = ForParent << Navigate
+        , onRequireSignIn = ForParent << RequireSignIn << SameKeyPropertiesMsg
         }

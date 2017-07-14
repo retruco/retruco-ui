@@ -1,11 +1,18 @@
 module Routes exposing (..)
 
+import Assertions.Item.Routes
 import Authenticator.Routes
 import Cards.Item.Routes
 import I18n
 import Navigation
 import UrlParser exposing ((</>), map, oneOf, parsePath, Parser, remaining, s, string, top)
 import Values.Item.Routes
+
+
+type AssertionsRoute
+    = AssertionRoute String Assertions.Item.Routes.Route
+    | AssertionsIndexRoute
+    | NewAssertionRoute
 
 
 type CardsRoute
@@ -17,16 +24,11 @@ type CardsRoute
 -- | NewCardRoute
 
 
-type ConceptsRoute
-    = NewConceptRoute
-    | ConceptsIndexRoute
-
-
 type LocalizedRoute
     = AboutRoute
+    | AssertionsRoute AssertionsRoute
     | AuthenticatorRoute Authenticator.Routes.Route
     | CardsRoute CardsRoute
-    | ConceptsRoute ConceptsRoute
     | NotFoundRoute (List String)
     | SearchRoute
     | UserProfileRoute
@@ -42,6 +44,22 @@ type ValuesRoute
     = NewValueRoute
     | ValueRoute String Values.Item.Routes.Route
     | ValuesIndexRoute
+
+
+assertionRouteParser : Parser (Assertions.Item.Routes.Route -> a) a
+assertionRouteParser =
+    oneOf
+        [ map Assertions.Item.Routes.IndexRoute top
+        ]
+
+
+assertionsRouteParser : Parser (AssertionsRoute -> a) a
+assertionsRouteParser =
+    oneOf
+        [ map AssertionsIndexRoute top
+        , map NewAssertionRoute (s "new")
+        , map AssertionRoute (idParser </> assertionRouteParser)
+        ]
 
 
 cardRouteParser : Parser (Cards.Item.Routes.Route -> a) a
@@ -63,14 +81,6 @@ cardsRouteParser =
         ]
 
 
-conceptsRouteParser : Parser (ConceptsRoute -> a) a
-conceptsRouteParser =
-    oneOf
-        [ map ConceptsIndexRoute top
-        , map NewConceptRoute (s "new")
-        ]
-
-
 idParser : Parser (String -> a) a
 idParser =
     string
@@ -81,8 +91,8 @@ localizedRouteParser =
     oneOf
         [ map SearchRoute top
         , map AboutRoute (s "about")
+        , map AssertionsRoute (s "assertions" </> assertionsRouteParser)
         , map CardsRoute (s "cards" </> cardsRouteParser)
-        , map ConceptsRoute (s "concepts" </> conceptsRouteParser)
         , map UserProfileRoute (s "profile")
         , map (AuthenticatorRoute Authenticator.Routes.ResetPasswordRoute) (s "reset_password")
         , map (AuthenticatorRoute Authenticator.Routes.SignInRoute) (s "sign_in")

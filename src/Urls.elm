@@ -167,19 +167,20 @@ replaceLanguageInLocation language location =
         Erl.toString newUrl
 
 
+statementIdPath : String -> DataProxy a -> String
+statementIdPath id data =
+    case Dict.get id data.cards of
+        Just _ ->
+            "/cards/" ++ id
 
--- statementIdPath : String -> DataProxy a -> String
--- statementIdPath id data =
---     case Dict.get id data.cards of
---         Just _ ->
---             "/cards/" ++ id
---         Nothing ->
---             case Dict.get id data.values of
---                 Just _ ->
---                     "/concepts/" ++ id
---                 Nothing ->
---                     -- This path doesn't exist, but function needs to return a path.
---                     "/statements/" ++ id
+        Nothing ->
+            case Dict.get id data.values of
+                Just _ ->
+                    "/assertions/" ++ id
+
+                Nothing ->
+                    -- This path doesn't exist, but function needs to return a path.
+                    "/statements/" ++ id
 
 
 urlToId : String -> Maybe String

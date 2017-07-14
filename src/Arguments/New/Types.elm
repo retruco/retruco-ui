@@ -10,6 +10,7 @@ import Values.New.Types
 
 type ExternalMsg
     = PropertyUpserted DataId
+    | RequireSignIn InternalMsg
 
 
 type alias FormErrors =
@@ -45,6 +46,7 @@ type Msg
 type alias MsgTranslation parentMsg =
     { onInternalMsg : InternalMsg -> parentMsg
     , onPropertyUpserted : DataId -> parentMsg
+    , onRequireSignIn : InternalMsg -> parentMsg
     }
 
 
@@ -53,10 +55,13 @@ type alias MsgTranslator parentMsg =
 
 
 translateMsg : MsgTranslation parentMsg -> MsgTranslator parentMsg
-translateMsg { onInternalMsg, onPropertyUpserted } msg =
+translateMsg { onInternalMsg, onPropertyUpserted, onRequireSignIn } msg =
     case msg of
         ForParent (PropertyUpserted data) ->
             onPropertyUpserted data
+
+        ForParent (RequireSignIn completionMsg) ->
+            onRequireSignIn completionMsg
 
         ForSelf internalMsg ->
             onInternalMsg internalMsg
@@ -66,5 +71,6 @@ translateNewValueMsg : Values.New.Types.MsgTranslator Msg
 translateNewValueMsg =
     Values.New.Types.translateMsg
         { onInternalMsg = ForSelf << NewValueMsg
+        , onRequireSignIn = ForParent << RequireSignIn << NewValueMsg
         , onValueUpserted = ForSelf << ValueUpserted
         }

@@ -99,10 +99,10 @@ update msg model =
 
         CreateKey keyName ->
             case model.authentication of
-                Just _ ->
+                Just authentication ->
                     ( model
                     , Requests.postValue
-                        model.authentication
+                        authentication
                         (LocalizedInputTextField (I18n.iso639_1FromLanguage model.language) keyName)
                         |> Http.send (ForSelf << KeyUpserted)
                     )

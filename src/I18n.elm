@@ -33,6 +33,9 @@ type TranslationId
     | ArgumentsAbout
     | ArgumentsRetrievalFailed
     | ArgumentType
+    | Assertions
+    | AssertionsDescription
+    | AssertionsRetrievalFailed
     | AuthenticationFailed
     | AuthenticationRequired
     | AuthenticationRequiredExplanation
@@ -62,9 +65,6 @@ type TranslationId
     | ChangePasswordTitle
     | Close
     | Colon
-    | Concepts
-    | ConceptsDescription
-    | ConceptsRetrievalFailed
     | Copyright
     | CountVersionsAvailable Int
     | Create
@@ -128,9 +128,9 @@ type TranslationId
     | New
     | NewArgument
     | NewArgumentDescription
+    | NewAssertion
+    | NewAssertionDescription
     | NewCard
-    | NewConcept
-    | NewConceptDescription
     | NewValue
     | NewValueDescription
     | Number
@@ -400,6 +400,27 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        Assertions ->
+            { emptyTranslationSet
+                | english = s "Assertions"
+                , french = s "Assertions"
+                , spanish = todo
+            }
+
+        AssertionsDescription ->
+            { emptyTranslationSet
+                | english = s "List of assertions"
+                , french = s "Liste d'assertions"
+                , spanish = todo
+            }
+
+        AssertionsRetrievalFailed ->
+            { emptyTranslationSet
+                | english = s "Retrieval of assertions failed"
+                , french = s "Échec de la récupération des assertions"
+                , spanish = todo
+            }
+
         AuthenticationFailed ->
             { emptyTranslationSet
                 | english = s "Authentication failed"
@@ -593,27 +614,6 @@ getTranslationSet translationId =
                 | english = s ": "
                 , french = s " : "
                 , spanish = s ": "
-            }
-
-        Concepts ->
-            { emptyTranslationSet
-                | english = s "Concepts"
-                , french = s "Concepts"
-                , spanish = todo
-            }
-
-        ConceptsDescription ->
-            { emptyTranslationSet
-                | english = s "List of concepts"
-                , french = s "Liste de concepts"
-                , spanish = todo
-            }
-
-        ConceptsRetrievalFailed ->
-            { emptyTranslationSet
-                | english = s "Retrieval of concepts failed"
-                , french = s "Échec de la récupération des concepts"
-                , spanish = todo
             }
 
         Copyright ->
@@ -1085,24 +1085,24 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        NewAssertion ->
+            { emptyTranslationSet
+                | english = s "New Assertion"
+                , french = s "Nouvelle assertion"
+                , spanish = todo
+            }
+
+        NewAssertionDescription ->
+            { emptyTranslationSet
+                | english = s "Form to enter a new assertion"
+                , french = s "Formulaire de création d'une nouvelle assertion"
+                , spanish = todo
+            }
+
         NewCard ->
             { emptyTranslationSet
                 | english = s "New Card"
                 , french = s "Nouvelle fiche"
-                , spanish = todo
-            }
-
-        NewConcept ->
-            { emptyTranslationSet
-                | english = s "New Concept"
-                , french = s "Nouveau concept"
-                , spanish = todo
-            }
-
-        NewConceptDescription ->
-            { emptyTranslationSet
-                | english = s "Form to enter a new concept"
-                , french = s "Formulaire de création d'un nouveau concept"
                 , spanish = todo
             }
 
