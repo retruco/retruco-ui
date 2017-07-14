@@ -1,6 +1,7 @@
 {
   "name": "retruco-ui",
   "version": "0.0.1",
+  "description": "Bring out shared positions from argumented statements",
   "repository": {
     "type": "git",
     "url": "git+https://framagit.org/retruco/retruco-ui.git"
