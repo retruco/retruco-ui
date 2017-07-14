@@ -37,6 +37,14 @@ mergeModelData data model =
         }
 
 
+setContext : Maybe Authentication -> I18n.Language -> Model -> Model
+setContext authentication language model =
+    { model
+        | authentication = authentication
+        , language = language
+    }
+
+
 subscriptions : Model -> Sub InternalMsg
 subscriptions model =
     Sub.batch

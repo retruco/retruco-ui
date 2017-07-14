@@ -52,6 +52,7 @@ init flags location =
         , authenticatorModel = Authenticator.State.init
         , cardModel = Nothing
         , cardsModel = Nothing
+        , clearModelOnUrlUpdate = True
         , location = location
         , navigatorLanguage = navigatorLanguage
         , newAssertionModel = Nothing
@@ -190,6 +191,7 @@ update msg model =
                         ( { model
                             | authenticatorCancelMsg = Nothing
                             , authenticatorCompletionMsg = Nothing
+                            , clearModelOnUrlUpdate = False
                           }
                         , case model.authenticatorCancelMsg of
                             Just cancelMsg ->
@@ -204,6 +206,7 @@ update msg model =
                             | authentication = authentication
                             , authenticatorCancelMsg = Nothing
                             , authenticatorCompletionMsg = Nothing
+                            , clearModelOnUrlUpdate = False
                         }
                             ! [ Ports.storeAuthentication authentication
                               , case model.authenticatorCompletionMsg of
@@ -392,20 +395,29 @@ update msg model =
 urlUpdate : Navigation.Location -> Model -> ( Model, Cmd Msg )
 urlUpdate location model =
     let
+        clearSubModels =
+            model.clearModelOnUrlUpdate
+
+        cleanModel =
+            if clearSubModels then
+                { model
+                    | assertionModel = Nothing
+                    , assertionsModel = Nothing
+                    , cardModel = Nothing
+                    , cardsModel = Nothing
+                    , clearModelOnUrlUpdate = True
+                    , newAssertionModel = Nothing
+                    , newValueModel = Nothing
+                    , valueModel = Nothing
+                    , valuesModel = Nothing
+                }
+            else
+                { model
+                    | clearModelOnUrlUpdate = True
+                }
+
         searchQuery =
             Urls.querySearchTerm location
-
-        unroutedModel =
-            { model
-                | assertionModel = Nothing
-                , assertionsModel = Nothing
-                , cardModel = Nothing
-                , cardsModel = Nothing
-                , newAssertionModel = Nothing
-                , newValueModel = Nothing
-                , valueModel = Nothing
-                , valuesModel = Nothing
-            }
 
         ( newModel, cmd ) =
             case parseLocation location of
@@ -414,14 +426,25 @@ urlUpdate location model =
                         ( localizedModel, localizedCmd ) =
                             case localizedRoute of
                                 AboutRoute ->
-                                    ( unroutedModel, Cmd.none )
+                                    ( cleanModel, Cmd.none )
 
                                 AssertionsRoute childRoute ->
                                     case childRoute of
                                         AssertionRoute assertionId assertionRoute ->
                                             let
                                                 assertionModel =
-                                                    Assertions.Item.State.init model.authentication language assertionId
+                                                    case ( model.assertionModel, clearSubModels ) of
+                                                        ( Just assertionModel, False ) ->
+                                                            Assertions.Item.State.setContext
+                                                                model.authentication
+                                                                language
+                                                                assertionModel
+
+                                                        _ ->
+                                                            Assertions.Item.State.init
+                                                                model.authentication
+                                                                language
+                                                                assertionId
 
                                                 ( updatedAssertionModel, updatedAssertionCmd ) =
                                                     Assertions.Item.State.urlUpdate
@@ -429,7 +452,7 @@ urlUpdate location model =
                                                         assertionRoute
                                                         assertionModel
                                             in
-                                                ( { unroutedModel | assertionModel = Just updatedAssertionModel }
+                                                ( { cleanModel | assertionModel = Just updatedAssertionModel }
                                                 , Cmd.map translateAssertionMsg updatedAssertionCmd
                                                 )
 
@@ -441,7 +464,7 @@ urlUpdate location model =
                                                 ( updatedAssertionsModel, childCmd ) =
                                                     Assertions.Index.State.urlUpdate location assertionsModel
                                             in
-                                                ( { unroutedModel | assertionsModel = Just updatedAssertionsModel }
+                                                ( { cleanModel | assertionsModel = Just updatedAssertionsModel }
                                                 , Cmd.map translateAssertionsMsg childCmd
                                                 )
 
@@ -455,7 +478,7 @@ urlUpdate location model =
                                                         ( updatedNewAssertionModel, updatedNewAssertionCmd ) =
                                                             Assertions.New.State.urlUpdate location newAssertionModel
                                                     in
-                                                        ( { unroutedModel
+                                                        ( { cleanModel
                                                             | newAssertionModel = Just updatedNewAssertionModel
                                                             , signOutMsg =
                                                                 Just <|
@@ -466,7 +489,7 @@ urlUpdate location model =
                                                         )
 
                                                 Nothing ->
-                                                    requireSignIn language location unroutedModel
+                                                    requireSignIn language location cleanModel
 
                                 AuthenticatorRoute authenticatorRoute ->
                                     let
@@ -477,7 +500,9 @@ urlUpdate location model =
                                                 authenticatorRoute
                                                 model.authenticatorModel
                                     in
-                                        ( { unroutedModel
+                                        ( { -- Don't use cleanModel, because we want to go back to current sub-model
+                                            -- after authenticator process.
+                                            model
                                             | authenticatorModel = authenticatorModel
                                             , authenticatorCancelMsg =
                                                 if model.authenticatorCancelMsg == Nothing then
@@ -509,7 +534,7 @@ urlUpdate location model =
                                                         cardRoute
                                                         cardModel
                                             in
-                                                ( { unroutedModel | cardModel = Just updatedCardModel }
+                                                ( { cleanModel | cardModel = Just updatedCardModel }
                                                 , Cmd.map translateCardMsg updatedCardCmd
                                                 )
 
@@ -523,7 +548,7 @@ urlUpdate location model =
                                                         location
                                                         cardsModel
                                             in
-                                                ( { unroutedModel | cardsModel = Just updatedCardsModel }
+                                                ( { cleanModel | cardsModel = Just updatedCardsModel }
                                                 , Cmd.map translateCardsMsg childCmd
                                                 )
 
@@ -538,7 +563,7 @@ urlUpdate location model =
                                 --                         location
                                 --                         model.newCardModel
                                 --             in
-                                --                 ( { unroutedModel
+                                --                 ( { cleanModel
                                 --                     | newCardModel = newCardModel
                                 --                     , signOutMsg =
                                 --                         Just <|
@@ -548,9 +573,9 @@ urlUpdate location model =
                                 --                 , Cmd.map translateNewCardMsg childCmd
                                 --                 )
                                 --         Nothing ->
-                                --             requireSignIn language location unroutedModel
+                                --             requireSignIn language location cleanModel
                                 NotFoundRoute _ ->
-                                    ( unroutedModel
+                                    ( cleanModel
                                     , Ports.setDocumentMetadata
                                         { description = I18n.translate language I18n.PageNotFoundDescription
                                         , imageUrl = Urls.appLogoFullUrl
@@ -559,11 +584,11 @@ urlUpdate location model =
                                     )
 
                                 SearchRoute ->
-                                    -- ( unroutedModel, Cmd.map translateStatementsMsg (Statements.load) )
-                                    ( unroutedModel, Cmd.none )
+                                    -- ( cleanModel, Cmd.map translateStatementsMsg (Statements.load) )
+                                    ( cleanModel, Cmd.none )
 
                                 UserProfileRoute ->
-                                    ( unroutedModel, Cmd.none )
+                                    ( cleanModel, Cmd.none )
 
                                 ValuesRoute childRoute ->
                                     case childRoute of
@@ -577,7 +602,7 @@ urlUpdate location model =
                                                         ( updatedNewValueModel, updatedNewValueCmd ) =
                                                             Values.New.State.urlUpdate location newValueModel
                                                     in
-                                                        ( { unroutedModel
+                                                        ( { cleanModel
                                                             | newValueModel = Just updatedNewValueModel
                                                             , signOutMsg =
                                                                 Just <|
@@ -588,7 +613,7 @@ urlUpdate location model =
                                                         )
 
                                                 Nothing ->
-                                                    requireSignIn language location unroutedModel
+                                                    requireSignIn language location cleanModel
 
                                         ValueRoute valueId valueRoute ->
                                             let
@@ -598,7 +623,7 @@ urlUpdate location model =
                                                 ( updatedValueModel, updatedValueCmd ) =
                                                     Values.Item.State.urlUpdate location valueRoute valueModel
                                             in
-                                                ( { unroutedModel | valueModel = Just updatedValueModel }
+                                                ( { cleanModel | valueModel = Just updatedValueModel }
                                                 , Cmd.map translateValueMsg updatedValueCmd
                                                 )
 
@@ -610,7 +635,7 @@ urlUpdate location model =
                                                 ( updatedValuesModel, childCmd ) =
                                                     Values.Index.State.urlUpdate location valuesModel
                                             in
-                                                ( { unroutedModel | valuesModel = Just updatedValuesModel }
+                                                ( { cleanModel | valuesModel = Just updatedValuesModel }
                                                 , Cmd.map translateValuesMsg childCmd
                                                 )
                     in
@@ -626,7 +651,7 @@ urlUpdate location model =
                                 (path ++ (Urls.queryStringForParams [ "q", "tagIds" ] location))
                                 |> Navigation.modifyUrl
                     in
-                        ( { unroutedModel | route = route }, command )
+                        ( { cleanModel | route = route }, command )
 
                 Nothing ->
                     let
@@ -640,7 +665,7 @@ urlUpdate location model =
                         newUrl =
                             { url | path = (I18n.iso639_1FromLanguage language) :: url.path }
                     in
-                        ( unroutedModel, Navigation.modifyUrl (Erl.toString newUrl) )
+                        ( cleanModel, Navigation.modifyUrl (Erl.toString newUrl) )
     in
         { newModel | location = location }
             ! [ Task.attempt

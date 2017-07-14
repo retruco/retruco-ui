@@ -26,6 +26,7 @@ type alias Model =
     , authenticatorModel : Authenticator.Types.Model
     , cardModel : Maybe Cards.Item.Types.Model
     , cardsModel : Maybe Cards.Index.Types.Model
+    , clearModelOnUrlUpdate : Bool
     , location : Navigation.Location
     , navigatorLanguage : Maybe I18n.Language
     , newAssertionModel : Maybe Assertions.New.Types.Model
