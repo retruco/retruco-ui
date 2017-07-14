@@ -1,6 +1,10 @@
 {
   "name": "retruco-ui",
   "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "git+https://framagit.org/retruco/retruco-ui.git"
+  },
   "scripts": {
     "build": "webpack",
     "clean": "rimraf dist elm-stuff/build-artifacts",
