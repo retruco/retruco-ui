@@ -110,27 +110,28 @@ view model =
                                 --         [ class "nav-link" ]
                                 --         [ text <| I18n.translate language I18n.About ]
                                 --     ]
+                                -- [ li [ class "nav-item" ]
+                                --     [ aForPath Navigate
+                                --         language
+                                --         "/cards"
+                                --         [ class "nav-link" ]
+                                --         [ text <| I18n.translate language I18n.Cards ]
+                                --     ]
                                 [ li [ class "nav-item" ]
-                                    [ aForPath Navigate
-                                        language
-                                        "/cards"
-                                        [ class "nav-link" ]
-                                        [ text <| I18n.translate language I18n.Cards ]
-                                    ]
-                                , li [ class "nav-item" ]
                                     [ aForPath Navigate
                                         language
                                         "/assertions"
                                         [ class "nav-link" ]
                                         [ text <| I18n.translate language I18n.Assertions ]
                                     ]
-                                , li [ class "nav-item" ]
-                                    [ aForPath Navigate
-                                        language
-                                        "/values"
-                                        [ class "nav-link" ]
-                                        [ text <| I18n.translate language I18n.Values ]
-                                    ]
+
+                                -- , li [ class "nav-item" ]
+                                --     [ aForPath Navigate
+                                --         language
+                                --         "/values"
+                                --         [ class "nav-link" ]
+                                --         [ text <| I18n.translate language I18n.Values ]
+                                --     ]
                                 ]
                             , ul [ class "navbar-nav" ]
                                 [ profileNavItem
