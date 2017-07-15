@@ -13,11 +13,12 @@ type ExternalMsg
 
 
 type InternalMsg
-    = NewArgumentMsg Arguments.New.Types.InternalMsg
+    = DebatePropertiesRetrieved (Result Http.Error DataIdsBody)
+    | NewArgumentMsg Arguments.New.Types.InternalMsg
     | RatingPosted (Result Http.Error DataIdBody)
     | Retrieve
-    | Retrieved (Result Http.Error DataIdsBody)
     | Upserted Types.DataId
+    | ValueRetrieved (Result Http.Error DataIdBody)
     | VoteRatingDown String
     | VoteRatingUp String
 

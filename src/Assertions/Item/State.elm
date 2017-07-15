@@ -56,6 +56,32 @@ subscriptions model =
 update : InternalMsg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        DebatePropertiesRetrieved (Err httpError) ->
+            ( { model
+                | httpError = Just httpError
+              }
+            , Cmd.none
+            )
+
+        DebatePropertiesRetrieved (Ok { data }) ->
+            let
+                mergedModel =
+                    mergeModelData data model
+
+                language =
+                    model.language
+            in
+                ( { mergedModel
+                    | propertyIds = Just data.ids
+                  }
+                , -- TODO
+                  Ports.setDocumentMetadata
+                    { description = I18n.translate language I18n.ValuesDescription
+                    , imageUrl = Urls.appLogoFullUrl
+                    , title = I18n.translate language I18n.Values
+                    }
+                )
+
         NewArgumentMsg childMsg ->
             let
                 ( updatedNewArgumentModel, childCmd ) =
@@ -76,35 +102,9 @@ update msg model =
                 | httpError = Nothing
                 , propertyIds = Nothing
               }
-            , Requests.getDebateProperties model.authentication model.id
-                |> Http.send (ForSelf << Retrieved)
+            , Requests.getValue model.authentication model.id
+                |> Http.send (ForSelf << ValueRetrieved)
             )
-
-        Retrieved (Err httpError) ->
-            ( { model
-                | httpError = Just httpError
-              }
-            , Cmd.none
-            )
-
-        Retrieved (Ok { data }) ->
-            let
-                mergedModel =
-                    mergeModelData data model
-
-                language =
-                    model.language
-            in
-                ( { mergedModel
-                    | propertyIds = Just data.ids
-                  }
-                , -- TODO
-                  Ports.setDocumentMetadata
-                    { description = I18n.translate language I18n.CardsDescription
-                    , imageUrl = Urls.appLogoFullUrl
-                    , title = I18n.translate language I18n.Cards
-                    }
-                )
 
         Upserted data ->
             let
@@ -128,6 +128,19 @@ update msg model =
                   }
                 , Cmd.none
                 )
+
+        ValueRetrieved (Err httpError) ->
+            ( { model
+                | httpError = Just httpError
+              }
+            , Cmd.none
+            )
+
+        ValueRetrieved (Ok { data }) ->
+            ( mergeModelData data model
+            , Requests.getDebateProperties model.authentication model.id
+                |> Http.send (ForSelf << DebatePropertiesRetrieved)
+            )
 
         VoteRatingDown statementId ->
             ( model
