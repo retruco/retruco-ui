@@ -98,7 +98,14 @@ view model =
                                                                         , ( "btn", True )
                                                                         , ( "btn-secondary", True )
                                                                         ]
-                                                                    , onClick (ForSelf (VoteRatingUp typedValue.id))
+                                                                    , onClick
+                                                                        (ForSelf
+                                                                            (if ballotRating == Just 1 then
+                                                                                UnvoteRating typedValue.id
+                                                                             else
+                                                                                VoteRatingUp typedValue.id
+                                                                            )
+                                                                        )
                                                                     , type_ "button"
                                                                     ]
                                                                     [ span
@@ -132,7 +139,14 @@ view model =
                                                                         , ( "btn", True )
                                                                         , ( "btn-secondary", True )
                                                                         ]
-                                                                    , onClick (ForSelf (VoteRatingDown typedValue.id))
+                                                                    , onClick
+                                                                        (ForSelf
+                                                                            (if ballotRating == Just -1 then
+                                                                                UnvoteRating typedValue.id
+                                                                             else
+                                                                                VoteRatingDown typedValue.id
+                                                                            )
+                                                                        )
                                                                     , type_ "button"
                                                                     ]
                                                                     [ span

@@ -19,6 +19,7 @@ type InternalMsg
     | Retrieved (Result Http.Error DataIdsBody)
     | Upserted (Result Http.Error DataIdBody)
     | ValueUpserted Types.DataId
+    | UnvoteRating String
     | VoteRatingDown String
     | VoteRatingUp String
 

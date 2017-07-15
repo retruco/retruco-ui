@@ -139,6 +139,12 @@ update msg model =
                         Retrieve
                         { model | errors = Dict.empty, searchCriteria = searchCriteria }
 
+        UnvoteRating statementId ->
+            ( model
+            , Requests.unrateStatement model.authentication statementId
+                |> Http.send (ForSelf << RatingPosted)
+            )
+
         VoteRatingDown statementId ->
             ( model
             , Requests.rateStatement model.authentication statementId -1

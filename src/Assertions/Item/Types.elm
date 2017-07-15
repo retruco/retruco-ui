@@ -17,6 +17,7 @@ type InternalMsg
     | NewArgumentMsg Arguments.New.Types.InternalMsg
     | RatingPosted (Result Http.Error DataIdBody)
     | Retrieve
+    | UnvoteRating String
     | Upserted Types.DataId
     | ValueRetrieved (Result Http.Error DataIdBody)
     | ValueUpdated (Result Http.Error DataIdBody)

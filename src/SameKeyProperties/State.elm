@@ -110,6 +110,12 @@ update msg model =
                     }
                 )
 
+        UnvoteRating statementId ->
+            ( model
+            , Requests.unrateStatement model.authentication statementId
+                |> Http.send (ForSelf << RatingPosted)
+            )
+
         Upserted (Err httpError) ->
             ( { model
                 | httpError = Just httpError

@@ -114,6 +114,12 @@ update msg model =
                 |> Http.send (ForSelf << ValueRetrieved)
             )
 
+        UnvoteRating statementId ->
+            ( model
+            , Requests.unrateStatement model.authentication statementId
+                |> Http.send (ForSelf << RatingPosted)
+            )
+
         Upserted data ->
             let
                 mergedModel =

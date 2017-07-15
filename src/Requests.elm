@@ -565,6 +565,19 @@ sendActivation authentication =
         }
 
 
+unrateStatement : Maybe Authentication -> String -> Http.Request DataIdBody
+unrateStatement authentication statementId =
+    Http.request
+        { method = "DELETE"
+        , headers = authenticationHeaders authentication
+        , url = apiUrl ++ "statements/" ++ statementId ++ "/rating?show=ballots&depth=1"
+        , body = Http.emptyBody
+        , expect = Http.expectJson dataIdBodyDecoder
+        , timeout = Nothing
+        , withCredentials = False
+        }
+
+
 
 -- newTaskCreateStatement : Authentication -> StatementCustom -> Task Http.Error DataIdBody
 -- newTaskCreateStatement authentication statementCustom =

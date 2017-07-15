@@ -22,6 +22,7 @@ type InternalMsg
     | SearchSortChanged String
     | SearchTermChanged String
     | Submit
+    | UnvoteRating String
     | VoteRatingDown String
     | VoteRatingUp String
 
