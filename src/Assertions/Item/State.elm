@@ -94,8 +94,16 @@ update msg model =
         RatingPosted (Err httpError) ->
             ( { model | httpError = Just httpError }, Cmd.none )
 
-        RatingPosted (Ok body) ->
-            ( mergeModelData body.data model, Cmd.none )
+        RatingPosted (Ok { data }) ->
+            ( mergeModelData data model
+            , if data.id == model.id then
+                Cmd.none
+              else
+                -- The rating of an argument may have changed => the assertion rating may also have changed.
+                -- => Retrieve it.
+                Requests.getValue model.authentication model.id
+                    |> Http.send (ForSelf << ValueUpdated)
+            )
 
         Retrieve ->
             ( { model
@@ -140,6 +148,18 @@ update msg model =
             ( mergeModelData data model
             , Requests.getDebateProperties model.authentication model.id
                 |> Http.send (ForSelf << DebatePropertiesRetrieved)
+            )
+
+        ValueUpdated (Err httpError) ->
+            ( { model
+                | httpError = Just httpError
+              }
+            , Cmd.none
+            )
+
+        ValueUpdated (Ok { data }) ->
+            ( mergeModelData data model
+            , Cmd.none
             )
 
         VoteRatingDown statementId ->
