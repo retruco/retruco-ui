@@ -82,7 +82,7 @@ requireSignIn language location completionMsg model =
     ( { model
         | authenticatorCancelMsg = model.signOutMsg
         , authenticatorCompletionMsgs =
-            [ Navigate location.href ]
+            [ NavigateFromAuthenticator location.href ]
                 ++ case completionMsg of
                     Just completionMsg ->
                         [ completionMsg ]
@@ -459,7 +459,11 @@ urlUpdate location model =
                                                         assertionRoute
                                                         assertionModel
                                             in
-                                                ( { cleanModel | assertionModel = Just updatedAssertionModel }
+                                                ( { cleanModel
+                                                    | assertionModel = Just updatedAssertionModel
+                                                    , -- Stay at the current location after sign out.
+                                                      signOutMsg = Just (NavigateFromAuthenticator location.href)
+                                                  }
                                                 , Cmd.map translateAssertionMsg updatedAssertionCmd
                                                 )
 
