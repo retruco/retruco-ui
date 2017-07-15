@@ -480,38 +480,33 @@ urlUpdate location model =
                                                 )
 
                                         NewAssertionRoute ->
-                                            case model.authentication of
-                                                Just _ ->
-                                                    let
-                                                        newAssertionModel =
-                                                            case ( model.newAssertionModel, clearSubModels ) of
-                                                                ( Just newAssertionModel, False ) ->
-                                                                    Assertions.New.State.setContext
-                                                                        model.authentication
-                                                                        language
-                                                                        newAssertionModel
+                                            let
+                                                newAssertionModel =
+                                                    case ( model.newAssertionModel, clearSubModels ) of
+                                                        ( Just newAssertionModel, False ) ->
+                                                            Assertions.New.State.setContext
+                                                                model.authentication
+                                                                language
+                                                                newAssertionModel
 
-                                                                _ ->
-                                                                    Assertions.New.State.init
-                                                                        model.authentication
-                                                                        language
-                                                                        []
+                                                        _ ->
+                                                            Assertions.New.State.init
+                                                                model.authentication
+                                                                language
+                                                                []
 
-                                                        ( updatedNewAssertionModel, updatedNewAssertionCmd ) =
-                                                            Assertions.New.State.urlUpdate location newAssertionModel
-                                                    in
-                                                        ( { cleanModel
-                                                            | newAssertionModel = Just updatedNewAssertionModel
-                                                            , signOutMsg =
-                                                                Just <|
-                                                                    NavigateFromAuthenticator <|
-                                                                        Urls.languagePath language "/assertions"
-                                                          }
-                                                        , Cmd.map translateNewAssertionMsg updatedNewAssertionCmd
-                                                        )
-
-                                                Nothing ->
-                                                    requireSignIn language location Nothing cleanModel
+                                                ( updatedNewAssertionModel, updatedNewAssertionCmd ) =
+                                                    Assertions.New.State.urlUpdate location newAssertionModel
+                                            in
+                                                ( { cleanModel
+                                                    | newAssertionModel = Just updatedNewAssertionModel
+                                                    , signOutMsg =
+                                                        Just <|
+                                                            NavigateFromAuthenticator <|
+                                                                Urls.languagePath language "/assertions"
+                                                  }
+                                                , Cmd.map translateNewAssertionMsg updatedNewAssertionCmd
+                                                )
 
                                 AuthenticatorRoute authenticatorRoute ->
                                     let
