@@ -74,6 +74,7 @@ setContext authentication language model =
     { model
         | authentication = authentication
         , language = language
+        , newValueModel = Values.New.State.setContext authentication language model.newValueModel
     }
 
 

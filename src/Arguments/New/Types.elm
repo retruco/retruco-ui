@@ -71,6 +71,11 @@ translateNewValueMsg : Values.New.Types.MsgTranslator Msg
 translateNewValueMsg =
     Values.New.Types.translateMsg
         { onInternalMsg = ForSelf << NewValueMsg
-        , onRequireSignIn = ForParent << RequireSignIn << NewValueMsg
+        , onRequireSignIn =
+            \newValueMsg ->
+                if newValueMsg == Values.New.Types.Submit then
+                    ForParent <| RequireSignIn Submit
+                else
+                    ForParent <| RequireSignIn <| NewValueMsg newValueMsg
         , onValueUpserted = ForSelf << ValueUpserted
         }

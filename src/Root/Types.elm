@@ -22,7 +22,7 @@ type alias Model =
     , assertionsModel : Maybe Assertions.Index.Types.Model
     , authentication : Maybe Authentication
     , authenticatorCancelMsg : Maybe Msg
-    , authenticatorCompletionMsg : Maybe Msg
+    , authenticatorCompletionMsgs : List Msg
     , authenticatorModel : Authenticator.Types.Model
     , cardModel : Maybe Cards.Item.Types.Model
     , cardsModel : Maybe Cards.Index.Types.Model

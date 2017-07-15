@@ -42,6 +42,7 @@ setContext authentication language model =
     { model
         | authentication = authentication
         , language = language
+        , newArgumentModel = Arguments.New.State.setContext authentication language model.newArgumentModel
     }
 
 

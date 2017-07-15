@@ -52,6 +52,21 @@ mergeModelData data model =
         }
 
 
+setContext : Maybe Authentication -> I18n.Language -> Model -> Model
+setContext authentication language model =
+    { model
+        | argumentsModel =
+            case model.argumentsModel of
+                Just argumentsModel ->
+                    Just <| Arguments.Index.State.setContext authentication language argumentsModel
+
+                Nothing ->
+                    Nothing
+        , authentication = authentication
+        , language = language
+    }
+
+
 subscriptions : Model -> Sub InternalMsg
 subscriptions model =
     List.filterMap identity

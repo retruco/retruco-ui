@@ -48,7 +48,7 @@ init flags location =
         , assertionsModel = Nothing
         , authentication = authentication
         , authenticatorCancelMsg = Nothing
-        , authenticatorCompletionMsg = Nothing
+        , authenticatorCompletionMsgs = []
         , authenticatorModel = Authenticator.State.init
         , cardModel = Nothing
         , cardsModel = Nothing
@@ -77,12 +77,18 @@ navigate model path =
         Cmd.none
 
 
-requireSignIn : I18n.Language -> Navigation.Location -> Model -> ( Model, Cmd Msg )
-requireSignIn language location model =
+requireSignIn : I18n.Language -> Navigation.Location -> Maybe Msg -> Model -> ( Model, Cmd Msg )
+requireSignIn language location completionMsg model =
     ( { model
         | authenticatorCancelMsg = model.signOutMsg
-        , authenticatorCompletionMsg =
-            Just <| Navigate location.href
+        , authenticatorCompletionMsgs =
+            [ Navigate location.href ]
+                ++ case completionMsg of
+                    Just completionMsg ->
+                        [ completionMsg ]
+
+                    Nothing ->
+                        []
       }
     , Navigation.modifyUrl
         (Urls.languagePath language "/sign_in")
@@ -143,7 +149,7 @@ update msg model =
         requireSignInOrUpdate completionMsg =
             if model.authentication == Nothing then
                 -- update (StartAuthenticator Nothing (Just completionMsg) SignInRoute) model
-                requireSignIn language model.location model
+                requireSignIn language model.location (Just completionMsg) model
             else
                 update completionMsg model
     in
@@ -190,7 +196,7 @@ update msg model =
                     Err () ->
                         ( { model
                             | authenticatorCancelMsg = Nothing
-                            , authenticatorCompletionMsg = Nothing
+                            , authenticatorCompletionMsgs = []
                             , clearModelOnUrlUpdate = False
                           }
                         , case model.authenticatorCancelMsg of
@@ -205,24 +211,25 @@ update msg model =
                         { model
                             | authentication = authentication
                             , authenticatorCancelMsg = Nothing
-                            , authenticatorCompletionMsg = Nothing
+                            , authenticatorCompletionMsgs = []
                             , clearModelOnUrlUpdate = False
                         }
-                            ! [ Ports.storeAuthentication authentication
-                              , case model.authenticatorCompletionMsg of
-                                    Just completionMsg ->
-                                        Task.perform (\_ -> completionMsg) (Task.succeed ())
+                            ! ([ Ports.storeAuthentication authentication ]
+                                ++ if List.isEmpty model.authenticatorCompletionMsgs then
+                                    [ navigate model
+                                        (case route of
+                                            ChangePasswordRoute _ ->
+                                                Urls.languagePath language "/profile"
 
-                                    Nothing ->
-                                        navigate model
-                                            (case route of
-                                                ChangePasswordRoute _ ->
-                                                    Urls.languagePath language "/profile"
-
-                                                _ ->
-                                                    Urls.languagePath language "/"
-                                            )
-                              ]
+                                            _ ->
+                                                Urls.languagePath language "/"
+                                        )
+                                    ]
+                                   else
+                                    List.map
+                                        (\completionMsg -> Task.perform (\_ -> completionMsg) (Task.succeed ()))
+                                        model.authenticatorCompletionMsgs
+                              )
 
             CardMsg childMsg ->
                 case model.cardModel of
@@ -473,7 +480,18 @@ urlUpdate location model =
                                                 Just _ ->
                                                     let
                                                         newAssertionModel =
-                                                            Assertions.New.State.init model.authentication language []
+                                                            case ( model.newAssertionModel, clearSubModels ) of
+                                                                ( Just newAssertionModel, False ) ->
+                                                                    Assertions.New.State.setContext
+                                                                        model.authentication
+                                                                        language
+                                                                        newAssertionModel
+
+                                                                _ ->
+                                                                    Assertions.New.State.init
+                                                                        model.authentication
+                                                                        language
+                                                                        []
 
                                                         ( updatedNewAssertionModel, updatedNewAssertionCmd ) =
                                                             Assertions.New.State.urlUpdate location newAssertionModel
@@ -489,7 +507,7 @@ urlUpdate location model =
                                                         )
 
                                                 Nothing ->
-                                                    requireSignIn language location cleanModel
+                                                    requireSignIn language location Nothing cleanModel
 
                                 AuthenticatorRoute authenticatorRoute ->
                                     let
@@ -500,8 +518,8 @@ urlUpdate location model =
                                                 authenticatorRoute
                                                 model.authenticatorModel
                                     in
-                                        ( { -- Don't use cleanModel, because we want to go back to current sub-model
-                                            -- after authenticator process.
+                                        ( { -- Don't use cleanModel instead of model, because we want to go back to
+                                            -- current sub-model after authenticator process.
                                             model
                                             | authenticatorModel = authenticatorModel
                                             , authenticatorCancelMsg =
@@ -509,14 +527,19 @@ urlUpdate location model =
                                                     Just (NavigateFromAuthenticator model.location.href)
                                                 else
                                                     model.authenticatorCancelMsg
-                                            , authenticatorCompletionMsg =
-                                                if model.authenticatorCompletionMsg == Nothing then
+                                            , authenticatorCompletionMsgs =
+                                                if List.isEmpty model.authenticatorCompletionMsgs then
                                                     if authenticatorRoute == SignOutRoute then
-                                                        model.signOutMsg
+                                                        case model.signOutMsg of
+                                                            Just signOutMsg ->
+                                                                [ signOutMsg ]
+
+                                                            Nothing ->
+                                                                []
                                                     else
-                                                        Just (NavigateFromAuthenticator model.location.href)
+                                                        [ NavigateFromAuthenticator model.location.href ]
                                                 else
-                                                    model.authenticatorCompletionMsg
+                                                    model.authenticatorCompletionMsgs
                                           }
                                         , Cmd.map translateAuthenticatorMsg childCmd
                                         )
@@ -573,7 +596,7 @@ urlUpdate location model =
                                 --                 , Cmd.map translateNewCardMsg childCmd
                                 --                 )
                                 --         Nothing ->
-                                --             requireSignIn language location cleanModel
+                                --             requireSignIn language location Nothing cleanModel
                                 NotFoundRoute _ ->
                                     ( cleanModel
                                     , Ports.setDocumentMetadata
@@ -613,7 +636,7 @@ urlUpdate location model =
                                                         )
 
                                                 Nothing ->
-                                                    requireSignIn language location cleanModel
+                                                    requireSignIn language location Nothing cleanModel
 
                                         ValueRoute valueId valueRoute ->
                                             let
