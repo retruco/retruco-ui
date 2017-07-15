@@ -44,6 +44,7 @@ type alias Model =
 type Msg
     = AssertionMsg Assertions.Item.Types.InternalMsg
     | AssertionsMsg Assertions.Index.Types.InternalMsg
+    | AssertionUpserted Types.DataId
     | AuthenticatorMsg Authenticator.Types.InternalMsg
     | AuthenticatorTerminated Authenticator.Routes.Route (Result () (Maybe Authentication))
     | CardMsg Cards.Item.Types.InternalMsg
@@ -114,7 +115,7 @@ translateNewAssertionMsg : Assertions.New.Types.MsgTranslator Msg
 translateNewAssertionMsg =
     Assertions.New.Types.translateMsg
         { onInternalMsg = NewAssertionMsg
-        , onAssertionUpserted = ValueUpserted
+        , onAssertionUpserted = AssertionUpserted
         , onRequireSignIn = RequireSignInForNewAssertion
         }
 

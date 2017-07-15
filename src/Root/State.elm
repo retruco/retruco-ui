@@ -182,6 +182,9 @@ update msg model =
                     Nothing ->
                         ( model, Cmd.none )
 
+            AssertionUpserted data ->
+                update (Navigate <| Urls.languagePath language ("/assertions/" ++ data.id)) model
+
             AuthenticatorMsg childMsg ->
                 let
                     ( authenticatorModel, childCmd ) =
