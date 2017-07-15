@@ -138,17 +138,18 @@ view model =
                                 , signInOrOutNavItem
                                 , signUpNavItem
                                 ]
-                            , text " "
-                            , Html.form [ class "form-inline" ]
-                                [ input
-                                    [ class "form-control"
-                                    , placeholder <| I18n.translate language I18n.SearchPlaceholder
-                                    , type_ "text"
-                                    ]
-                                    []
-                                , button [ class "btn btn-outline-success", type_ "button" ]
-                                    [ text <| I18n.translate language I18n.Search ]
-                                ]
+
+                            -- , text " "
+                            -- , Html.form [ class "form-inline" ]
+                            --     [ input
+                            --         [ class "form-control"
+                            --         , placeholder <| I18n.translate language I18n.SearchPlaceholder
+                            --         , type_ "text"
+                            --         ]
+                            --         []
+                            --     , button [ class "btn btn-outline-success", type_ "button" ]
+                            --         [ text <| I18n.translate language I18n.Search ]
+                            --     ]
                             ]
                         ]
                     , case localizedRoute of
