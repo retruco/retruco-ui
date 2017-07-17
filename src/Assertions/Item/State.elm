@@ -8,7 +8,10 @@ import Http
 import I18n
 import Navigation
 import Ports
+import Process
 import Requests
+import Task
+import Time
 import Types exposing (..)
 import Urls
 
@@ -101,8 +104,16 @@ update msg model =
               else
                 -- The rating of an argument may have changed => the assertion rating may also have changed.
                 -- => Retrieve it.
-                Requests.getValue model.authentication model.id
-                    |> Http.send (ForSelf << ValueUpdated)
+                Task.attempt (ForSelf << ValueUpdated)
+                    (Process.sleep (1 * Time.second)
+                        |> Task.andThen
+                            (\_ ->
+                                Requests.getValue
+                                    model.authentication
+                                    model.id
+                                    |> Http.toTask
+                            )
+                    )
             )
 
         Retrieve ->
