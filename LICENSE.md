@@ -2,8 +2,8 @@
 > By: Paula Forteza <paula@retruco.org>
 >     Emmanuel Raviart <emmanuel@retruco.org>
 >
-> Copyright (C) 2016 Paula Forteza & Emmanuel Raviart
-> https://git.framasoft.org/retruco/retruco-ui
+> Copyright (C) 2016, 2017 Paula Forteza & Emmanuel Raviart
+> https://framagit.org/retruco/retruco-ui
 >
 > Retruco-UI is free software; you can redistribute it and/or modify
 > it under the terms of the GNU Affero General Public License as
