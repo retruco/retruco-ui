@@ -1,6 +1,6 @@
 module Views exposing (..)
 
-import Json.Decode
+
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
@@ -8,6 +8,7 @@ import Html.Events exposing (on, onClick, onInput, onWithOptions, targetValue)
 import Http exposing (Error(..))
 import Http.Error
 import I18n
+import Json.Decode
 import String
 import Types exposing (..)
 import WebData exposing (LoadingStatus, WebData(..))
