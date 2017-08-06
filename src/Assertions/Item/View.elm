@@ -189,7 +189,7 @@ view model =
                                                             [ aForPath
                                                                 (ForParent << Navigate)
                                                                 language
-                                                                ("/values/" ++ property.valueId ++ "/arguments")
+                                                                ("/assertions/" ++ property.valueId)
                                                                 [ class "btn btn-secondary" ]
                                                                 [ text (I18n.translate language (I18n.Debate)) ]
                                                             , div
