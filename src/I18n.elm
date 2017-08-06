@@ -103,6 +103,7 @@ type TranslationId
     | GivePositiveRating
     | HeaderTitle
     | Help
+    | Hide
     | Home
     | HomeDescription
     | HomeTitle
@@ -908,6 +909,13 @@ getTranslationSet translationId =
                 | english = s "Help"
                 , french = s "Aide"
                 , spanish = s "Ayuda"
+            }
+
+        Hide ->
+            { emptyTranslationSet
+                | english = s "Hide"
+                , french = s "Masquer"
+                , spanish = todo
             }
 
         Home ->

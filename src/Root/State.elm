@@ -1,5 +1,6 @@
 module Root.State exposing (..)
 
+import Arguments.Item.State
 import Assertions.Index.State
 import Assertions.Item.State
 import Assertions.New.State
@@ -44,7 +45,8 @@ init flags location =
         searchModel =
             Search.init
     in
-        { assertionModel = Nothing
+        { argumentModel = Nothing
+        , assertionModel = Nothing
         , assertionsModel = Nothing
         , authentication = authentication
         , authenticatorCancelMsg = Nothing
@@ -100,7 +102,13 @@ subscriptions model =
     -- TODO Fix duplicate messages with port "fileContentRead", that was worked around by a "ImageSelectedStatus"
     -- constructor.
     List.filterMap identity
-        [ case model.assertionModel of
+        [ case model.argumentModel of
+            Just argumentModel ->
+                Just <| Sub.map ArgumentMsg (Arguments.Item.State.subscriptions argumentModel)
+
+            Nothing ->
+                Nothing
+        , case model.assertionModel of
             Just assertionModel ->
                 Just <| Sub.map AssertionMsg (Assertions.Item.State.subscriptions assertionModel)
 
@@ -154,6 +162,20 @@ update msg model =
                 update completionMsg model
     in
         case msg of
+            ArgumentMsg childMsg ->
+                case model.argumentModel of
+                    Just argumentModel ->
+                        let
+                            ( updatedArgumentModel, childCmd ) =
+                                Arguments.Item.State.update childMsg argumentModel
+                        in
+                            ( { model | argumentModel = Just updatedArgumentModel }
+                            , Cmd.map translateArgumentMsg childCmd
+                            )
+
+                    Nothing ->
+                        ( model, Cmd.none )
+
             AssertionMsg childMsg ->
                 case model.assertionModel of
                     Just assertionModel ->
@@ -335,6 +357,9 @@ update msg model =
             NoOp ->
                 ( model, Cmd.none )
 
+            RequireSignInForArgument argumentCompletionMsg ->
+                requireSignInOrUpdate <| ArgumentMsg argumentCompletionMsg
+
             RequireSignInForAssertion assertionCompletionMsg ->
                 requireSignInOrUpdate <| AssertionMsg assertionCompletionMsg
 
@@ -411,7 +436,8 @@ urlUpdate location model =
         cleanModel =
             if clearSubModels then
                 { model
-                    | assertionModel = Nothing
+                    | argumentModel = Nothing
+                    , assertionModel = Nothing
                     , assertionsModel = Nothing
                     , cardModel = Nothing
                     , cardsModel = Nothing
@@ -437,6 +463,38 @@ urlUpdate location model =
                             case localizedRoute of
                                 AboutRoute ->
                                     ( cleanModel, Cmd.none )
+
+                                ArgumentsRoute childRoute ->
+                                    case childRoute of
+                                        ArgumentRoute argumentId argumentRoute ->
+                                            let
+                                                argumentModel =
+                                                    case ( model.argumentModel, clearSubModels ) of
+                                                        ( Just argumentModel, False ) ->
+                                                            Arguments.Item.State.setContext
+                                                                model.authentication
+                                                                language
+                                                                argumentModel
+
+                                                        _ ->
+                                                            Arguments.Item.State.init
+                                                                model.authentication
+                                                                language
+                                                                argumentId
+
+                                                ( updatedArgumentModel, updatedArgumentCmd ) =
+                                                    Arguments.Item.State.urlUpdate
+                                                        location
+                                                        argumentRoute
+                                                        argumentModel
+                                            in
+                                                ( { cleanModel
+                                                    | argumentModel = Just updatedArgumentModel
+                                                    , -- Stay at the current location after sign out.
+                                                      signOutMsg = Just (NavigateFromAuthenticator location.href)
+                                                  }
+                                                , Cmd.map translateArgumentMsg updatedArgumentCmd
+                                                )
 
                                 AssertionsRoute childRoute ->
                                     case childRoute of

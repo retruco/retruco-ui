@@ -1,7 +1,7 @@
-module Assertions.Item.View exposing (..)
+module Arguments.Item.View exposing (..)
 
 import Arguments.New.View
-import Assertions.Item.Types exposing (..)
+import Arguments.Item.Types exposing (..)
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -30,100 +30,233 @@ view model =
         language =
             model.language
     in
-        case ( Dict.get model.id data.values, model.propertyIds ) of
-            ( Just typedValue, Just propertyIds ) ->
+        case ( Dict.get model.id data.properties, model.propertyIds ) of
+            ( Just argument, Just propertyIds ) ->
                 div []
-                    [ let
+                    [ case Dict.get argument.objectId data.values of
+                        Just typedValue ->
+                            let
+                                ballot =
+                                    Dict.get typedValue.ballotId data.ballots
+
+                                ballotRating =
+                                    Maybe.map .rating ballot
+                            in
+                                div [ class "align-items-center d-flex flex-nowrap justify-content-between" ]
+                                    [ h1 []
+                                        [ viewValueTypeLine
+                                            language
+                                            (Just (ForParent << Navigate))
+                                            data
+                                            False
+                                            typedValue.value
+                                        ]
+                                    , div []
+                                        [ div
+                                            [ class "btn-group-vertical"
+                                            , role "group"
+                                            , ariaLabel "Rating panel"
+                                            ]
+                                            [ button
+                                                [ ariaPressed (ballotRating == Just 1)
+                                                , classList
+                                                    [ ( "active", ballotRating == Just 1 )
+                                                    , ( "btn", True )
+                                                    , ( "btn-secondary", True )
+                                                    ]
+                                                , onClick
+                                                    (ForSelf
+                                                        (if ballotRating == Just 1 then
+                                                            UnvoteRating typedValue.id
+                                                         else
+                                                            VoteRatingUp typedValue.id
+                                                        )
+                                                    )
+                                                , type_ "button"
+                                                ]
+                                                [ span
+                                                    [ ariaHidden True
+                                                    , class "fa fa-thumbs-o-up"
+                                                    ]
+                                                    []
+                                                , span
+                                                    [ class "sr-only" ]
+                                                    [ text <|
+                                                        I18n.translate
+                                                            language
+                                                            I18n.GivePositiveRating
+                                                    ]
+                                                ]
+                                            , button
+                                                [ class "btn btn-secondary"
+                                                , disabled True
+                                                , type_ "button"
+                                                ]
+                                                [ text
+                                                    ((toString typedValue.ratingSum)
+                                                        ++ " / "
+                                                        ++ (toString typedValue.ratingCount)
+                                                    )
+                                                ]
+                                            , button
+                                                [ ariaPressed (ballotRating == Just -1)
+                                                , classList
+                                                    [ ( "active", ballotRating == Just -1 )
+                                                    , ( "btn", True )
+                                                    , ( "btn-secondary", True )
+                                                    ]
+                                                , onClick
+                                                    (ForSelf
+                                                        (if ballotRating == Just -1 then
+                                                            UnvoteRating typedValue.id
+                                                         else
+                                                            VoteRatingDown typedValue.id
+                                                        )
+                                                    )
+                                                , type_ "button"
+                                                ]
+                                                [ span
+                                                    [ ariaHidden True
+                                                    , class "fa fa-thumbs-o-down"
+                                                    ]
+                                                    []
+                                                , span
+                                                    [ class "sr-only" ]
+                                                    [ text <|
+                                                        I18n.translate
+                                                            language
+                                                            I18n.GiveNegativeRating
+                                                    ]
+                                                ]
+                                            ]
+                                        ]
+                                    ]
+
+                        Nothing ->
+                            i [ class "text-warning" ] [ text ("Missing assertion with ID: " ++ argument.objectId) ]
+                    , let
                         ballot =
-                            Dict.get typedValue.ballotId data.ballots
+                            Dict.get argument.ballotId data.ballots
 
                         ballotRating =
                             Maybe.map .rating ballot
+
+                        keyLabel =
+                            Dict.get argument.keyId (Dict.fromList keyIdLabelCouples)
+                                |> Maybe.map (I18n.translate language)
+                                |> Maybe.withDefault argument.keyId
                       in
-                        div [ class "align-items-center d-flex flex-nowrap justify-content-between" ]
-                            [ h1 []
-                                [ viewValueTypeLine
-                                    language
-                                    (Just (ForParent << Navigate))
-                                    data
-                                    False
-                                    typedValue.value
-                                ]
-                            , div []
-                                [ div
-                                    [ class "btn-group-vertical"
-                                    , role "group"
-                                    , ariaLabel "Rating panel"
+                        ul [ class "list-group" ]
+                            [ li [ class "flex-nowrap justify-content-between list-group-item" ]
+                                [ div [ class "align-items-baseline d-flex flex-nowrap" ]
+                                    [ span
+                                        [ ariaHidden True
+                                        , classList
+                                            [ ( "fa", True )
+                                            , ( if argument.keyId == "cons" then
+                                                    "fa-minus"
+                                                else if argument.keyId == "pros" then
+                                                    "fa-plus"
+                                                else
+                                                    "fa-info"
+                                              , True
+                                              )
+                                            , ( "mr-2", True )
+                                            ]
+                                        ]
+                                        []
+                                    , div []
+                                        [ h1 [] [ text keyLabel ]
+                                        , viewValueIdLine
+                                            language
+                                            (Just (ForParent << Navigate))
+                                            data
+                                            False
+                                            argument.valueId
+                                        ]
                                     ]
-                                    [ button
-                                        [ ariaPressed (ballotRating == Just 1)
-                                        , classList
-                                            [ ( "active", ballotRating == Just 1 )
-                                            , ( "btn", True )
-                                            , ( "btn-secondary", True )
-                                            ]
-                                        , onClick
-                                            (ForSelf
-                                                (if ballotRating == Just 1 then
-                                                    UnvoteRating typedValue.id
-                                                 else
-                                                    VoteRatingUp typedValue.id
+                                , div []
+                                    [ aForPath
+                                        (ForParent << Navigate)
+                                        language
+                                        ("/assertions/" ++ argument.valueId)
+                                        [ class "btn btn-secondary" ]
+                                        [ text (I18n.translate language (I18n.Debate)) ]
+                                    , div
+                                        [ class "btn-group-vertical"
+                                        , role "group"
+                                        , ariaLabel "Rating panel"
+                                        ]
+                                        [ button
+                                            [ ariaPressed (ballotRating == Just 1)
+                                            , classList
+                                                [ ( "active", ballotRating == Just 1 )
+                                                , ( "btn", True )
+                                                , ( "btn-secondary", True )
+                                                ]
+                                            , onClick
+                                                (ForSelf
+                                                    (if ballotRating == Just 1 then
+                                                        UnvoteRating argument.id
+                                                     else
+                                                        VoteRatingUp argument.id
+                                                    )
                                                 )
-                                            )
-                                        , type_ "button"
-                                        ]
-                                        [ span
-                                            [ ariaHidden True
-                                            , class "fa fa-thumbs-o-up"
+                                            , type_ "button"
                                             ]
-                                            []
-                                        , span
-                                            [ class "sr-only" ]
-                                            [ text <|
-                                                I18n.translate
-                                                    language
-                                                    I18n.GivePositiveRating
+                                            [ span
+                                                [ ariaHidden True
+                                                , class "fa fa-thumbs-o-up"
+                                                ]
+                                                []
+                                            , span
+                                                [ class "sr-only" ]
+                                                [ text <|
+                                                    I18n.translate
+                                                        language
+                                                        I18n.GivePositiveRating
+                                                ]
                                             ]
-                                        ]
-                                    , button
-                                        [ class "btn btn-secondary"
-                                        , disabled True
-                                        , type_ "button"
-                                        ]
-                                        [ text
-                                            ((toString typedValue.ratingSum)
-                                                ++ " / "
-                                                ++ (toString typedValue.ratingCount)
-                                            )
-                                        ]
-                                    , button
-                                        [ ariaPressed (ballotRating == Just -1)
-                                        , classList
-                                            [ ( "active", ballotRating == Just -1 )
-                                            , ( "btn", True )
-                                            , ( "btn-secondary", True )
+                                        , button
+                                            [ class "btn btn-secondary"
+                                            , disabled True
+                                            , type_ "button"
                                             ]
-                                        , onClick
-                                            (ForSelf
-                                                (if ballotRating == Just -1 then
-                                                    UnvoteRating typedValue.id
-                                                 else
-                                                    VoteRatingDown typedValue.id
+                                            [ text
+                                                ((toString argument.ratingSum)
+                                                    ++ " / "
+                                                    ++ (toString argument.ratingCount)
                                                 )
-                                            )
-                                        , type_ "button"
-                                        ]
-                                        [ span
-                                            [ ariaHidden True
-                                            , class "fa fa-thumbs-o-down"
                                             ]
-                                            []
-                                        , span
-                                            [ class "sr-only" ]
-                                            [ text <|
-                                                I18n.translate
-                                                    language
-                                                    I18n.GiveNegativeRating
+                                        , button
+                                            [ ariaPressed (ballotRating == Just -1)
+                                            , classList
+                                                [ ( "active", ballotRating == Just -1 )
+                                                , ( "btn", True )
+                                                , ( "btn-secondary", True )
+                                                ]
+                                            , onClick
+                                                (ForSelf
+                                                    (if ballotRating == Just -1 then
+                                                        UnvoteRating argument.id
+                                                     else
+                                                        VoteRatingDown argument.id
+                                                    )
+                                                )
+                                            , type_ "button"
+                                            ]
+                                            [ span
+                                                [ ariaHidden True
+                                                , class "fa fa-thumbs-o-down"
+                                                ]
+                                                []
+                                            , span
+                                                [ class "sr-only" ]
+                                                [ text <|
+                                                    I18n.translate
+                                                        language
+                                                        I18n.GiveNegativeRating
+                                                ]
                                             ]
                                         ]
                                     ]
@@ -133,7 +266,7 @@ view model =
                         [ aForPath
                             (ForParent << Navigate)
                             language
-                            ("/assertions/" ++ typedValue.id ++ "/hide")
+                            ("/arguments/" ++ argument.id ++ "/hide")
                             [ class "btn btn-secondary" ]
                             [ span
                                 [ ariaHidden True
@@ -199,7 +332,7 @@ view model =
                                                             [ aForPath
                                                                 (ForParent << Navigate)
                                                                 language
-                                                                -- ("/assertions/" ++ property.valueId)
+                                                                -- ("/arguments/" ++ property.valueId)
                                                                 ("/arguments/" ++ property.id)
                                                                 [ class "btn btn-secondary" ]
                                                                 [ text (I18n.translate language (I18n.Debate)) ]

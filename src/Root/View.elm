@@ -1,5 +1,6 @@
 module Root.View exposing (..)
 
+import Arguments.Item.View
 import Assertions.Index.View
 import Assertions.Item.View
 import Assertions.New.View
@@ -159,6 +160,17 @@ view model =
                                 [ img [ src "./img/elm.png" ] []
                                 , text "About Retruco"
                                 ]
+
+                        ArgumentsRoute childRoute ->
+                            case childRoute of
+                                ArgumentRoute _ _ ->
+                                    case model.argumentModel of
+                                        Just argumentModel ->
+                                            Arguments.Item.View.view argumentModel
+                                                |> Html.map translateArgumentMsg
+
+                                        Nothing ->
+                                            text "This should not occur: argumentModel == Nothing!"
 
                         AssertionsRoute childRoute ->
                             case childRoute of

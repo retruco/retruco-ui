@@ -1,5 +1,6 @@
 module Root.Types exposing (..)
 
+import Arguments.Item.Types
 import Assertions.Index.Types
 import Assertions.Item.Types
 import Assertions.New.Types
@@ -18,7 +19,8 @@ import Values.New.Types
 
 
 type alias Model =
-    { assertionModel : Maybe Assertions.Item.Types.Model
+    { argumentModel : Maybe Arguments.Item.Types.Model
+    , assertionModel : Maybe Assertions.Item.Types.Model
     , assertionsModel : Maybe Assertions.Index.Types.Model
     , authentication : Maybe Authentication
     , authenticatorCancelMsg : Maybe Msg
@@ -42,7 +44,8 @@ type alias Model =
 
 
 type Msg
-    = AssertionMsg Assertions.Item.Types.InternalMsg
+    = ArgumentMsg Arguments.Item.Types.InternalMsg
+    | AssertionMsg Assertions.Item.Types.InternalMsg
     | AssertionsMsg Assertions.Index.Types.InternalMsg
     | AssertionUpserted Types.DataId
     | AuthenticatorMsg Authenticator.Types.InternalMsg
@@ -56,6 +59,7 @@ type Msg
     | NewAssertionMsg Assertions.New.Types.InternalMsg
     | NewValueMsg Values.New.Types.InternalMsg
     | NoOp
+    | RequireSignInForArgument Arguments.Item.Types.InternalMsg
     | RequireSignInForAssertion Assertions.Item.Types.InternalMsg
     | RequireSignInForCard Cards.Item.Types.InternalMsg
     | RequireSignInForNewAssertion Assertions.New.Types.InternalMsg
@@ -65,6 +69,15 @@ type Msg
     | ValueMsg Values.Item.Types.InternalMsg
     | ValuesMsg Values.Index.Types.InternalMsg
     | ValueUpserted Types.DataId
+
+
+translateArgumentMsg : Arguments.Item.Types.MsgTranslator Msg
+translateArgumentMsg =
+    Arguments.Item.Types.translateMsg
+        { onInternalMsg = ArgumentMsg
+        , onNavigate = Navigate
+        , onRequireSignIn = RequireSignInForArgument
+        }
 
 
 translateAssertionMsg : Assertions.Item.Types.MsgTranslator Msg
