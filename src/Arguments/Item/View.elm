@@ -52,7 +52,13 @@ view model =
                                             typedValue.value
                                         ]
                                     , div []
-                                        [ div
+                                        [ aForPath
+                                            (ForParent << Navigate)
+                                            language
+                                            ("/assertions/" ++ typedValue.id)
+                                            [ class "btn btn-secondary" ]
+                                            [ text (I18n.translate language (I18n.Debate)) ]
+                                        , div
                                             [ class "btn-group-vertical"
                                             , role "group"
                                             , ariaLabel "Rating panel"
