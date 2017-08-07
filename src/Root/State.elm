@@ -668,7 +668,8 @@ urlUpdate location model =
 
                                 SearchRoute ->
                                     -- ( cleanModel, Cmd.map translateStatementsMsg (Statements.load) )
-                                    ( cleanModel, Cmd.none )
+                                    -- ( cleanModel, Cmd.none )
+                                    ( cleanModel, navigate cleanModel <| Urls.languagePath language "/assertions" )
 
                                 UserProfileRoute ->
                                     ( cleanModel, Cmd.none )
