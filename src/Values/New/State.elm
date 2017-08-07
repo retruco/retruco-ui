@@ -13,6 +13,7 @@ import Requests
 import Task
 import Types exposing (DataProxy, Field(..))
 import Urls
+import Values.Autocomplete.State
 import Values.New.Types exposing (..)
 
 
@@ -42,6 +43,7 @@ init authentication language validFieldTypes =
         , languageIso639_1 = I18n.iso639_1FromLanguage language
         , validFieldTypes = validFieldTypes
         , value = ""
+        , valuesAutocompleteModel = Values.Autocomplete.State.init []
         }
 
 
@@ -64,20 +66,16 @@ convertControls model =
                     )
 
                 "CardIdField" ->
-                    let
-                        cardAutocompletion =
-                            model.cardsAutocompleteModel.selected
-                    in
-                        case cardAutocompletion of
-                            Just cardAutocompletion ->
-                                ( Just (CardIdField cardAutocompletion.card.id)
-                                , []
-                                )
+                    case model.cardsAutocompleteModel.selected of
+                        Just cardAutocompletion ->
+                            ( Just (CardIdField cardAutocompletion.card.id)
+                            , []
+                            )
 
-                            Nothing ->
-                                ( Nothing
-                                , [ ( "cardId", Just I18n.MissingValue ) ]
-                                )
+                        Nothing ->
+                            ( Nothing
+                            , [ ( "cardId", Just I18n.MissingValue ) ]
+                            )
 
                 "ImageField" ->
                     case model.imageUploadStatus of
@@ -150,43 +148,51 @@ convertControls model =
                             )
 
                 "TextField" ->
-                    let
-                        ( languageIso639_1, languageError ) =
-                            if String.isEmpty model.languageIso639_1 then
-                                ( Just "", Nothing )
-                            else
-                                case I18n.languageFromIso639_1 model.languageIso639_1 of
-                                    Just _ ->
-                                        ( Just model.languageIso639_1, Nothing )
+                    case model.valuesAutocompleteModel.selected of
+                        Just valueAutocompletion ->
+                            ( Just (ValueIdField valueAutocompletion.value.id)
+                            , []
+                            )
 
-                                    Nothing ->
-                                        ( Nothing, Just I18n.UnknownLanguage )
+                        Nothing ->
+                            let
+                                ( languageIso639_1, languageError ) =
+                                    if String.isEmpty model.languageIso639_1 then
+                                        ( Just "", Nothing )
+                                    else
+                                        case I18n.languageFromIso639_1 model.languageIso639_1 of
+                                            Just _ ->
+                                                ( Just model.languageIso639_1, Nothing )
 
-                        ( value, valueError ) =
-                            -- if String.isEmpty model.value then
-                            --     ( Nothing, Just I18n.MissingValue )
-                            -- else
-                            ( Just model.value, Nothing )
-                    in
-                        case ( languageIso639_1, value ) of
-                            ( Just "", Just value ) ->
-                                if String.contains "\n" value || String.contains "\x0D" value then
-                                    ( Just (TextareaField value), [] )
-                                else
-                                    ( Just (InputTextField value), [] )
+                                            Nothing ->
+                                                ( Nothing, Just I18n.UnknownLanguage )
 
-                            ( Just languageIso639_1, Just value ) ->
-                                if String.contains "\n" value || String.contains "\x0D" value then
-                                    ( Just (LocalizedTextareaField languageIso639_1 value), [] )
-                                else
-                                    ( Just (LocalizedInputTextField languageIso639_1 value), [] )
+                                ( value, valueError ) =
+                                    -- -- if String.isEmpty model.value then
+                                    -- --     ( Nothing, Just I18n.MissingValue )
+                                    -- -- else
+                                    -- ( Just model.value, Nothing )
+                                    ( Just model.valuesAutocompleteModel.autocomplete, Nothing )
+                            in
+                                case ( languageIso639_1, value ) of
+                                    ( Just "", Just value ) ->
+                                        if String.contains "\n" value || String.contains "\x0D" value then
+                                            ( Just (TextareaField value), [] )
+                                        else
+                                            ( Just (InputTextField value), [] )
 
-                            _ ->
-                                ( Nothing
-                                , [ ( "language", languageError )
-                                  , ( "value", valueError )
-                                  ]
-                                )
+                                    ( Just languageIso639_1, Just value ) ->
+                                        if String.contains "\n" value || String.contains "\x0D" value then
+                                            ( Just (LocalizedTextareaField languageIso639_1 value), [] )
+                                        else
+                                            ( Just (LocalizedInputTextField languageIso639_1 value), [] )
+
+                                    _ ->
+                                        ( Nothing
+                                        , [ ( "language", languageError )
+                                          , ( "value", valueError )
+                                          ]
+                                        )
 
                 _ ->
                     ( Nothing
@@ -234,6 +240,7 @@ subscriptions model =
     Sub.batch
         [ Sub.map CardsAutocompleteMsg (Cards.Autocomplete.State.subscriptions model.cardsAutocompleteModel)
         , Ports.fileContentRead ImageRead
+        , Sub.map ValuesAutocompleteMsg (Values.Autocomplete.State.subscriptions model.valuesAutocompleteModel)
         ]
 
 
@@ -342,6 +349,7 @@ update msg model =
                 , httpError = Nothing
                 , imageUploadStatus = ImageNotUploadedStatus
                 , value = ""
+                , valuesAutocompleteModel = Values.Autocomplete.State.init []
               }
             , Task.perform (\_ -> ForParent <| ValueUpserted body.data) (Task.succeed ())
             )
@@ -355,6 +363,20 @@ update msg model =
             ( convertControls { model | booleanValue = booleanValue }
             , Cmd.none
             )
+
+        ValuesAutocompleteMsg childMsg ->
+            let
+                ( valuesAutocompleteModel, childCmd ) =
+                    Values.Autocomplete.State.update
+                        childMsg
+                        model.authentication
+                        model.language
+                        "valueId"
+                        model.valuesAutocompleteModel
+            in
+                ( convertControls { model | valuesAutocompleteModel = valuesAutocompleteModel }
+                , Cmd.map translateValuesAutocompleteMsg childCmd
+                )
 
 
 urlUpdate : Navigation.Location -> Model -> ( Model, Cmd Msg )

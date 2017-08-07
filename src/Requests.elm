@@ -139,6 +139,43 @@ autocompletePropertiesKeys authentication language cardTypes term limit =
         }
 
 
+autocompleteValues :
+    Maybe Authentication
+    -> I18n.Language
+    -> List String
+    -> String
+    -> Int
+    -> Http.Request TypedValuesAutocompletionBody
+autocompleteValues authentication language schemas term limit =
+    Http.request
+        { method = "GET"
+        , headers = authenticationHeaders authentication
+        , url =
+            apiUrl
+                ++ "values/autocomplete"
+                ++ Urls.paramsToQuery
+                    ([ ( "language", Just (I18n.iso639_1FromLanguage language) )
+                     , ( "limit", Just (toString limit) )
+                     , ( "term"
+                       , let
+                            cleanTerm =
+                                String.trim term
+                         in
+                            if String.isEmpty cleanTerm then
+                                Nothing
+                            else
+                                Just cleanTerm
+                       )
+                     ]
+                        ++ List.map (\schema -> ( "schema", Just schema )) schemas
+                    )
+        , body = Http.emptyBody
+        , expect = Http.expectJson typedValuesAutocompletionBodyDecoder
+        , timeout = Nothing
+        , withCredentials = False
+        }
+
+
 getCard : Maybe Authentication -> String -> Http.Request DataIdBody
 getCard authentication cardId =
     Http.request
@@ -502,6 +539,15 @@ postValue authentication field =
 
                 TextareaField string ->
                     ( "schema:string", "widget:textarea", Encode.string string )
+
+                ValueIdField string ->
+                    case Urls.urlToId string of
+                        Just valueId ->
+                            ( "schema:value-id", "widget:autocomplete", Encode.string valueId )
+
+                        Nothing ->
+                            -- TODO: Improve errors handling.
+                            ( "schema:string", "widget:input-text", Encode.string string )
     in
         Http.request
             { method = "POST"

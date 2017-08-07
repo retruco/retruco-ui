@@ -169,6 +169,7 @@ type Field
     | LocalizedInputTextField String String
     | LocalizedTextareaField String String
     | TextareaField String
+    | ValueIdField String
 
 
 type alias Flags =

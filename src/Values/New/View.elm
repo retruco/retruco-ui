@@ -10,6 +10,7 @@ import Http.Error
 import I18n
 import Image.View exposing (..)
 import Json.Decode
+import Values.Autocomplete.View
 import Values.New.Types exposing (..)
 import Views exposing (errorInfos)
 
@@ -329,36 +330,44 @@ viewFormControls model =
           else if model.fieldType == "TextField" then
             let
                 controlId =
-                    "value"
-
-                controlLabel =
-                    I18n.translate language I18n.Value
-
-                controlPlaceholder =
-                    I18n.translate language I18n.ValuePlaceholder
-
-                controlTitle =
-                    I18n.translate language I18n.EnterValue
-
-                ( errorClass, errorAttributes, errorBlock ) =
-                    errorInfos language controlId (Dict.get controlId model.errors)
+                    "valueId"
             in
-                div [ class ("form-group" ++ errorClass) ]
-                    ([ label [ class "control-label", for controlId ] [ text controlLabel ]
-                     , textarea
-                        ([ class "form-control"
-                         , id controlId
-                         , placeholder controlPlaceholder
-                         , title controlTitle
-                         , onInput (ForSelf << ValueChanged)
-                         , value model.value
-                         ]
-                            ++ errorAttributes
-                        )
-                        []
-                     ]
-                        ++ errorBlock
-                    )
+                Values.Autocomplete.View.viewAutocomplete
+                    language
+                    controlId
+                    I18n.Value
+                    I18n.ValuePlaceholder
+                    (Dict.get controlId model.errors)
+                    model.valuesAutocompleteModel
+                    |> Html.map translateValuesAutocompleteMsg
+            -- let
+            --     controlId =
+            --         "value"
+            --     controlLabel =
+            --         I18n.translate language I18n.Value
+            --     controlPlaceholder =
+            --         I18n.translate language I18n.ValuePlaceholder
+            --     controlTitle =
+            --         I18n.translate language I18n.EnterValue
+            --     ( errorClass, errorAttributes, errorBlock ) =
+            --         errorInfos language controlId (Dict.get controlId model.errors)
+            -- in
+            --     div [ class ("form-group" ++ errorClass) ]
+            --         ([ label [ class "control-label", for controlId ] [ text controlLabel ]
+            --          , textarea
+            --             ([ class "form-control"
+            --              , id controlId
+            --              , placeholder controlPlaceholder
+            --              , title controlTitle
+            --              , onInput (ForSelf << ValueChanged)
+            --              , value model.value
+            --              ]
+            --                 ++ errorAttributes
+            --             )
+            --             []
+            --          ]
+            --             ++ errorBlock
+            --         )
           else
             text ""
         , if model.fieldType == "ImageField" then

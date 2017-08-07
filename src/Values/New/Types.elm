@@ -8,6 +8,7 @@ import I18n
 import Image.Types exposing (..)
 import Ports
 import Types exposing (..)
+import Values.Autocomplete.Types
 
 
 type ExternalMsg
@@ -30,6 +31,7 @@ type InternalMsg
     | Upserted (Result Http.Error DataIdBody)
     | ValueChanged String
     | ValueChecked Bool
+    | ValuesAutocompleteMsg Values.Autocomplete.Types.InternalMsg
 
 
 type alias Model =
@@ -45,6 +47,7 @@ type alias Model =
     , languageIso639_1 : String
     , validFieldTypes : List String
     , value : String
+    , valuesAutocompleteModel : Values.Autocomplete.Types.Model
     }
 
 
@@ -82,3 +85,10 @@ translateMsg { onInternalMsg, onRequireSignIn, onValueUpserted } msg =
 
         ForSelf internalMsg ->
             onInternalMsg internalMsg
+
+
+translateValuesAutocompleteMsg : Values.Autocomplete.Types.MsgTranslator Msg
+translateValuesAutocompleteMsg =
+    Values.Autocomplete.Types.translateMsg
+        { onInternalMsg = ForSelf << ValuesAutocompleteMsg
+        }

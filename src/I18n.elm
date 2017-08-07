@@ -94,8 +94,10 @@ type TranslationId
     | FalseWord
     | FindAnotherCard
     | FindAnotherPropertyKey
+    | FindAnotherValue
     | FindCard
     | FindPropertyKey
+    | FindValue
     | FooterAbout
     | FooterDiscover
     | GenericError
@@ -165,6 +167,7 @@ type TranslationId
     | SearchPlaceholder
     | SelectCardOrTypeMoreCharacters
     | SelectPropertyKeyOrTypeMoreCharacters
+    | SelectValueOrTypeMoreCharacters
     | Send
     | SendEmailAgain
     | Share
@@ -206,6 +209,7 @@ type TranslationId
     | ValueCreationFailed
     | ValueId
     | ValueIdArray
+    | ValueIdField
     | ValuePlaceholder
     | ValueRetrievalFailed
     | Values
@@ -848,10 +852,17 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        FindAnotherValue ->
+            { emptyTranslationSet
+                | english = s "Find another value"
+                , french = s "Rechercher une autre valeur"
+                , spanish = todo
+            }
+
         FindCard ->
             { emptyTranslationSet
                 | english = s "Find a card"
-                , french = s "Rechercher fiche"
+                , french = s "Rechercher une fiche"
                 , spanish = todo
             }
 
@@ -859,6 +870,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Find a property"
                 , french = s "Rechercher une propriété"
+                , spanish = todo
+            }
+
+        FindValue ->
+            { emptyTranslationSet
+                | english = s "Find a value"
+                , french = s "Rechercher une valeur"
                 , spanish = todo
             }
 
@@ -1345,6 +1363,13 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        SelectValueOrTypeMoreCharacters ->
+            { emptyTranslationSet
+                | english = s "Select a value or type more characters"
+                , french = s "Sélectionner une valeur ou tapez plus de caractères"
+                , spanish = todo
+            }
+
         Send ->
             { emptyTranslationSet
                 | english = s "Send"
@@ -1631,6 +1656,9 @@ getTranslationSet translationId =
                 , french = s "Tableau de liens vers des valeurs"
                 , spanish = todo
             }
+
+        ValueIdField ->
+            getTranslationSet ValueId
 
         ValuePlaceholder ->
             { emptyTranslationSet
