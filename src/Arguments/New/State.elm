@@ -122,10 +122,38 @@ update msg model =
                 , Task.perform (\_ -> ForParent <| PropertyUpserted data) (Task.succeed ())
                 )
 
+        ValueRated (Err httpError) ->
+            ( { model | httpError = Just httpError }, Cmd.none )
+
+        ValueRated (Ok body) ->
+            let
+                mergedModel =
+                    mergeModelData body.data model
+
+                ballot =
+                    Dict.get body.data.id mergedModel.data.ballots
+            in
+                case ballot of
+                    Just ballot ->
+                        let
+                            mergedData =
+                                mergedModel.data
+
+                            data =
+                                { mergedData | id = ballot.statementId }
+                        in
+                            ( { mergedModel | data = data }
+                            , Requests.postProperty model.authentication model.objectId model.keyId data.id
+                                |> Http.send (ForSelf << Upserted)
+                            )
+
+                    Nothing ->
+                        ( mergedModel, Cmd.none )
+
         ValueUpserted data ->
             ( { model | data = mergeData data model.data }
-            , Requests.postProperty model.authentication model.objectId model.keyId data.id
-                |> Http.send (ForSelf << Upserted)
+            , Requests.rateStatement model.authentication data.id 1
+                |> Http.send (ForSelf << ValueRated)
             )
 
 

@@ -22,6 +22,7 @@ type InternalMsg
     | NewValueMsg Values.New.Types.InternalMsg
     | Submit
     | Upserted (Result Http.Error DataIdBody)
+    | ValueRated (Result Http.Error DataIdBody)
     | ValueUpserted DataId
 
 
