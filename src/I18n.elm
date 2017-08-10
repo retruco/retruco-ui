@@ -151,6 +151,7 @@ type TranslationId
     | PasswordPlaceholder
     | Properties
     | PropertyKeyPlaceholder
+    | RadioButtonForFollowingAutocompleter
     | ReadingSelectedImage
     | ReadMore
     | Register
@@ -184,6 +185,7 @@ type TranslationId
     | SignUpDescription
     | SignUpTitle
     | String
+    | Suggestions
     | Tags
     | TextField
     | Timeout
@@ -1251,6 +1253,13 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        RadioButtonForFollowingAutocompleter ->
+            { emptyTranslationSet
+                | english = s "Radio button for following autocompleter"
+                , french = s "Bouton radio de l'autocompleter suivant"
+                , spanish = todo
+            }
+
         ReadingSelectedImage ->
             { emptyTranslationSet
                 | english = s "Reading selected image..."
@@ -1479,6 +1488,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "String"
                 , french = s "Chaîne de caractères"
+                , spanish = todo
+            }
+
+        Suggestions ->
+            { emptyTranslationSet
+                | english = s "Suggestions"
+                , french = s "Suggestions"
                 , spanish = todo
             }
 

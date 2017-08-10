@@ -1,21 +1,19 @@
 module Values.Autocomplete.Types exposing (..)
 
-import Autocomplete
 import Http
 import Types exposing (..)
 
 
-type AutocompleteMenuState
-    = AutocompleteMenuHidden
-    | AutocompleteMenuSleeping
-    | AutocompleteMenuLoading
-    | AutocompleteMenuVisible
+type AutocompleterState
+    = AutocompleterHidden
+    | AutocompleterSleeping
+    | AutocompleterLoading
+    | AutocompleterVisible
 
 
 type alias Model =
     { autocomplete : String
-    , autocompleteMenuState : AutocompleteMenuState
-    , autocompleter : Autocomplete.State
+    , autocompleterState : AutocompleterState
     , autocompletions : List TypedValueAutocompletion
     , selected : Maybe TypedValueAutocompletion
     , valueTypes : List String
@@ -23,20 +21,11 @@ type alias Model =
 
 
 type InternalMsg
-    = AutocompleteMsg Autocomplete.Msg
-    | Focus
-    | HandleEscape
-    | InputChanged String
-    | KeyboardSelect String
+    = InputChanged String
     | LoadMenu
     | MenuLoaded (Result Http.Error TypedValuesAutocompletionBody)
-    | MouseClose
-    | MouseOpen
-    | MouseSelect String
     | NoOp
-    | Preview String
-    | Reset
-    | Wrap Bool
+    | Select (Maybe String)
 
 
 type Msg

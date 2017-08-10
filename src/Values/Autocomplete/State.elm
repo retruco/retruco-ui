@@ -1,8 +1,7 @@
 module Values.Autocomplete.State exposing (..)
 
 import Authenticator.Types exposing (Authentication)
-import Autocomplete
-import Dom
+import Dom.Scroll
 import Http
 import I18n
 import Process
@@ -34,35 +33,10 @@ idToAutocompletion id model =
 init : List String -> Model
 init valueTypes =
     { autocomplete = ""
-    , autocompleteMenuState = AutocompleteMenuHidden
-    , autocompleter = Autocomplete.empty
+    , autocompleterState = AutocompleterHidden
     , autocompletions = []
     , selected = Nothing
     , valueTypes = valueTypes
-    }
-
-
-requestToLoadAutocompleteMenu : Model -> ( Model, Cmd Msg )
-requestToLoadAutocompleteMenu model =
-    case model.autocompleteMenuState of
-        AutocompleteMenuHidden ->
-            sleepAndThenLoadAutocompleteMenu model
-
-        AutocompleteMenuSleeping ->
-            ( model, Cmd.none )
-
-        AutocompleteMenuLoading ->
-            ( { model | autocompleteMenuState = AutocompleteMenuSleeping }, Cmd.none )
-
-        AutocompleteMenuVisible ->
-            sleepAndThenLoadAutocompleteMenu model
-
-
-resetAutocompleteMenu : Model -> Model
-resetAutocompleteMenu model =
-    { model
-        | autocompleter = Autocomplete.empty
-        , autocompleteMenuState = AutocompleteMenuHidden
     }
 
 
@@ -88,63 +62,32 @@ setModelFromTypedValueId id model =
     setModelFromSelected (idToAutocompletion id model) model
 
 
-sleepAndThenLoadAutocompleteMenu : Model -> ( Model, Cmd Msg )
-sleepAndThenLoadAutocompleteMenu model =
-    ( { model | autocompleteMenuState = AutocompleteMenuSleeping }
+sleepAndThenLoadAutocompleter : Model -> ( Model, Cmd Msg )
+sleepAndThenLoadAutocompleter model =
+    ( { model | autocompleterState = AutocompleterSleeping }
     , Process.sleep (300 * millisecond)
         |> Task.perform (\() -> (ForSelf <| LoadMenu))
     )
 
 
-subscriptions : Model -> Sub InternalMsg
-subscriptions model =
-    Sub.map AutocompleteMsg Autocomplete.subscription
-
-
 update : InternalMsg -> Maybe Authentication -> I18n.Language -> String -> Model -> ( Model, Cmd Msg )
 update msg authentication language fieldId model =
     case msg of
-        AutocompleteMsg childMsg ->
-            let
-                ( newAutocompleter, newMsgMaybe ) =
-                    Autocomplete.update
-                        updateAutocompleteConfig
-                        childMsg
-                        autocompleterSize
-                        model.autocompleter
-                        model.autocompletions
-
-                newModel =
-                    { model | autocompleter = newAutocompleter }
-            in
-                case newMsgMaybe of
-                    Nothing ->
-                        ( newModel, Cmd.none )
-
-                    Just newMsg ->
-                        update newMsg authentication language fieldId newModel
-
-        Focus ->
-            model ! []
-
-        HandleEscape ->
-            ( { model | selected = autocompleteToAutocompletion model.autocomplete model }
-                |> resetAutocompleteMenu
-            , Cmd.none
-            )
-
-        KeyboardSelect id ->
-            let
-                newModel =
-                    setModelFromTypedValueId id model
-                        |> resetAutocompleteMenu
-            in
-                newModel ! []
-
         InputChanged fieldValue ->
             let
                 ( newModel, cmd ) =
-                    requestToLoadAutocompleteMenu model
+                    case model.autocompleterState of
+                        AutocompleterHidden ->
+                            sleepAndThenLoadAutocompleter model
+
+                        AutocompleterSleeping ->
+                            ( model, Cmd.none )
+
+                        AutocompleterLoading ->
+                            ( { model | autocompleterState = AutocompleterSleeping }, Cmd.none )
+
+                        AutocompleterVisible ->
+                            sleepAndThenLoadAutocompleter model
             in
                 ( { newModel
                     | autocomplete = fieldValue
@@ -154,7 +97,7 @@ update msg authentication language fieldId model =
                 )
 
         LoadMenu ->
-            ( { model | autocompleteMenuState = AutocompleteMenuLoading }
+            ( { model | autocompleterState = AutocompleterLoading }
             , Requests.autocompleteValues
                 authentication
                 language
@@ -165,9 +108,9 @@ update msg authentication language fieldId model =
             )
 
         MenuLoaded (Err httpError) ->
-            case model.autocompleteMenuState of
-                AutocompleteMenuSleeping ->
-                    ( { model | autocompleteMenuState = AutocompleteMenuLoading }
+            case model.autocompleterState of
+                AutocompleterSleeping ->
+                    ( { model | autocompleterState = AutocompleterLoading }
                     , Requests.autocompleteValues
                         authentication
                         language
@@ -178,119 +121,36 @@ update msg authentication language fieldId model =
                     )
 
                 _ ->
-                    ( { model | autocompleteMenuState = AutocompleteMenuHidden }, Cmd.none )
+                    ( { model | autocompleterState = AutocompleterHidden }, Cmd.none )
 
         MenuLoaded (Ok typedValuesAutocompletionBody) ->
             ( { model
-                | autocompleteMenuState = AutocompleteMenuVisible
+                | autocompleterState = AutocompleterVisible
                 , autocompletions = typedValuesAutocompletionBody.data
               }
-            , Cmd.none
-            )
+            , Task.attempt
+                (\result ->
+                    case result of
+                        Result.Err err ->
+                            Debug.crash ("Dom.Scroll.toTop \"html-element\": " ++ toString err)
 
-        MouseClose ->
-            let
-                prefix =
-                    if String.isEmpty fieldId then
-                        fieldId
-                    else
-                        fieldId ++ "."
-            in
-                ( { model
-                    | autocomplete =
-                        case model.selected of
-                            Just selected ->
-                                selected.autocomplete
-
-                            Nothing ->
-                                model.autocomplete
-                  }
-                    |> resetAutocompleteMenu
-                , Task.attempt (\_ -> ForSelf NoOp) (Dom.focus (prefix ++ "autocomplete"))
+                        Result.Ok _ ->
+                            ForSelf <| NoOp
                 )
-
-        MouseOpen ->
-            requestToLoadAutocompleteMenu model
-
-        MouseSelect id ->
-            let
-                prefix =
-                    if String.isEmpty fieldId then
-                        fieldId
-                    else
-                        fieldId ++ "."
-
-                newModel =
-                    setModelFromTypedValueId id model
-                        |> resetAutocompleteMenu
-            in
-                ( newModel, Task.attempt (\_ -> ForSelf NoOp) (Dom.focus (prefix ++ "autocomplete")) )
+                (Dom.Scroll.toBottom "html-element")
+            )
 
         NoOp ->
-            model ! []
+            ( model, Cmd.none )
 
-        Preview id ->
-            ( { model | selected = idToAutocompletion id model }
-            , Cmd.none
-            )
+        Select id ->
+            let
+                selected =
+                    case id of
+                        Just id ->
+                            idToAutocompletion id model
 
-        Reset ->
-            ( { model
-                | autocompleter = Autocomplete.reset updateAutocompleteConfig model.autocompleter
-                , selected = autocompleteToAutocompletion model.autocomplete model
-              }
-            , Cmd.none
-            )
-
-        Wrap toTop ->
-            case model.selected of
-                Just selected ->
-                    update Reset authentication language fieldId model
-
-                Nothing ->
-                    let
-                        ( autocompleter, selected ) =
-                            if toTop then
-                                ( Autocomplete.resetToLastItem
-                                    updateAutocompleteConfig
-                                    model.autocompletions
-                                    autocompleterSize
-                                    model.autocompleter
-                                , List.head <| List.reverse <| model.autocompletions
-                                )
-                            else
-                                ( Autocomplete.resetToFirstItem
-                                    updateAutocompleteConfig
-                                    model.autocompletions
-                                    autocompleterSize
-                                    model.autocompleter
-                                , List.head <| model.autocompletions
-                                )
-                    in
-                        ( { model
-                            | autocompleter = autocompleter
-                            , selected = selected
-                          }
-                        , Cmd.none
-                        )
-
-
-updateAutocompleteConfig : Autocomplete.UpdateConfig InternalMsg TypedValueAutocompletion
-updateAutocompleteConfig =
-    { getItemId = .value >> .id
-    , onFocus = \id -> Just <| Preview id
-    , onKeyDown =
-        \code maybeId ->
-            if code == 38 || code == 40 then
-                Maybe.map Preview maybeId
-            else if code == 13 then
-                Maybe.map KeyboardSelect maybeId
-            else
-                Just <| Reset
-    , onMouseEnter = \id -> Just <| Preview id
-    , onMouseClick = \id -> Just <| MouseSelect id
-    , onMouseLeave = \_ -> Just <| Preview ""
-    , onTooHigh = Just <| Wrap True
-    , onTooLow = Just <| Wrap False
-    , separateSelections = False
-    }
+                        Nothing ->
+                            Nothing
+            in
+                ( { model | selected = selected }, Cmd.none )

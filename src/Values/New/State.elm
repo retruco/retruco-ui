@@ -240,7 +240,6 @@ subscriptions model =
     Sub.batch
         [ Sub.map CardsAutocompleteMsg (Cards.Autocomplete.State.subscriptions model.cardsAutocompleteModel)
         , Ports.fileContentRead ImageRead
-        , Sub.map ValuesAutocompleteMsg (Values.Autocomplete.State.subscriptions model.valuesAutocompleteModel)
         ]
 
 

@@ -1,13 +1,10 @@
 module Values.Autocomplete.View exposing (..)
 
-import Autocomplete
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Html.Events exposing (..)
 import I18n
-import Json.Decode
-import Types exposing (TypedValueAutocompletion)
 import Values.Autocomplete.Types exposing (..)
 import Views exposing (errorInfos)
 
@@ -49,77 +46,71 @@ viewAutocomplete language parentId controlLabelI18n controlPlaceholderI18n error
         ( errorClass, errorAttributes, errorBlock ) =
             errorInfos language controlId error
 
-        decodeKeyCode =
-            keyCode
-                |> Json.Decode.andThen
-                    (\code ->
-                        if code == 38 || code == 40 then
-                            Json.Decode.succeed (ForSelf NoOp)
-                        else if code == 27 then
-                            Json.Decode.succeed (ForSelf HandleEscape)
-                        else
-                            Json.Decode.fail "not handling that key"
-                    )
-
         menuId =
             controlId ++ "-menu"
 
-        query =
-            case model.selected of
-                Just selected ->
-                    selected.autocomplete
-
-                Nothing ->
-                    model.autocomplete
-
-        showAutocompleteMenu =
-            case model.autocompleteMenuState of
-                AutocompleteMenuVisible ->
+        showAutocompleter =
+            case model.autocompleterState of
+                AutocompleterVisible ->
                     True
 
                 _ ->
                     False
-
-        menu =
-            if showAutocompleteMenu then
-                [ Html.map (ForSelf << AutocompleteMsg)
-                    (Autocomplete.view
-                        { getItemId = .value >> .id
-                        , menuId = menuId
-                        , viewItemContent = viewAutocompleteItemContent
-                        }
-                        autocompleterSize
-                        model.autocompleter
-                        model.autocompletions
-                    )
-                ]
-            else
-                []
     in
         div [ class ("form-group" ++ errorClass) ]
             (List.concat
                 [ [ label [ class "control-label", for controlId ] [ text controlLabel ]
                   , div [ class "input-group" ]
-                        [ input
+                        [ span [ class "input-group-addon" ]
+                            [ input
+                                [ ariaLabel <| I18n.translate language I18n.RadioButtonForFollowingAutocompleter
+                                , checked <| model.selected == Nothing
+                                , disabled (not showAutocompleter || (List.isEmpty model.autocompletions))
+                                , onClick (ForSelf <| Select Nothing)
+                                , type_ "radio"
+                                ]
+                                []
+                            ]
+
+                        -- , input
+                        --     (List.concat
+                        --         [ [ attribute "aria-autocomplete" "list"
+                        --           , ariaExpanded <| String.toLower <| toString showAutocompleter
+                        --           , attribute "aria-haspopup" <| String.toLower <| toString showAutocompleter
+                        --           , attribute "aria-owns" menuId
+                        --           , autocomplete False
+                        --           , class "form-control"
+                        --           , id controlId
+                        --           , onInput (ForSelf << InputChanged)
+                        --           , placeholder controlPlaceholder
+                        --           , title controlTitle
+                        --           , role "combobox"
+                        --           , type_ "text"
+                        --           , value query
+                        --           ]
+                        --         , (case model.selected of
+                        --             Just selected ->
+                        --                 [ ariaActiveDescendant selected.autocomplete ]
+                        --             Nothing ->
+                        --                 []
+                        --           )
+                        --         , errorAttributes
+                        --         ]
+                        --     )
+                        --     []
+                        , textarea
                             (List.concat
                                 [ [ attribute "aria-autocomplete" "list"
-                                  , ariaExpanded <| String.toLower <| toString showAutocompleteMenu
-                                  , attribute "aria-haspopup" <| String.toLower <| toString showAutocompleteMenu
+                                  , ariaExpanded <| String.toLower <| toString showAutocompleter
+                                  , attribute "aria-haspopup" <| String.toLower <| toString showAutocompleter
                                   , attribute "aria-owns" menuId
-                                  , autocomplete False
                                   , class "form-control"
                                   , id controlId
-                                  , onFocus (ForSelf Focus)
                                   , onInput (ForSelf << InputChanged)
-                                  , onWithOptions
-                                        "keydown"
-                                        { preventDefault = True, stopPropagation = False }
-                                        decodeKeyCode
                                   , placeholder controlPlaceholder
-                                  , title controlTitle
                                   , role "combobox"
-                                  , type_ "text"
-                                  , value query
+                                  , title controlTitle
+                                  , value model.autocomplete
                                   ]
                                 , (case model.selected of
                                     Just selected ->
@@ -132,99 +123,42 @@ viewAutocomplete language parentId controlLabelI18n controlPlaceholderI18n error
                                 ]
                             )
                             []
-                        , span [ class "input-group-btn" ]
-                            [ (case model.autocompleteMenuState of
-                                AutocompleteMenuHidden ->
-                                    button
-                                        [ class "btn btn-secondary"
-                                        , onWithOptions "click"
-                                            { preventDefault = True, stopPropagation = False }
-                                            (Json.Decode.succeed (ForSelf MouseOpen))
-                                        ]
-                                        (case model.selected of
-                                            Just selected ->
-                                                [ span
-                                                    [ ariaHidden True
-                                                    , class "fa fa-caret-down fa-fw"
-                                                    ]
-                                                    []
-                                                , span
-                                                    [ class "sr-only" ]
-                                                    [ text controlFindAnother ]
-                                                ]
-
-                                            Nothing ->
-                                                [ span
-                                                    [ ariaHidden True
-                                                    , class "fa fa-caret-down fa-fw"
-                                                    ]
-                                                    []
-                                                , span
-                                                    [ class "sr-only" ]
-                                                    [ text controlFindOne ]
-                                                ]
-                                        )
-
-                                AutocompleteMenuVisible ->
-                                    button
-                                        [ class "active btn btn-secondary"
-                                        , onWithOptions "click"
-                                            { preventDefault = True, stopPropagation = False }
-                                            (Json.Decode.succeed (ForSelf MouseClose))
-                                        ]
-                                        [ span
-                                            [ ariaHidden True
-                                            , class "fa fa-caret-down fa-fw"
-                                            ]
-                                            []
-                                        , span
-                                            [ class "sr-only" ]
-                                            [ text "Select a person or type more characters" ]
-                                        ]
-
-                                _ ->
-                                    button
-                                        [ class "btn btn-secondary"
-                                        , disabled True
-                                        , onWithOptions "click"
-                                            { preventDefault = True, stopPropagation = False }
-                                            (Json.Decode.succeed (ForSelf NoOp))
-                                        ]
-                                        [ span [ ariaHidden True, class "fa fa-fw fa-refresh fa-spin" ] []
-                                        , span [ class "sr-only" ] [ text <| I18n.translate language I18n.LoadingMenu ]
-                                        ]
-                              )
-                            ]
                         ]
                   , span [ class "sr-only" ] [ text <| I18n.translate language I18n.LoadingMenu ]
                   ]
-                , menu
                 , errorBlock
+                , if showAutocompleter then
+                    [ fieldset [ class "form-group" ]
+                        ([ legend []
+                            [ text <| I18n.translate language I18n.Suggestions ]
+                         ]
+                            ++ List.map
+                                (\autocompletion ->
+                                    div [ class "form-check" ]
+                                        [ label [ class "form-check-label" ]
+                                            [ input
+                                                [ class "form-check-input"
+                                                , checked <|
+                                                    (case model.selected of
+                                                        Just selected ->
+                                                            selected.value.id == autocompletion.value.id
+
+                                                        Nothing ->
+                                                            False
+                                                    )
+                                                , onClick (ForSelf <| Select <| Just autocompletion.value.id)
+                                                , type_ "radio"
+                                                ]
+                                                []
+                                            , text " "
+                                            , text autocompletion.autocomplete
+                                            ]
+                                        ]
+                                )
+                                model.autocompletions
+                        )
+                    ]
+                  else
+                    []
                 ]
             )
-
-
-viewAutocompleteFieldset :
-    I18n.Language
-    -> String
-    -> I18n.TranslationId
-    -> Maybe I18n.TranslationId
-    -> Model
-    -> Html Msg
-viewAutocompleteFieldset language fieldId fieldLabelI18n error model =
-    let
-        prefix =
-            if String.isEmpty fieldId then
-                fieldId
-            else
-                fieldId ++ "."
-    in
-        fieldset [ class "form-group" ]
-            [ legend [] [ text <| I18n.translate language fieldLabelI18n ]
-            , viewAutocomplete language fieldId I18n.Value I18n.ValuePlaceholder error model
-            ]
-
-
-viewAutocompleteItemContent : TypedValueAutocompletion -> List (Html Never)
-viewAutocompleteItemContent valueAutocompletion =
-    [ Html.text valueAutocompletion.autocomplete ]
