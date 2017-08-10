@@ -71,33 +71,6 @@ viewAutocomplete language parentId controlLabelI18n controlPlaceholderI18n error
                                 ]
                                 []
                             ]
-
-                        -- , input
-                        --     (List.concat
-                        --         [ [ attribute "aria-autocomplete" "list"
-                        --           , ariaExpanded <| String.toLower <| toString showAutocompleter
-                        --           , attribute "aria-haspopup" <| String.toLower <| toString showAutocompleter
-                        --           , attribute "aria-owns" menuId
-                        --           , autocomplete False
-                        --           , class "form-control"
-                        --           , id controlId
-                        --           , onInput (ForSelf << InputChanged)
-                        --           , placeholder controlPlaceholder
-                        --           , title controlTitle
-                        --           , role "combobox"
-                        --           , type_ "text"
-                        --           , value query
-                        --           ]
-                        --         , (case model.selected of
-                        --             Just selected ->
-                        --                 [ ariaActiveDescendant selected.autocomplete ]
-                        --             Nothing ->
-                        --                 []
-                        --           )
-                        --         , errorAttributes
-                        --         ]
-                        --     )
-                        --     []
                         , textarea
                             (List.concat
                                 [ [ attribute "aria-autocomplete" "list"
@@ -124,7 +97,6 @@ viewAutocomplete language parentId controlLabelI18n controlPlaceholderI18n error
                             )
                             []
                         ]
-                  , span [ class "sr-only" ] [ text <| I18n.translate language I18n.LoadingMenu ]
                   ]
                 , errorBlock
                 , if showAutocompleter then

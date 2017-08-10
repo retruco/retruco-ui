@@ -22,10 +22,10 @@ type alias Model =
 
 type InternalMsg
     = InputChanged String
-    | LoadMenu
-    | MenuLoaded (Result Http.Error TypedValuesAutocompletionBody)
+    | LoadSuggestions
     | NoOp
     | Select (Maybe String)
+    | SuggestionsLoaded (Result Http.Error TypedValuesAutocompletionBody)
 
 
 type Msg

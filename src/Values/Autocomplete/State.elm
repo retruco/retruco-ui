@@ -40,33 +40,11 @@ init valueTypes =
     }
 
 
-setModelFromSelected : Maybe TypedValueAutocompletion -> Model -> Model
-setModelFromSelected selected model =
-    let
-        autocomplete =
-            case selected of
-                Just selected ->
-                    selected.autocomplete
-
-                Nothing ->
-                    model.autocomplete
-    in
-        { model
-            | autocomplete = autocomplete
-            , selected = selected
-        }
-
-
-setModelFromTypedValueId : String -> Model -> Model
-setModelFromTypedValueId id model =
-    setModelFromSelected (idToAutocompletion id model) model
-
-
 sleepAndThenLoadAutocompleter : Model -> ( Model, Cmd Msg )
 sleepAndThenLoadAutocompleter model =
     ( { model | autocompleterState = AutocompleterSleeping }
     , Process.sleep (300 * millisecond)
-        |> Task.perform (\() -> (ForSelf <| LoadMenu))
+        |> Task.perform (\() -> (ForSelf <| LoadSuggestions))
     )
 
 
@@ -96,7 +74,7 @@ update msg authentication language fieldId model =
                 , cmd
                 )
 
-        LoadMenu ->
+        LoadSuggestions ->
             ( { model | autocompleterState = AutocompleterLoading }
             , Requests.autocompleteValues
                 authentication
@@ -104,40 +82,7 @@ update msg authentication language fieldId model =
                 model.valueTypes
                 model.autocomplete
                 autocompleterSize
-                |> Http.send (ForSelf << MenuLoaded)
-            )
-
-        MenuLoaded (Err httpError) ->
-            case model.autocompleterState of
-                AutocompleterSleeping ->
-                    ( { model | autocompleterState = AutocompleterLoading }
-                    , Requests.autocompleteValues
-                        authentication
-                        language
-                        model.valueTypes
-                        model.autocomplete
-                        autocompleterSize
-                        |> Http.send (ForSelf << MenuLoaded)
-                    )
-
-                _ ->
-                    ( { model | autocompleterState = AutocompleterHidden }, Cmd.none )
-
-        MenuLoaded (Ok typedValuesAutocompletionBody) ->
-            ( { model
-                | autocompleterState = AutocompleterVisible
-                , autocompletions = typedValuesAutocompletionBody.data
-              }
-            , Task.attempt
-                (\result ->
-                    case result of
-                        Result.Err err ->
-                            Debug.crash ("Dom.Scroll.toTop \"html-element\": " ++ toString err)
-
-                        Result.Ok _ ->
-                            ForSelf <| NoOp
-                )
-                (Dom.Scroll.toBottom "html-element")
+                |> Http.send (ForSelf << SuggestionsLoaded)
             )
 
         NoOp ->
@@ -154,3 +99,36 @@ update msg authentication language fieldId model =
                             Nothing
             in
                 ( { model | selected = selected }, Cmd.none )
+
+        SuggestionsLoaded (Err httpError) ->
+            case model.autocompleterState of
+                AutocompleterSleeping ->
+                    ( { model | autocompleterState = AutocompleterLoading }
+                    , Requests.autocompleteValues
+                        authentication
+                        language
+                        model.valueTypes
+                        model.autocomplete
+                        autocompleterSize
+                        |> Http.send (ForSelf << SuggestionsLoaded)
+                    )
+
+                _ ->
+                    ( { model | autocompleterState = AutocompleterHidden }, Cmd.none )
+
+        SuggestionsLoaded (Ok typedValuesAutocompletionBody) ->
+            ( { model
+                | autocompleterState = AutocompleterVisible
+                , autocompletions = typedValuesAutocompletionBody.data
+              }
+            , Task.attempt
+                (\result ->
+                    case result of
+                        Result.Err err ->
+                            Debug.crash ("Dom.Scroll.toTop \"html-element\": " ++ toString err)
+
+                        Result.Ok _ ->
+                            ForSelf <| NoOp
+                )
+                (Dom.Scroll.toBottom "html-element")
+            )
