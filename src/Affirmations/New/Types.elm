@@ -1,4 +1,4 @@
-module Assertions.New.Types exposing (..)
+module Affirmations.New.Types exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import Dict exposing (Dict)
@@ -9,7 +9,7 @@ import Values.New.Types
 
 
 type ExternalMsg
-    = AssertionUpserted DataId
+    = AffirmationUpserted DataId
     | RequireSignIn InternalMsg
 
 
@@ -40,7 +40,7 @@ type Msg
 
 
 type alias MsgTranslation parentMsg =
-    { onAssertionUpserted : DataId -> parentMsg
+    { onAffirmationUpserted : DataId -> parentMsg
     , onInternalMsg : InternalMsg -> parentMsg
     , onRequireSignIn : InternalMsg -> parentMsg
     }
@@ -51,10 +51,10 @@ type alias MsgTranslator parentMsg =
 
 
 translateMsg : MsgTranslation parentMsg -> MsgTranslator parentMsg
-translateMsg { onAssertionUpserted, onInternalMsg, onRequireSignIn } msg =
+translateMsg { onAffirmationUpserted, onInternalMsg, onRequireSignIn } msg =
     case msg of
-        ForParent (AssertionUpserted data) ->
-            onAssertionUpserted data
+        ForParent (AffirmationUpserted data) ->
+            onAffirmationUpserted data
 
         ForParent (RequireSignIn completionMsg) ->
             onRequireSignIn completionMsg

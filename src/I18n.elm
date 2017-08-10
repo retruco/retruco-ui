@@ -29,13 +29,13 @@ type TranslationId
     | AddNew
     | AddNewItemBox
     | AddPropertyKey
+    | Affirmations
+    | AffirmationsDescription
+    | AffirmationsRetrievalFailed
     | Arguments
     | ArgumentsAbout
     | ArgumentsRetrievalFailed
     | ArgumentType
-    | Assertions
-    | AssertionsDescription
-    | AssertionsRetrievalFailed
     | AuthenticationFailed
     | AuthenticationRequired
     | AuthenticationRequiredExplanation
@@ -129,10 +129,10 @@ type TranslationId
     | NetworkError
     | NetworkErrorExplanation
     | New
+    | NewAffirmation
+    | NewAffirmationDescription
     | NewArgument
     | NewArgumentDescription
-    | NewAssertion
-    | NewAssertionDescription
     | NewCard
     | NewValue
     | NewValueDescription
@@ -379,6 +379,27 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        Affirmations ->
+            { emptyTranslationSet
+                | english = s "Affirmations"
+                , french = s "Affirmations"
+                , spanish = todo
+            }
+
+        AffirmationsDescription ->
+            { emptyTranslationSet
+                | english = s "List of affirmations"
+                , french = s "Liste d'affirmations"
+                , spanish = todo
+            }
+
+        AffirmationsRetrievalFailed ->
+            { emptyTranslationSet
+                | english = s "Retrieval of affirmations failed"
+                , french = s "Échec de la récupération des affirmations"
+                , spanish = todo
+            }
+
         Arguments ->
             { emptyTranslationSet
                 | english = s "Arguments"
@@ -404,27 +425,6 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Argument Type"
                 , french = s "Type d'argument"
-                , spanish = todo
-            }
-
-        Assertions ->
-            { emptyTranslationSet
-                | english = s "Assertions"
-                , french = s "Assertions"
-                , spanish = todo
-            }
-
-        AssertionsDescription ->
-            { emptyTranslationSet
-                | english = s "List of assertions"
-                , french = s "Liste d'assertions"
-                , spanish = todo
-            }
-
-        AssertionsRetrievalFailed ->
-            { emptyTranslationSet
-                | english = s "Retrieval of assertions failed"
-                , french = s "Échec de la récupération des assertions"
                 , spanish = todo
             }
 
@@ -1099,6 +1099,20 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        NewAffirmation ->
+            { emptyTranslationSet
+                | english = s "New Affirmation"
+                , french = s "Nouvelle affirmation"
+                , spanish = todo
+            }
+
+        NewAffirmationDescription ->
+            { emptyTranslationSet
+                | english = s "Form to enter a new affirmation"
+                , french = s "Formulaire de création d'une nouvelle affirmation"
+                , spanish = todo
+            }
+
         NewArgument ->
             { emptyTranslationSet
                 | english = s "New Argument"
@@ -1110,20 +1124,6 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Form to enter a new argument"
                 , french = s "Formulaire de création d'un nouvel argument"
-                , spanish = todo
-            }
-
-        NewAssertion ->
-            { emptyTranslationSet
-                | english = s "New Assertion"
-                , french = s "Nouvelle assertion"
-                , spanish = todo
-            }
-
-        NewAssertionDescription ->
-            { emptyTranslationSet
-                | english = s "Form to enter a new assertion"
-                , french = s "Formulaire de création d'une nouvelle assertion"
                 , spanish = todo
             }
 

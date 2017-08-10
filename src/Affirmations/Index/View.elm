@@ -1,6 +1,6 @@
-module Assertions.Index.View exposing (..)
+module Affirmations.Index.View exposing (..)
 
-import Assertions.Index.Types exposing (..)
+import Affirmations.Index.Types exposing (..)
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -49,9 +49,9 @@ view model =
                             [ aForPath
                                 (ForParent << Navigate)
                                 language
-                                "/assertions/new"
+                                "/affirmations/new"
                                 [ class "btn btn-secondary", role "button" ]
-                                [ text <| I18n.translate language I18n.NewAssertion ]
+                                [ text <| I18n.translate language I18n.NewAffirmation ]
                             ]
                         ]
                     ]
@@ -83,7 +83,7 @@ view model =
                                                             [ aForPath
                                                                 (ForParent << Navigate)
                                                                 language
-                                                                ("/assertions/" ++ typedValue.id)
+                                                                ("/affirmations/" ++ typedValue.id)
                                                                 [ class "btn btn-secondary" ]
                                                                 [ text (I18n.translate language (I18n.Debate)) ]
                                                             , div
@@ -182,7 +182,7 @@ view model =
                                 ]
                                 [ strong []
                                     [ text <|
-                                        I18n.translate language I18n.AssertionsRetrievalFailed
+                                        I18n.translate language I18n.AffirmationsRetrievalFailed
                                             ++ I18n.translate language I18n.Colon
                                     ]
                                 , text <| Http.Error.toString language httpError

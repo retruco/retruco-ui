@@ -55,7 +55,7 @@ view model =
                                         [ aForPath
                                             (ForParent << Navigate)
                                             language
-                                            ("/assertions/" ++ typedValue.id)
+                                            ("/affirmations/" ++ typedValue.id)
                                             [ class "btn btn-secondary" ]
                                             [ text (I18n.translate language (I18n.Debate)) ]
                                         , div
@@ -139,7 +139,7 @@ view model =
                                     ]
 
                         Nothing ->
-                            i [ class "text-warning" ] [ text ("Missing assertion with ID: " ++ argument.objectId) ]
+                            i [ class "text-warning" ] [ text ("Missing affirmation with ID: " ++ argument.objectId) ]
                     , let
                         ballot =
                             Dict.get argument.ballotId data.ballots
@@ -185,7 +185,7 @@ view model =
                                     [ aForPath
                                         (ForParent << Navigate)
                                         language
-                                        ("/assertions/" ++ argument.valueId)
+                                        ("/affirmations/" ++ argument.valueId)
                                         [ class "btn btn-secondary" ]
                                         [ text (I18n.translate language (I18n.Debate)) ]
                                     , div

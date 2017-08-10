@@ -1,9 +1,9 @@
 module Root.State exposing (..)
 
+import Affirmations.Index.State
+import Affirmations.Item.State
+import Affirmations.New.State
 import Arguments.Item.State
-import Assertions.Index.State
-import Assertions.Item.State
-import Assertions.New.State
 import Authenticator.Routes exposing (..)
 import Authenticator.State
 import Cards.Index.State
@@ -45,9 +45,9 @@ init flags location =
         searchModel =
             Search.init
     in
-        { argumentModel = Nothing
-        , assertionModel = Nothing
-        , assertionsModel = Nothing
+        { affirmationModel = Nothing
+        , affirmationsModel = Nothing
+        , argumentModel = Nothing
         , authentication = authentication
         , authenticatorCancelMsg = Nothing
         , authenticatorCompletionMsgs = []
@@ -57,7 +57,7 @@ init flags location =
         , clearModelOnUrlUpdate = True
         , location = location
         , navigatorLanguage = navigatorLanguage
-        , newAssertionModel = Nothing
+        , newAffirmationModel = Nothing
         , newValueModel = Nothing
         , page = "reference"
         , route = Routes.I18nRouteWithoutLanguage ""
@@ -108,9 +108,9 @@ subscriptions model =
 
             Nothing ->
                 Nothing
-        , case model.assertionModel of
-            Just assertionModel ->
-                Just <| Sub.map AssertionMsg (Assertions.Item.State.subscriptions assertionModel)
+        , case model.affirmationModel of
+            Just affirmationModel ->
+                Just <| Sub.map AffirmationMsg (Affirmations.Item.State.subscriptions affirmationModel)
 
             Nothing ->
                 Nothing
@@ -120,9 +120,9 @@ subscriptions model =
 
             Nothing ->
                 Nothing
-        , case model.newAssertionModel of
-            Just newAssertionModel ->
-                Just <| Sub.map NewAssertionMsg (Assertions.New.State.subscriptions newAssertionModel)
+        , case model.newAffirmationModel of
+            Just newAffirmationModel ->
+                Just <| Sub.map NewAffirmationMsg (Affirmations.New.State.subscriptions newAffirmationModel)
 
             Nothing ->
                 Nothing
@@ -162,6 +162,37 @@ update msg model =
                 update completionMsg model
     in
         case msg of
+            AffirmationMsg childMsg ->
+                case model.affirmationModel of
+                    Just affirmationModel ->
+                        let
+                            ( updatedAffirmationModel, childCmd ) =
+                                Affirmations.Item.State.update childMsg affirmationModel
+                        in
+                            ( { model | affirmationModel = Just updatedAffirmationModel }
+                            , Cmd.map translateAffirmationMsg childCmd
+                            )
+
+                    Nothing ->
+                        ( model, Cmd.none )
+
+            AffirmationsMsg childMsg ->
+                case model.affirmationsModel of
+                    Just affirmationsModel ->
+                        let
+                            ( updatedAffirmationsModel, childCmd ) =
+                                Affirmations.Index.State.update childMsg affirmationsModel
+                        in
+                            ( { model | affirmationsModel = Just updatedAffirmationsModel }
+                            , Cmd.map translateAffirmationsMsg childCmd
+                            )
+
+                    Nothing ->
+                        ( model, Cmd.none )
+
+            AffirmationUpserted data ->
+                update (Navigate <| Urls.languagePath language ("/affirmations/" ++ data.id)) model
+
             ArgumentMsg childMsg ->
                 case model.argumentModel of
                     Just argumentModel ->
@@ -175,37 +206,6 @@ update msg model =
 
                     Nothing ->
                         ( model, Cmd.none )
-
-            AssertionMsg childMsg ->
-                case model.assertionModel of
-                    Just assertionModel ->
-                        let
-                            ( updatedAssertionModel, childCmd ) =
-                                Assertions.Item.State.update childMsg assertionModel
-                        in
-                            ( { model | assertionModel = Just updatedAssertionModel }
-                            , Cmd.map translateAssertionMsg childCmd
-                            )
-
-                    Nothing ->
-                        ( model, Cmd.none )
-
-            AssertionsMsg childMsg ->
-                case model.assertionsModel of
-                    Just assertionsModel ->
-                        let
-                            ( updatedAssertionsModel, childCmd ) =
-                                Assertions.Index.State.update childMsg assertionsModel
-                        in
-                            ( { model | assertionsModel = Just updatedAssertionsModel }
-                            , Cmd.map translateAssertionsMsg childCmd
-                            )
-
-                    Nothing ->
-                        ( model, Cmd.none )
-
-            AssertionUpserted data ->
-                update (Navigate <| Urls.languagePath language ("/assertions/" ++ data.id)) model
 
             AuthenticatorMsg childMsg ->
                 let
@@ -326,15 +326,15 @@ update msg model =
             NavigateFromAuthenticator path ->
                 ( model, navigate model path )
 
-            NewAssertionMsg childMsg ->
-                case model.newAssertionModel of
-                    Just newAssertionModel ->
+            NewAffirmationMsg childMsg ->
+                case model.newAffirmationModel of
+                    Just newAffirmationModel ->
                         let
-                            ( updatedNewAssertionModel, childCmd ) =
-                                Assertions.New.State.update childMsg newAssertionModel
+                            ( updatedNewAffirmationModel, childCmd ) =
+                                Affirmations.New.State.update childMsg newAffirmationModel
                         in
-                            ( { model | newAssertionModel = Just updatedNewAssertionModel }
-                            , Cmd.map translateNewAssertionMsg childCmd
+                            ( { model | newAffirmationModel = Just updatedNewAffirmationModel }
+                            , Cmd.map translateNewAffirmationMsg childCmd
                             )
 
                     Nothing ->
@@ -357,17 +357,17 @@ update msg model =
             NoOp ->
                 ( model, Cmd.none )
 
+            RequireSignInForAffirmation affirmationCompletionMsg ->
+                requireSignInOrUpdate <| AffirmationMsg affirmationCompletionMsg
+
             RequireSignInForArgument argumentCompletionMsg ->
                 requireSignInOrUpdate <| ArgumentMsg argumentCompletionMsg
-
-            RequireSignInForAssertion assertionCompletionMsg ->
-                requireSignInOrUpdate <| AssertionMsg assertionCompletionMsg
 
             RequireSignInForCard cardCompletionMsg ->
                 requireSignInOrUpdate <| CardMsg cardCompletionMsg
 
-            RequireSignInForNewAssertion newAssertionCompletionMsg ->
-                requireSignInOrUpdate <| NewAssertionMsg newAssertionCompletionMsg
+            RequireSignInForNewAffirmation newAffirmationCompletionMsg ->
+                requireSignInOrUpdate <| NewAffirmationMsg newAffirmationCompletionMsg
 
             RequireSignInForNewValue newValueCompletionMsg ->
                 requireSignInOrUpdate <| NewValueMsg newValueCompletionMsg
@@ -436,13 +436,13 @@ urlUpdate location model =
         cleanModel =
             if clearSubModels then
                 { model
-                    | argumentModel = Nothing
-                    , assertionModel = Nothing
-                    , assertionsModel = Nothing
+                    | affirmationModel = Nothing
+                    , affirmationsModel = Nothing
+                    , argumentModel = Nothing
                     , cardModel = Nothing
                     , cardsModel = Nothing
                     , clearModelOnUrlUpdate = True
-                    , newAssertionModel = Nothing
+                    , newAffirmationModel = Nothing
                     , newValueModel = Nothing
                     , valueModel = Nothing
                     , valuesModel = Nothing
@@ -463,6 +463,79 @@ urlUpdate location model =
                             case localizedRoute of
                                 AboutRoute ->
                                     ( cleanModel, Cmd.none )
+
+                                AffirmationsRoute childRoute ->
+                                    case childRoute of
+                                        AffirmationRoute affirmationId affirmationRoute ->
+                                            let
+                                                affirmationModel =
+                                                    case ( model.affirmationModel, clearSubModels ) of
+                                                        ( Just affirmationModel, False ) ->
+                                                            Affirmations.Item.State.setContext
+                                                                model.authentication
+                                                                language
+                                                                affirmationModel
+
+                                                        _ ->
+                                                            Affirmations.Item.State.init
+                                                                model.authentication
+                                                                language
+                                                                affirmationId
+
+                                                ( updatedAffirmationModel, updatedAffirmationCmd ) =
+                                                    Affirmations.Item.State.urlUpdate
+                                                        location
+                                                        affirmationRoute
+                                                        affirmationModel
+                                            in
+                                                ( { cleanModel
+                                                    | affirmationModel = Just updatedAffirmationModel
+                                                    , -- Stay at the current location after sign out.
+                                                      signOutMsg = Just (NavigateFromAuthenticator location.href)
+                                                  }
+                                                , Cmd.map translateAffirmationMsg updatedAffirmationCmd
+                                                )
+
+                                        AffirmationsIndexRoute ->
+                                            let
+                                                affirmationsModel =
+                                                    Affirmations.Index.State.init model.authentication language
+
+                                                ( updatedAffirmationsModel, childCmd ) =
+                                                    Affirmations.Index.State.urlUpdate location affirmationsModel
+                                            in
+                                                ( { cleanModel | affirmationsModel = Just updatedAffirmationsModel }
+                                                , Cmd.map translateAffirmationsMsg childCmd
+                                                )
+
+                                        NewAffirmationRoute ->
+                                            let
+                                                newAffirmationModel =
+                                                    case ( model.newAffirmationModel, clearSubModels ) of
+                                                        ( Just newAffirmationModel, False ) ->
+                                                            Affirmations.New.State.setContext
+                                                                model.authentication
+                                                                language
+                                                                newAffirmationModel
+
+                                                        _ ->
+                                                            Affirmations.New.State.init
+                                                                model.authentication
+                                                                language
+                                                                []
+
+                                                ( updatedNewAffirmationModel, updatedNewAffirmationCmd ) =
+                                                    Affirmations.New.State.urlUpdate location newAffirmationModel
+                                            in
+                                                ( { cleanModel
+                                                    | newAffirmationModel = Just updatedNewAffirmationModel
+                                                    , signOutMsg =
+                                                        Just <|
+                                                            NavigateFromAuthenticator <|
+                                                                Urls.languagePath language "/affirmations"
+                                                  }
+                                                , Cmd.map translateNewAffirmationMsg updatedNewAffirmationCmd
+                                                )
 
                                 ArgumentsRoute childRoute ->
                                     case childRoute of
@@ -494,79 +567,6 @@ urlUpdate location model =
                                                       signOutMsg = Just (NavigateFromAuthenticator location.href)
                                                   }
                                                 , Cmd.map translateArgumentMsg updatedArgumentCmd
-                                                )
-
-                                AssertionsRoute childRoute ->
-                                    case childRoute of
-                                        AssertionRoute assertionId assertionRoute ->
-                                            let
-                                                assertionModel =
-                                                    case ( model.assertionModel, clearSubModels ) of
-                                                        ( Just assertionModel, False ) ->
-                                                            Assertions.Item.State.setContext
-                                                                model.authentication
-                                                                language
-                                                                assertionModel
-
-                                                        _ ->
-                                                            Assertions.Item.State.init
-                                                                model.authentication
-                                                                language
-                                                                assertionId
-
-                                                ( updatedAssertionModel, updatedAssertionCmd ) =
-                                                    Assertions.Item.State.urlUpdate
-                                                        location
-                                                        assertionRoute
-                                                        assertionModel
-                                            in
-                                                ( { cleanModel
-                                                    | assertionModel = Just updatedAssertionModel
-                                                    , -- Stay at the current location after sign out.
-                                                      signOutMsg = Just (NavigateFromAuthenticator location.href)
-                                                  }
-                                                , Cmd.map translateAssertionMsg updatedAssertionCmd
-                                                )
-
-                                        AssertionsIndexRoute ->
-                                            let
-                                                assertionsModel =
-                                                    Assertions.Index.State.init model.authentication language
-
-                                                ( updatedAssertionsModel, childCmd ) =
-                                                    Assertions.Index.State.urlUpdate location assertionsModel
-                                            in
-                                                ( { cleanModel | assertionsModel = Just updatedAssertionsModel }
-                                                , Cmd.map translateAssertionsMsg childCmd
-                                                )
-
-                                        NewAssertionRoute ->
-                                            let
-                                                newAssertionModel =
-                                                    case ( model.newAssertionModel, clearSubModels ) of
-                                                        ( Just newAssertionModel, False ) ->
-                                                            Assertions.New.State.setContext
-                                                                model.authentication
-                                                                language
-                                                                newAssertionModel
-
-                                                        _ ->
-                                                            Assertions.New.State.init
-                                                                model.authentication
-                                                                language
-                                                                []
-
-                                                ( updatedNewAssertionModel, updatedNewAssertionCmd ) =
-                                                    Assertions.New.State.urlUpdate location newAssertionModel
-                                            in
-                                                ( { cleanModel
-                                                    | newAssertionModel = Just updatedNewAssertionModel
-                                                    , signOutMsg =
-                                                        Just <|
-                                                            NavigateFromAuthenticator <|
-                                                                Urls.languagePath language "/assertions"
-                                                  }
-                                                , Cmd.map translateNewAssertionMsg updatedNewAssertionCmd
                                                 )
 
                                 AuthenticatorRoute authenticatorRoute ->
@@ -669,7 +669,7 @@ urlUpdate location model =
                                 SearchRoute ->
                                     -- ( cleanModel, Cmd.map translateStatementsMsg (Statements.load) )
                                     -- ( cleanModel, Cmd.none )
-                                    ( cleanModel, navigate cleanModel <| Urls.languagePath language "/assertions" )
+                                    ( cleanModel, navigate cleanModel <| Urls.languagePath language "/affirmations" )
 
                                 UserProfileRoute ->
                                     ( cleanModel, Cmd.none )

@@ -176,7 +176,7 @@ statementIdPath id data =
         Nothing ->
             case Dict.get id data.values of
                 Just _ ->
-                    "/assertions/" ++ id
+                    "/affirmations/" ++ id
 
                 Nothing ->
                     -- This path doesn't exist, but function needs to return a path.

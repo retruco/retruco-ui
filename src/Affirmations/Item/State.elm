@@ -1,8 +1,8 @@
-module Assertions.Item.State exposing (..)
+module Affirmations.Item.State exposing (..)
 
+import Affirmations.Item.Routes exposing (..)
+import Affirmations.Item.Types exposing (..)
 import Arguments.New.State
-import Assertions.Item.Routes exposing (..)
-import Assertions.Item.Types exposing (..)
 import Authenticator.Types exposing (Authentication)
 import Http
 import I18n
@@ -102,7 +102,7 @@ update msg model =
             , if data.id == model.id then
                 Cmd.none
               else
-                -- The rating of an argument may have changed => the assertion rating may also have changed.
+                -- The rating of an argument may have changed => the affirmation rating may also have changed.
                 -- => Retrieve it.
                 Task.attempt (ForSelf << ValueUpdated)
                     (Process.sleep (1 * Time.second)

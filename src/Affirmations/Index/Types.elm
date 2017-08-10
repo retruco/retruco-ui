@@ -1,4 +1,4 @@
-module Assertions.Index.Types exposing (..)
+module Affirmations.Index.Types exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import Dict exposing (Dict)

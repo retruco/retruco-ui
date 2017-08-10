@@ -1,9 +1,9 @@
 module Root.Types exposing (..)
 
+import Affirmations.Index.Types
+import Affirmations.Item.Types
+import Affirmations.New.Types
 import Arguments.Item.Types
-import Assertions.Index.Types
-import Assertions.Item.Types
-import Assertions.New.Types
 import Authenticator.Routes
 import Authenticator.Types exposing (Authentication)
 import Cards.Index.Types
@@ -19,9 +19,9 @@ import Values.New.Types
 
 
 type alias Model =
-    { argumentModel : Maybe Arguments.Item.Types.Model
-    , assertionModel : Maybe Assertions.Item.Types.Model
-    , assertionsModel : Maybe Assertions.Index.Types.Model
+    { affirmationModel : Maybe Affirmations.Item.Types.Model
+    , affirmationsModel : Maybe Affirmations.Index.Types.Model
+    , argumentModel : Maybe Arguments.Item.Types.Model
     , authentication : Maybe Authentication
     , authenticatorCancelMsg : Maybe Msg
     , authenticatorCompletionMsgs : List Msg
@@ -31,7 +31,7 @@ type alias Model =
     , clearModelOnUrlUpdate : Bool
     , location : Navigation.Location
     , navigatorLanguage : Maybe I18n.Language
-    , newAssertionModel : Maybe Assertions.New.Types.Model
+    , newAffirmationModel : Maybe Affirmations.New.Types.Model
     , newValueModel : Maybe Values.New.Types.Model
     , page : String
     , route : Routes.Route
@@ -44,10 +44,10 @@ type alias Model =
 
 
 type Msg
-    = ArgumentMsg Arguments.Item.Types.InternalMsg
-    | AssertionMsg Assertions.Item.Types.InternalMsg
-    | AssertionsMsg Assertions.Index.Types.InternalMsg
-    | AssertionUpserted Types.DataId
+    = AffirmationMsg Affirmations.Item.Types.InternalMsg
+    | AffirmationsMsg Affirmations.Index.Types.InternalMsg
+    | AffirmationUpserted Types.DataId
+    | ArgumentMsg Arguments.Item.Types.InternalMsg
     | AuthenticatorMsg Authenticator.Types.InternalMsg
     | AuthenticatorTerminated Authenticator.Routes.Route (Result () (Maybe Authentication))
     | CardMsg Cards.Item.Types.InternalMsg
@@ -56,13 +56,13 @@ type Msg
     | LocationChanged Navigation.Location
     | Navigate String
     | NavigateFromAuthenticator String
-    | NewAssertionMsg Assertions.New.Types.InternalMsg
+    | NewAffirmationMsg Affirmations.New.Types.InternalMsg
     | NewValueMsg Values.New.Types.InternalMsg
     | NoOp
+    | RequireSignInForAffirmation Affirmations.Item.Types.InternalMsg
     | RequireSignInForArgument Arguments.Item.Types.InternalMsg
-    | RequireSignInForAssertion Assertions.Item.Types.InternalMsg
     | RequireSignInForCard Cards.Item.Types.InternalMsg
-    | RequireSignInForNewAssertion Assertions.New.Types.InternalMsg
+    | RequireSignInForNewAffirmation Affirmations.New.Types.InternalMsg
     | RequireSignInForNewValue Values.New.Types.InternalMsg
     | RequireSignInForValue Values.Item.Types.InternalMsg
     | SearchMsg Search.InternalMsg
@@ -71,29 +71,29 @@ type Msg
     | ValueUpserted Types.DataId
 
 
+translateAffirmationMsg : Affirmations.Item.Types.MsgTranslator Msg
+translateAffirmationMsg =
+    Affirmations.Item.Types.translateMsg
+        { onInternalMsg = AffirmationMsg
+        , onNavigate = Navigate
+        , onRequireSignIn = RequireSignInForAffirmation
+        }
+
+
+translateAffirmationsMsg : Affirmations.Index.Types.MsgTranslator Msg
+translateAffirmationsMsg =
+    Affirmations.Index.Types.translateMsg
+        { onInternalMsg = AffirmationsMsg
+        , onNavigate = Navigate
+        }
+
+
 translateArgumentMsg : Arguments.Item.Types.MsgTranslator Msg
 translateArgumentMsg =
     Arguments.Item.Types.translateMsg
         { onInternalMsg = ArgumentMsg
         , onNavigate = Navigate
         , onRequireSignIn = RequireSignInForArgument
-        }
-
-
-translateAssertionMsg : Assertions.Item.Types.MsgTranslator Msg
-translateAssertionMsg =
-    Assertions.Item.Types.translateMsg
-        { onInternalMsg = AssertionMsg
-        , onNavigate = Navigate
-        , onRequireSignIn = RequireSignInForAssertion
-        }
-
-
-translateAssertionsMsg : Assertions.Index.Types.MsgTranslator Msg
-translateAssertionsMsg =
-    Assertions.Index.Types.translateMsg
-        { onInternalMsg = AssertionsMsg
-        , onNavigate = Navigate
         }
 
 
@@ -124,12 +124,12 @@ translateCardsMsg =
         }
 
 
-translateNewAssertionMsg : Assertions.New.Types.MsgTranslator Msg
-translateNewAssertionMsg =
-    Assertions.New.Types.translateMsg
-        { onInternalMsg = NewAssertionMsg
-        , onAssertionUpserted = AssertionUpserted
-        , onRequireSignIn = RequireSignInForNewAssertion
+translateNewAffirmationMsg : Affirmations.New.Types.MsgTranslator Msg
+translateNewAffirmationMsg =
+    Affirmations.New.Types.translateMsg
+        { onInternalMsg = NewAffirmationMsg
+        , onAffirmationUpserted = AffirmationUpserted
+        , onRequireSignIn = RequireSignInForNewAffirmation
         }
 
 

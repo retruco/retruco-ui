@@ -1,7 +1,7 @@
-module Assertions.Item.View exposing (..)
+module Affirmations.Item.View exposing (..)
 
+import Affirmations.Item.Types exposing (..)
 import Arguments.New.View
-import Assertions.Item.Types exposing (..)
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -133,7 +133,7 @@ view model =
                         [ aForPath
                             (ForParent << Navigate)
                             language
-                            ("/assertions/" ++ typedValue.id ++ "/hide")
+                            ("/affirmations/" ++ typedValue.id ++ "/hide")
                             [ class "btn btn-secondary" ]
                             [ span
                                 [ ariaHidden True
@@ -199,7 +199,7 @@ view model =
                                                             [ aForPath
                                                                 (ForParent << Navigate)
                                                                 language
-                                                                -- ("/assertions/" ++ property.valueId)
+                                                                -- ("/affirmations/" ++ property.valueId)
                                                                 ("/arguments/" ++ property.id)
                                                                 [ class "btn btn-secondary" ]
                                                                 [ text (I18n.translate language (I18n.Debate)) ]

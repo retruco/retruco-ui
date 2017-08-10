@@ -1,6 +1,6 @@
-module Assertions.Index.State exposing (..)
+module Affirmations.Index.State exposing (..)
 
-import Assertions.Index.Types exposing (..)
+import Affirmations.Index.Types exposing (..)
 import Authenticator.Types exposing (Authentication)
 import Dict exposing (Dict)
 import Http
@@ -184,20 +184,20 @@ urlUpdate location model =
 --     , data = initData
 --     , httpError = Nothing
 --     , language = language
---     , newAssertionModel = Assertions.New.State.init authentication language objectId []
+--     , newAffirmationModel = Affirmations.New.State.init authentication language objectId []
 --     , objectId = objectId
 --     , propertyIds = Nothing
 --     }
 -- update : InternalMsg -> Model -> ( Model, Cmd Msg )
 -- update msg model =
 --     case msg of
---         NewAssertionMsg childMsg ->
+--         NewAffirmationMsg childMsg ->
 --             let
---                 ( updatedNewAssertionModel, childCmd ) =
---                     Assertions.New.State.update childMsg model.newAssertionModel
+--                 ( updatedNewAffirmationModel, childCmd ) =
+--                     Affirmations.New.State.update childMsg model.newAffirmationModel
 --             in
---                 ( { model | newAssertionModel = updatedNewAssertionModel }
---                 , Cmd.map translateNewAssertionMsg childCmd
+--                 ( { model | newAffirmationModel = updatedNewAffirmationModel }
+--                 , Cmd.map translateNewAffirmationMsg childCmd
 --                 )
 --         RatingPosted (Err httpError) ->
 --             ( { model | httpError = Just httpError }, Cmd.none )

@@ -1,7 +1,7 @@
 module Routes exposing (..)
 
+import Affirmations.Item.Routes
 import Arguments.Item.Routes
-import Assertions.Item.Routes
 import Authenticator.Routes
 import Cards.Item.Routes
 import I18n
@@ -10,14 +10,14 @@ import UrlParser exposing ((</>), map, oneOf, parsePath, Parser, remaining, s, s
 import Values.Item.Routes
 
 
+type AffirmationsRoute
+    = AffirmationRoute String Affirmations.Item.Routes.Route
+    | AffirmationsIndexRoute
+    | NewAffirmationRoute
+
+
 type ArgumentsRoute
     = ArgumentRoute String Arguments.Item.Routes.Route
-
-
-type AssertionsRoute
-    = AssertionRoute String Assertions.Item.Routes.Route
-    | AssertionsIndexRoute
-    | NewAssertionRoute
 
 
 type CardsRoute
@@ -31,8 +31,8 @@ type CardsRoute
 
 type LocalizedRoute
     = AboutRoute
+    | AffirmationsRoute AffirmationsRoute
     | ArgumentsRoute ArgumentsRoute
-    | AssertionsRoute AssertionsRoute
     | AuthenticatorRoute Authenticator.Routes.Route
     | CardsRoute CardsRoute
     | NotFoundRoute (List String)
@@ -52,6 +52,22 @@ type ValuesRoute
     | ValuesIndexRoute
 
 
+affirmationRouteParser : Parser (Affirmations.Item.Routes.Route -> a) a
+affirmationRouteParser =
+    oneOf
+        [ map Affirmations.Item.Routes.IndexRoute top
+        ]
+
+
+affirmationsRouteParser : Parser (AffirmationsRoute -> a) a
+affirmationsRouteParser =
+    oneOf
+        [ map AffirmationsIndexRoute top
+        , map NewAffirmationRoute (s "new")
+        , map AffirmationRoute (idParser </> affirmationRouteParser)
+        ]
+
+
 argumentRouteParser : Parser (Arguments.Item.Routes.Route -> a) a
 argumentRouteParser =
     oneOf
@@ -63,22 +79,6 @@ argumentsRouteParser : Parser (ArgumentsRoute -> a) a
 argumentsRouteParser =
     oneOf
         [ map ArgumentRoute (idParser </> argumentRouteParser)
-        ]
-
-
-assertionRouteParser : Parser (Assertions.Item.Routes.Route -> a) a
-assertionRouteParser =
-    oneOf
-        [ map Assertions.Item.Routes.IndexRoute top
-        ]
-
-
-assertionsRouteParser : Parser (AssertionsRoute -> a) a
-assertionsRouteParser =
-    oneOf
-        [ map AssertionsIndexRoute top
-        , map NewAssertionRoute (s "new")
-        , map AssertionRoute (idParser </> assertionRouteParser)
         ]
 
 
@@ -111,8 +111,8 @@ localizedRouteParser =
     oneOf
         [ map SearchRoute top
         , map AboutRoute (s "about")
+        , map AffirmationsRoute (s "affirmations" </> affirmationsRouteParser)
         , map ArgumentsRoute (s "arguments" </> argumentsRouteParser)
-        , map AssertionsRoute (s "assertions" </> assertionsRouteParser)
         , map CardsRoute (s "cards" </> cardsRouteParser)
         , map UserProfileRoute (s "profile")
         , map (AuthenticatorRoute Authenticator.Routes.ResetPasswordRoute) (s "reset_password")

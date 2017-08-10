@@ -1,4 +1,4 @@
-module Assertions.Item.Types exposing (..)
+module Affirmations.Item.Types exposing (..)
 
 import Arguments.New.Types
 import Authenticator.Types exposing (Authentication)
