@@ -272,14 +272,19 @@ getCollections authentication limit =
         , headers = authenticationHeaders authentication
         , url =
             apiUrl
-                ++ "collections?show=values&depth=1"
-                ++ (case limit of
-                        Nothing ->
-                            ""
+                ++ "collections"
+                ++ Urls.paramsToQuery
+                    [ ( "depth", Just "1" )
+                    , ( "limit"
+                      , case limit of
+                            Just limit ->
+                                Just (toString limit)
 
-                        Just limit ->
-                            "&limit=" ++ (toString limit)
-                   )
+                            Nothing ->
+                                Nothing
+                      )
+                    , ( "show", Just "values" )
+                    ]
         , body = Http.emptyBody
         , expect = Http.expectJson dataIdsBodyDecoder
         , timeout = Nothing
@@ -309,18 +314,19 @@ getDebateProperties authentication showTrashed objectId =
             apiUrl
                 ++ "objects/"
                 ++ objectId
-                ++ "/debate-properties?"
-                ++ ([ Just "depth=1"
-                    , Just "show=ballots"
-                    , Just "show=values"
-                    , if showTrashed then
-                        Just "show=trashed"
-                      else
-                        Nothing
-                    ]
-                        |> List.filterMap identity
-                        |> String.join "&"
-                   )
+                ++ "/debate-properties"
+                ++ Urls.paramsToQuery
+                    ([ ( "depth", Just "1" )
+                     , ( "show", Just "ballots" )
+                     , ( "show"
+                       , if showTrashed then
+                            Just "trashed"
+                         else
+                            Nothing
+                       )
+                     , ( "show", Just "values" )
+                     ]
+                    )
         , body = Http.emptyBody
         , expect = Http.expectJson dataIdsBodyDecoder
         , timeout = Nothing
@@ -348,12 +354,24 @@ getTagsPopularity authentication tagIds =
         , headers = authenticationHeaders authentication
         , url =
             apiUrl
-                ++ "cards/tags-popularity?type=use-case&"
-                ++ (tagIds
-                        |> List.filter (\s -> not (String.isEmpty s))
-                        |> List.map (\tagId -> "tag=" ++ tagId)
-                        |> String.join "&"
-                   )
+                ++ "cards/tags-popularity"
+                ++ Urls.paramsToQuery
+                    (List.map
+                        (\tagId ->
+                            ( "tag"
+                            , let
+                                cleanTagId =
+                                    String.trim tagId
+                              in
+                                if String.isEmpty cleanTagId then
+                                    Nothing
+                                else
+                                    Just cleanTagId
+                            )
+                        )
+                        tagIds
+                        ++ [ ( "type", Just "use-case" ) ]
+                    )
         , body = Http.emptyBody
         , expect = Http.expectJson popularTagsDataDecoder
         , timeout = Nothing
@@ -381,34 +399,49 @@ getValues authentication term limit ratedOnly showTrashed =
         , headers = authenticationHeaders authentication
         , url =
             apiUrl
-                ++ "values?"
-                ++ ([ Just "depth=3"
-                    , if ratedOnly then
-                        Just "rated=true"
-                      else
-                        Nothing
-                    , Just "show=ballots"
-                    , Just "show=properties"
-                    , if showTrashed then
-                        Just "show=trashed"
-                      else
-                        Nothing
-                    , Just "show=values"
-                    , (case term of
-                        Just "" ->
-                            Nothing
+                ++ "values"
+                ++ Urls.paramsToQuery
+                    ([ ( "depth", Just "3" )
+                     , ( "limit"
+                       , case limit of
+                            Just limit ->
+                                Just (toString limit)
 
-                        Just term ->
-                            Just ("term=" ++ Http.encodeUri term)
-
-                        Nothing ->
+                            Nothing ->
+                                Nothing
+                       )
+                     , ( "rated"
+                       , if ratedOnly then
+                            Just "true"
+                         else
                             Nothing
-                      )
-                    , limit |> Maybe.map (\limit -> "limit=" ++ (toString limit))
-                    ]
-                        |> List.filterMap identity
-                        |> String.join "&"
-                   )
+                       )
+                     , ( "show", Just "ballots" )
+                     , ( "show", Just "properties" )
+                     , ( "show"
+                       , if showTrashed then
+                            Just "trashed"
+                         else
+                            Nothing
+                       )
+                     , ( "show", Just "values" )
+                     , ( "term"
+                       , case term of
+                            Just term ->
+                                let
+                                    cleanTerm =
+                                        String.trim term
+                                in
+                                    if String.isEmpty cleanTerm then
+                                        Nothing
+                                    else
+                                        Just cleanTerm
+
+                            Nothing ->
+                                Nothing
+                       )
+                     ]
+                    )
         , body = Http.emptyBody
         , expect = Http.expectJson dataIdsBodyDecoder
         , timeout = Nothing
@@ -673,191 +706,3 @@ unrateStatement authentication statementId =
         , timeout = Nothing
         , withCredentials = False
         }
-
-
-
--- newTaskCreateStatement : Authentication -> StatementCustom -> Task Http.Error DataIdBody
--- newTaskCreateStatement authentication statementCustom =
---     let
---         bodyJson =
---             Encode.object
---                 ([ ( "type", Encode.string (convertStatementCustomToKind statementCustom) ) ]
---                     ++ case statementCustom of
---                         AbuseCustom abuse ->
---                             [ ( "statementId", Encode.string abuse.statementId )
---                             ]
---                         ArgumentCustom argument ->
---                             [ ( "argumentType", Encode.string (convertArgumentTypeToString argument.argumentType) )
---                             , ( "claimId", Encode.string argument.claimId )
---                             , ( "groundId", Encode.string argument.groundId )
---                             ]
---                         CitationCustom citation ->
---                             [ ( "citedId", Encode.string citation.citedId )
---                             , ( "eventId", Encode.string citation.eventId )
---                             , ( "personId", Encode.string citation.personId )
---                             ]
---                         EventCustom event ->
---                             [ ( "name", Encode.string event.name )
---                             ]
---                         PersonCustom person ->
---                             [ ( "name", Encode.string person.name )
---                             , ( "twitterName", Encode.string person.twitterName )
---                             ]
---                         PlainCustom plain ->
---                             [ ( "languageCode", Encode.string plain.languageCode )
---                             , ( "name", Encode.string plain.name )
---                             ]
---                         TagCustom tag ->
---                             [ ( "name", Encode.string tag.name )
---                             ]
---                 )
---     in
---         Http.fromJson decodeDataIdBody
---             (Http.send Http.defaultSettings
---                 { verb = "POST"
---                 , url =
---                     (apiUrl
---                         ++ "statements"
---                         ++ "?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=properties&show=references"
---                         ++ "&show=tags"
---                     )
---                 , headers =
---                     [ ( "Accept", "application/json" )
---                     , ( "Content-Type", "application/json" )
---                     , ( "Retruco-API-Key", authentication.apiKey )
---                     ]
---                 , body = Http.string (Encode.encode 2 bodyJson)
---                 }
---             )
--- newTaskDeleteStatementRating : Authentication -> String -> Task Http.Error DataIdBody
--- newTaskDeleteStatementRating authentication statementId =
---     Http.fromJson decodeDataIdBody
---         (Http.send Http.defaultSettings
---             { verb = "DELETE"
---             , url =
---                 (apiUrl
---                     ++ "statements/"
---                     ++ statementId
---                     ++ "/rating?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=properties&show=references"
---                     ++ "&show=tags"
---                 )
---             , headers =
---                 [ ( "Accept", "application/json" )
---                 , ( "Retruco-API-Key", authentication.apiKey )
---                 ]
---             , body = Http.empty
---             }
---         )
--- newTaskFlagAbuse : Authentication -> String -> Task Http.Error DataIdBody
--- newTaskFlagAbuse authentication statementId =
---     Http.fromJson decodeDataIdBody
---         (Http.send Http.defaultSettings
---             { verb = "GET"
---             , url =
---                 (apiUrl
---                     ++ "statements/"
---                     ++ statementId
---                     ++ "/abuse?depth=1&show=abuse&show=author&show=ballot&show=grounds&show=properties&show=references"
---                     ++ "&show=tags"
---                 )
---             , headers =
---                 [ ( "Accept", "application/json" )
---                 , ( "Retruco-API-Key", authentication.apiKey )
---                 ]
---             , body = Http.empty
---             }
---         )
--- newTaskGetStatements : Maybe Authentication -> SearchCriteria -> Task Http.Error DataIdsBody
--- newTaskGetStatements authentication searchCriteria =
---     let
---         authenticationHeaders =
---             case authentication of
---                 Just authentication ->
---                     [ ( "Retruco-API-Key", authentication.apiKey )
---                     ]
---                 Nothing ->
---                     []
---     in
---         Http.fromJson decodeDataIdsBody
---             (Http.send Http.defaultSettings
---                 { verb = "GET"
---                 , url =
---                     Http.url (apiUrl ++ "statements")
---                         ([ ( "depth", "1" )
---                          , ( "show", "abuse" )
---                          , ( "show", "author" )
---                          , ( "show", "ballot" )
---                          , ( "show", "grounds" )
---                          , ( "show", "properties" )
---                          , ( "show", "tags" )
---                          ]
---                             ++ (case searchCriteria.languageCodeMaybe of
---                                     Just languageCode ->
---                                         [ ( "languageCode", languageCode ) ]
---                                     Nothing ->
---                                         []
---                                )
---                             ++ (case searchCriteria.termMaybe of
---                                     Just term ->
---                                         [ ( "term", term ) ]
---                                     Nothing ->
---                                         []
---                                )
---                             ++ List.map (\kind -> ( "type", kind )) searchCriteria.kinds
---                         )
---                 , headers =
---                     [ ( "Accept", "application/json" )
---                     ]
---                         ++ authenticationHeaders
---                 , body = Http.empty
---                 }
---             )
--- updateFromDataId : DataId -> ModelFragment a -> ModelFragment a
--- updateFromDataId data model =
---     { model
---         | ballotById =
---             Dict.merge
---                 (\id ballot ballotById ->
---                     if ballot.deleted then
---                         ballotById
---                     else
---                         Dict.insert id ballot ballotById
---                 )
---                 (\id leftBallot rightBallot ballotById ->
---                     if leftBallot.deleted then
---                         ballotById
---                     else
---                         Dict.insert id leftBallot ballotById
---                 )
---                 Dict.insert
---                 data.ballots
---                 model.ballotById
---                 Dict.empty
---         , statementById =
---             Dict.merge
---                 (\id statement statementById ->
---                     if statement.deleted then
---                         statementById
---                     else
---                         Dict.insert id statement statementById
---                 )
---                 (\id leftStatement rightStatement statementById ->
---                     if leftStatement.deleted then
---                         statementById
---                     else
---                         Dict.insert id leftStatement statementById
---                 )
---                 Dict.insert
---                 data.statements
---                 model.statementById
---                 Dict.empty
---         , statementIds =
---             if Dict.member data.id data.statements then
---                 if List.member data.id model.statementIds then
---                     model.statementIds
---                 else
---                     data.id :: model.statementIds
---             else
---                 -- data.id is not the ID of a statement (but a ballot ID, etc).
---                 model.statementIds
---     }
