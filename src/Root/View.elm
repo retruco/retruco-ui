@@ -11,6 +11,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Helpers exposing (aForPath)
 import I18n
+import Properties.Item.View
 import Root.Types exposing (..)
 import Routes exposing (..)
 import Search
@@ -230,6 +231,17 @@ view model =
                         --         |> Html.map translateNewCardMsg
                         NotFoundRoute _ ->
                             viewNotFound language
+
+                        PropertiesRoute childRoute ->
+                            case childRoute of
+                                PropertyRoute _ _ ->
+                                    case model.propertyModel of
+                                        Just propertyModel ->
+                                            Properties.Item.View.view propertyModel
+                                                |> Html.map translatePropertyMsg
+
+                                        Nothing ->
+                                            text "This should not occur: propertyModel == Nothing!"
 
                         SearchRoute ->
                             div []

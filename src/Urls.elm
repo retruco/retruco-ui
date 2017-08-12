@@ -150,6 +150,15 @@ queryStringForParams params location =
                 "?" ++ (String.join "&" parts)
 
 
+queryToggle : String -> Navigation.Location -> Bool
+queryToggle key location =
+    -- Return True if and only if the given parameter is present in query.
+    (Erl.parse location.href).query
+        |> List.filter (\( k, v ) -> k == key)
+        |> List.isEmpty
+        |> not
+
+
 replaceLanguageInLocation : I18n.Language -> Navigation.Location -> String
 replaceLanguageInLocation language location =
     let

@@ -26,6 +26,7 @@ init authentication language =
         }
     , searchSort = "Popular"
     , searchTerm = ""
+    , showTrashed = False
     }
 
 
@@ -102,6 +103,7 @@ update msg model =
                     model.searchCriteria.term
                     limit
                     True
+                    model.showTrashed
                     |> Http.send (ForSelf << Retrieved)
             )
 
@@ -165,7 +167,11 @@ urlUpdate location model =
             model.language
 
         ( newModel, cmd ) =
-            update Submit { model | searchTerm = Urls.querySearchTerm location }
+            update Submit
+                { model
+                    | searchTerm = Urls.querySearchTerm location
+                    , showTrashed = Urls.queryToggle "trashed" location
+                }
     in
         newModel
             ! [ cmd

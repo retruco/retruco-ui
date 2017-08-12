@@ -31,6 +31,7 @@ type alias Model =
     , newArgumentModel : Arguments.New.Types.Model
     , objectId : String
     , propertyIds : Maybe (List String)
+    , showTrashed : Bool
     }
 
 

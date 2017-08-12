@@ -1,7 +1,5 @@
-module Affirmations.Item.State exposing (..)
+module Properties.Item.State exposing (..)
 
-import Affirmations.Item.Routes exposing (..)
-import Affirmations.Item.Types exposing (..)
 import Arguments.New.State
 import Authenticator.Types exposing (Authentication)
 import Http
@@ -9,6 +7,8 @@ import I18n
 import Navigation
 import Ports
 import Process
+import Properties.Item.Routes exposing (..)
+import Properties.Item.Types exposing (..)
 import Requests
 import Task
 import Time
@@ -103,7 +103,7 @@ update msg model =
             , if data.id == model.id then
                 Cmd.none
               else
-                -- The rating of an argument may have changed => the affirmation rating may also have changed.
+                -- The rating of an property may have changed => the property rating may also have changed.
                 -- => Retrieve it.
                 Task.attempt (ForSelf << ValueUpdated)
                     (Process.sleep (1 * Time.second)

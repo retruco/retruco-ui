@@ -21,6 +21,7 @@ init authentication language objectId =
     , newArgumentModel = Arguments.New.State.init authentication language objectId []
     , objectId = objectId
     , propertyIds = Nothing
+    , showTrashed = False
     }
 
 
@@ -75,7 +76,7 @@ update msg model =
                 | httpError = Nothing
                 , propertyIds = Nothing
               }
-            , Requests.getDebateProperties model.authentication model.objectId
+            , Requests.getDebateProperties model.authentication model.showTrashed model.objectId
                 |> Http.send (ForSelf << Retrieved)
             )
 
@@ -149,4 +150,7 @@ update msg model =
 
 urlUpdate : Navigation.Location -> Model -> ( Model, Cmd Msg )
 urlUpdate location model =
-    update Retrieve model
+    update Retrieve
+        { model
+            | showTrashed = Urls.queryToggle "trashed" location
+        }

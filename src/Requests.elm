@@ -189,8 +189,16 @@ getCard authentication cardId =
         }
 
 
-getCards : Maybe Authentication -> String -> Int -> Int -> List String -> List String -> Http.Request DataIdsBody
-getCards authentication term limit offset tagIds cardTypes =
+getCards :
+    Maybe Authentication
+    -> String
+    -> Int
+    -> Int
+    -> List String
+    -> List String
+    -> Bool
+    -> Http.Request DataIdsBody
+getCards authentication term limit offset tagIds cardTypes showTrashed =
     Http.request
         { method = "GET"
         , headers = authenticationHeaders authentication
@@ -201,6 +209,12 @@ getCards authentication term limit offset tagIds cardTypes =
                     ([ ( "depth", Just "2" )
                      , ( "limit", Just (toString limit) )
                      , ( "offset", Just (toString offset) )
+                     , ( "show"
+                       , if showTrashed then
+                            Just "trashed"
+                         else
+                            Nothing
+                       )
                      , ( "show", Just "values" )
                      , ( "term"
                        , let
@@ -286,12 +300,27 @@ getCollectionsForAuthor authentication =
         }
 
 
-getDebateProperties : Maybe Authentication -> String -> Http.Request DataIdsBody
-getDebateProperties authentication objectId =
+getDebateProperties : Maybe Authentication -> Bool -> String -> Http.Request DataIdsBody
+getDebateProperties authentication showTrashed objectId =
     Http.request
         { method = "GET"
         , headers = authenticationHeaders authentication
-        , url = apiUrl ++ "objects/" ++ objectId ++ "/debate-properties" ++ "?show=ballots&show=values&depth=1"
+        , url =
+            apiUrl
+                ++ "objects/"
+                ++ objectId
+                ++ "/debate-properties?"
+                ++ ([ Just "depth=1"
+                    , Just "show=ballots"
+                    , Just "show=values"
+                    , if showTrashed then
+                        Just "show=trashed"
+                      else
+                        Nothing
+                    ]
+                        |> List.filterMap identity
+                        |> String.join "&"
+                   )
         , body = Http.emptyBody
         , expect = Http.expectJson dataIdsBodyDecoder
         , timeout = Nothing
@@ -345,8 +374,8 @@ getValue authentication id =
         }
 
 
-getValues : Maybe Authentication -> Maybe String -> Maybe Int -> Bool -> Http.Request DataIdsBody
-getValues authentication term limit ratedOnly =
+getValues : Maybe Authentication -> Maybe String -> Maybe Int -> Bool -> Bool -> Http.Request DataIdsBody
+getValues authentication term limit ratedOnly showTrashed =
     Http.request
         { method = "GET"
         , headers = authenticationHeaders authentication
@@ -360,6 +389,10 @@ getValues authentication term limit ratedOnly =
                         Nothing
                     , Just "show=ballots"
                     , Just "show=properties"
+                    , if showTrashed then
+                        Just "show=trashed"
+                      else
+                        Nothing
                     , Just "show=values"
                     , (case term of
                         Just "" ->

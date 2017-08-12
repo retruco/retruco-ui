@@ -15,6 +15,7 @@ import Json.Decode
 import I18n
 import Navigation
 import Ports
+import Properties.Item.State
 import Root.Types exposing (..)
 import Routes exposing (..)
 import Search
@@ -60,6 +61,7 @@ init flags location =
         , newAffirmationModel = Nothing
         , newValueModel = Nothing
         , page = "reference"
+        , propertyModel = Nothing
         , route = Routes.I18nRouteWithoutLanguage ""
         , searchCriteria = searchModel.searchCriteria
         , searchModel = searchModel
@@ -129,6 +131,12 @@ subscriptions model =
         , case model.newValueModel of
             Just newValueModel ->
                 Just <| Sub.map NewValueMsg (Values.New.State.subscriptions newValueModel)
+
+            Nothing ->
+                Nothing
+        , case model.propertyModel of
+            Just propertyModel ->
+                Just <| Sub.map PropertyMsg (Properties.Item.State.subscriptions propertyModel)
 
             Nothing ->
                 Nothing
@@ -357,6 +365,20 @@ update msg model =
             NoOp ->
                 ( model, Cmd.none )
 
+            PropertyMsg childMsg ->
+                case model.propertyModel of
+                    Just propertyModel ->
+                        let
+                            ( updatedPropertyModel, childCmd ) =
+                                Properties.Item.State.update childMsg propertyModel
+                        in
+                            ( { model | propertyModel = Just updatedPropertyModel }
+                            , Cmd.map translatePropertyMsg childCmd
+                            )
+
+                    Nothing ->
+                        ( model, Cmd.none )
+
             RequireSignInForAffirmation affirmationCompletionMsg ->
                 requireSignInOrUpdate <| AffirmationMsg affirmationCompletionMsg
 
@@ -371,6 +393,9 @@ update msg model =
 
             RequireSignInForNewValue newValueCompletionMsg ->
                 requireSignInOrUpdate <| NewValueMsg newValueCompletionMsg
+
+            RequireSignInForProperty propertyCompletionMsg ->
+                requireSignInOrUpdate <| PropertyMsg propertyCompletionMsg
 
             RequireSignInForValue valueCompletionMsg ->
                 requireSignInOrUpdate <| ValueMsg valueCompletionMsg
@@ -444,6 +469,7 @@ urlUpdate location model =
                     , clearModelOnUrlUpdate = True
                     , newAffirmationModel = Nothing
                     , newValueModel = Nothing
+                    , propertyModel = Nothing
                     , valueModel = Nothing
                     , valuesModel = Nothing
                 }
@@ -665,6 +691,38 @@ urlUpdate location model =
                                         , title = I18n.translate language I18n.PageNotFound
                                         }
                                     )
+
+                                PropertiesRoute childRoute ->
+                                    case childRoute of
+                                        PropertyRoute propertyId propertyRoute ->
+                                            let
+                                                propertyModel =
+                                                    case ( model.propertyModel, clearSubModels ) of
+                                                        ( Just propertyModel, False ) ->
+                                                            Properties.Item.State.setContext
+                                                                model.authentication
+                                                                language
+                                                                propertyModel
+
+                                                        _ ->
+                                                            Properties.Item.State.init
+                                                                model.authentication
+                                                                language
+                                                                propertyId
+
+                                                ( updatedPropertyModel, updatedPropertyCmd ) =
+                                                    Properties.Item.State.urlUpdate
+                                                        location
+                                                        propertyRoute
+                                                        propertyModel
+                                            in
+                                                ( { cleanModel
+                                                    | propertyModel = Just updatedPropertyModel
+                                                    , -- Stay at the current location after sign out.
+                                                      signOutMsg = Just (NavigateFromAuthenticator location.href)
+                                                  }
+                                                , Cmd.map translatePropertyMsg updatedPropertyCmd
+                                                )
 
                                 SearchRoute ->
                                     -- ( cleanModel, Cmd.map translateStatementsMsg (Statements.load) )

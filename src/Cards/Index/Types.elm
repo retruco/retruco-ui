@@ -31,6 +31,7 @@ type alias Model =
     , searchCriteria : SearchCriteria
     , searchSort : String
     , searchTerm : String
+    , showTrashed : Bool
     , webData : WebData DataIdsBody
     }
 

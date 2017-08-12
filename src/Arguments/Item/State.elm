@@ -25,6 +25,7 @@ init authentication language id =
     , language = language
     , newArgumentModel = Arguments.New.State.init authentication language id []
     , propertyIds = Nothing
+    , showTrashed = False
     }
 
 
@@ -125,6 +126,22 @@ update msg model =
                 |> Http.send (ForSelf << ValueRetrieved)
             )
 
+        Trash statementId ->
+            ( model
+            , Requests.postProperty model.authentication statementId "trashed" "true"
+                |> Http.send (ForSelf << TrashUpserted)
+            )
+
+        TrashUpserted (Err httpError) ->
+            ( { model | httpError = Just httpError }, Cmd.none )
+
+        TrashUpserted (Ok body) ->
+            ( model
+            , Task.perform
+                (\_ -> ForParent <| Navigate <| Urls.languagePath model.language ("/properties/" ++ body.data.id))
+                (Task.succeed ())
+            )
+
         UnvoteRating statementId ->
             ( model
             , Requests.unrateStatement model.authentication statementId
@@ -163,7 +180,7 @@ update msg model =
 
         ValueRetrieved (Ok { data }) ->
             ( mergeModelData data model
-            , Requests.getDebateProperties model.authentication model.id
+            , Requests.getDebateProperties model.authentication model.showTrashed model.id
                 |> Http.send (ForSelf << DebatePropertiesRetrieved)
             )
 
@@ -205,11 +222,11 @@ urlUpdate location route model =
             model.language
 
         unroutedModel =
-            -- { model
-            --     | argumentsModel = Nothing
-            --     , sameKeyPropertiesModel = Nothing
-            -- }
-            model
+            { model
+              -- | argumentsModel = Nothing
+              -- , sameKeyPropertiesModel = Nothing
+                | showTrashed = Urls.queryToggle "trashed" location
+            }
 
         ( updatedModel, updatedCmd ) =
             update Retrieve unroutedModel

@@ -6,6 +6,7 @@ import Authenticator.Routes
 import Cards.Item.Routes
 import I18n
 import Navigation
+import Properties.Item.Routes
 import UrlParser exposing ((</>), map, oneOf, parsePath, Parser, remaining, s, string, top)
 import Values.Item.Routes
 
@@ -36,9 +37,14 @@ type LocalizedRoute
     | AuthenticatorRoute Authenticator.Routes.Route
     | CardsRoute CardsRoute
     | NotFoundRoute (List String)
+    | PropertiesRoute PropertiesRoute
     | SearchRoute
     | UserProfileRoute
     | ValuesRoute ValuesRoute
+
+
+type PropertiesRoute
+    = PropertyRoute String Properties.Item.Routes.Route
 
 
 type Route
@@ -115,6 +121,7 @@ localizedRouteParser =
         , map ArgumentsRoute (s "arguments" </> argumentsRouteParser)
         , map CardsRoute (s "cards" </> cardsRouteParser)
         , map UserProfileRoute (s "profile")
+        , map PropertiesRoute (s "properties" </> propertiesRouteParser)
         , map (AuthenticatorRoute Authenticator.Routes.ResetPasswordRoute) (s "reset_password")
         , map (AuthenticatorRoute Authenticator.Routes.SignInRoute) (s "sign_in")
         , map (AuthenticatorRoute Authenticator.Routes.SignOutRoute) (s "sign_out")
@@ -133,6 +140,20 @@ localizedRouteParser =
 parseLocation : Navigation.Location -> Maybe Route
 parseLocation location =
     UrlParser.parsePath routeParser location
+
+
+propertyRouteParser : Parser (Properties.Item.Routes.Route -> a) a
+propertyRouteParser =
+    oneOf
+        [ map Properties.Item.Routes.IndexRoute top
+        ]
+
+
+propertiesRouteParser : Parser (PropertiesRoute -> a) a
+propertiesRouteParser =
+    oneOf
+        [ map PropertyRoute (idParser </> propertyRouteParser)
+        ]
 
 
 routeParser : Parser (Route -> a) a

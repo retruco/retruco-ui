@@ -17,6 +17,8 @@ type InternalMsg
     | NewArgumentMsg Arguments.New.Types.InternalMsg
     | RatingPosted (Result Http.Error DataIdBody)
     | Retrieve
+    | Trash String
+    | TrashUpserted (Result Http.Error DataIdBody)
     | UnvoteRating String
     | Upserted Types.DataId
     | ValueRetrieved (Result Http.Error DataIdBody)
@@ -33,6 +35,7 @@ type alias Model =
     , language : I18n.Language
     , newArgumentModel : Arguments.New.Types.Model
     , propertyIds : Maybe (List String)
+    , showTrashed : Bool
     }
 
 

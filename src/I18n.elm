@@ -105,7 +105,6 @@ type TranslationId
     | GivePositiveRating
     | HeaderTitle
     | Help
-    | Hide
     | Home
     | HomeDescription
     | HomeTitle
@@ -190,6 +189,7 @@ type TranslationId
     | TextField
     | Timeout
     | TimeoutExplanation
+    | Trash
     | TrueWord
     | TweetMessage String String
     | Type
@@ -931,13 +931,6 @@ getTranslationSet translationId =
                 , spanish = s "Ayuda"
             }
 
-        Hide ->
-            { emptyTranslationSet
-                | english = s "Hide"
-                , french = s "Masquer"
-                , spanish = todo
-            }
-
         Home ->
             { emptyTranslationSet
                 | english = s "Home"
@@ -1523,6 +1516,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "The server was too slow to respond."
                 , french = s "Le serveur a mis trop de temps à repondre."
+                , spanish = todo
+            }
+
+        Trash ->
+            { emptyTranslationSet
+                | english = s "Trash"
+                , french = s "Jeter"
                 , spanish = todo
             }
 

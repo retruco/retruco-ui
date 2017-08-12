@@ -269,18 +269,24 @@ view model =
                                 ]
                             ]
                     , div [ class "toolbar" ]
-                        [ aForPath
-                            (ForParent << Navigate)
-                            language
-                            ("/arguments/" ++ argument.id ++ "/hide")
-                            [ class "btn btn-secondary" ]
+                        [ button
+                            [ classList
+                                [ ( "btn", True )
+                                , ( "btn-secondary", True )
+                                ]
+                            , onClick
+                                (ForSelf <| Trash argument.id)
+                            , type_ "button"
+                            ]
                             [ span
                                 [ ariaHidden True
-                                , class "fa fa-eye-slash"
+                                , class "fa fa-trash-o"
                                 ]
                                 []
-                            , text " "
-                            , text (I18n.translate language (I18n.Hide))
+                            , text <|
+                                I18n.translate
+                                    language
+                                    I18n.Trash
                             ]
                         ]
                     , hr [] []

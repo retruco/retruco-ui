@@ -10,6 +10,7 @@ import Cards.Index.Types
 import Cards.Item.Types
 import I18n
 import Navigation
+import Properties.Item.Types
 import Routes
 import Search
 import Types
@@ -33,7 +34,7 @@ type alias Model =
     , navigatorLanguage : Maybe I18n.Language
     , newAffirmationModel : Maybe Affirmations.New.Types.Model
     , newValueModel : Maybe Values.New.Types.Model
-    , page : String
+    , propertyModel : Maybe Properties.Item.Types.Model
     , route : Routes.Route
     , searchCriteria : Types.SearchCriteria
     , searchModel : Search.Model
@@ -59,11 +60,13 @@ type Msg
     | NewAffirmationMsg Affirmations.New.Types.InternalMsg
     | NewValueMsg Values.New.Types.InternalMsg
     | NoOp
+    | PropertyMsg Properties.Item.Types.InternalMsg
     | RequireSignInForAffirmation Affirmations.Item.Types.InternalMsg
     | RequireSignInForArgument Arguments.Item.Types.InternalMsg
     | RequireSignInForCard Cards.Item.Types.InternalMsg
     | RequireSignInForNewAffirmation Affirmations.New.Types.InternalMsg
     | RequireSignInForNewValue Values.New.Types.InternalMsg
+    | RequireSignInForProperty Properties.Item.Types.InternalMsg
     | RequireSignInForValue Values.Item.Types.InternalMsg
     | SearchMsg Search.InternalMsg
     | ValueMsg Values.Item.Types.InternalMsg
@@ -139,6 +142,15 @@ translateNewValueMsg =
         { onInternalMsg = NewValueMsg
         , onRequireSignIn = RequireSignInForNewValue
         , onValueUpserted = ValueUpserted
+        }
+
+
+translatePropertyMsg : Properties.Item.Types.MsgTranslator Msg
+translatePropertyMsg =
+    Properties.Item.Types.translateMsg
+        { onInternalMsg = PropertyMsg
+        , onNavigate = Navigate
+        , onRequireSignIn = RequireSignInForProperty
         }
 
 
