@@ -29,14 +29,14 @@ update msg model language =
 
         ActivationSent response ->
             case response of
-                Result.Err err ->
+                Err err ->
                     let
                         _ =
                             Debug.log "Authenticator.ActivationSent Error" err
                     in
                         ( model, Cmd.none )
 
-                Result.Ok body ->
+                Ok body ->
                     ( model, Cmd.none )
 
         SendActivation authentication ->

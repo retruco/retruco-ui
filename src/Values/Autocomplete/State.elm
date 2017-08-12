@@ -124,10 +124,10 @@ update msg authentication language fieldId model =
             , Task.attempt
                 (\result ->
                     case result of
-                        Result.Err err ->
+                        Err err ->
                             Debug.crash ("Dom.Scroll.toTop \"html-element\": " ++ toString err)
 
-                        Result.Ok _ ->
+                        Ok _ ->
                             ForSelf <| NoOp
                 )
                 (Dom.Scroll.toBottom "html-element")

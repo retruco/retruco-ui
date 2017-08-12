@@ -60,7 +60,6 @@ init flags location =
         , navigatorLanguage = navigatorLanguage
         , newAffirmationModel = Nothing
         , newValueModel = Nothing
-        , page = "reference"
         , propertyModel = Nothing
         , route = Routes.I18nRouteWithoutLanguage ""
         , searchCriteria = searchModel.searchCriteria
@@ -813,10 +812,10 @@ urlUpdate location model =
             ! [ Task.attempt
                     (\result ->
                         case result of
-                            Result.Err err ->
+                            Err err ->
                                 Debug.crash ("Dom.Scroll.toTop \"html-element\": " ++ toString err)
 
-                            Result.Ok _ ->
+                            Ok _ ->
                                 NoOp
                     )
                     (Dom.Scroll.toTop "html-element")
