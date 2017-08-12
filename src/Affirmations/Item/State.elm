@@ -128,7 +128,7 @@ update msg model =
 
         Trash statementId ->
             ( model
-            , Requests.postProperty model.authentication statementId "trashed" "true"
+            , Requests.postProperty model.authentication statementId "trashed" "true" Nothing
                 |> Http.send (ForSelf << TrashUpserted)
             )
 

@@ -143,7 +143,7 @@ update msg model =
                                 { mergedData | id = ballot.statementId }
                         in
                             ( { mergedModel | data = data }
-                            , Requests.postProperty model.authentication model.objectId model.keyId data.id
+                            , Requests.postProperty model.authentication model.objectId model.keyId data.id (Just 1)
                                 |> Http.send (ForSelf << Upserted)
                             )
 

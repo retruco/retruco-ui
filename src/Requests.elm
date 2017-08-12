@@ -488,18 +488,36 @@ postCollection authentication collectionId collectionJson =
         }
 
 
-postProperty : Maybe Authentication -> String -> String -> String -> Http.Request DataIdBody
-postProperty authentication objectId keyId valueId =
+postProperty : Maybe Authentication -> String -> String -> String -> Maybe Int -> Http.Request DataIdBody
+postProperty authentication objectId keyId valueId rating =
     Http.request
         { method = "POST"
         , headers = authenticationHeaders authentication
         , url = apiUrl ++ "properties?show=ballots&show=values&depth=3"
         , body =
             Encode.object
-                [ ( "keyId", Encode.string keyId )
-                , ( "objectId", Encode.string objectId )
-                , ( "valueId", Encode.string valueId )
-                ]
+                ([ ( "keyId", Just <| Encode.string keyId )
+                 , ( "objectId", Just <| Encode.string objectId )
+                 , ( "rating"
+                   , case rating of
+                        Just rating ->
+                            Just <| Encode.int rating
+
+                        Nothing ->
+                            Nothing
+                   )
+                 , ( "valueId", Just <| Encode.string valueId )
+                 ]
+                    |> List.filterMap
+                        (\( key, value ) ->
+                            case value of
+                                Just value ->
+                                    Just ( key, value )
+
+                                Nothing ->
+                                    Nothing
+                        )
+                )
                 |> Http.jsonBody
         , expect = Http.expectJson dataIdBodyDecoder
         , timeout = Nothing
