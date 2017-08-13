@@ -26,7 +26,7 @@
     "extract-text-webpack-plugin": "^3.0.0",
     "file-loader": "^0.11.1",
     "font-awesome-loader": "^1.0.0",
-    "html-webpack-plugin": "^2.24.0",
+    "html-webpack-plugin": "^2.30.1",
     "imports-loader": "^0.7.1",
     "node-sass": "^4.5.2",
     "node-static": "^0.7.9",
@@ -36,14 +36,16 @@
     "sass-loader": "^6.0.3",
     "style-loader": "^0.18.2",
     "url-loader": "^0.5.7",
-    "webpack": "^3.2.0",
-    "webpack-dev-server": "^2.4.4",
+    "webpack": "^3.5.4",
+    "webpack-dev-server": "^2.7.1",
     "webpack-merge": "^4.1.0"
   },
   "private": true,
   "license": "AGPL-3.0+",
   "dependencies": {
-    "bootstrap": "^4.0.0-alpha.6",
-    "font-awesome": "^4.6.3"
+    "bootstrap": "^4.0.0-beta",
+    "font-awesome": "^4.6.3",
+    "jquery": "^3.2.1",
+    "popper.js": "^1.11.1"
   }
 }
