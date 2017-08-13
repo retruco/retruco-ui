@@ -1,9 +1,8 @@
 module Types exposing (..)
 
--- import Autocomplete
-
 import Dict exposing (Dict)
 import Json.Decode
+import Set
 
 
 type alias Argument =
@@ -328,14 +327,37 @@ initDataIds =
 
 mergeData : DataProxy a -> DataProxy b -> DataProxy b
 mergeData new old =
-    { old
-        | ballots = Dict.union new.ballots old.ballots
-        , cards = Dict.union new.cards old.cards
-        , collections = Dict.union new.collections old.collections
-        , properties = Dict.union new.properties old.properties
-        , users = Dict.union new.users old.users
-        , values = Dict.union new.values old.values
-    }
+    let
+        -- Remove old ballots that are not present in new.
+        filterObsoleteBallotIds =
+            List.filterMap
+                (\{ ballotId } ->
+                    if (not <| Dict.member ballotId new.ballots) && Dict.member ballotId old.ballots then
+                        Just ballotId
+                    else
+                        Nothing
+                )
+
+        obsoleteBallotIds =
+            Set.fromList <|
+                List.concat
+                    [ Dict.values new.properties |> filterObsoleteBallotIds
+                    , Dict.values new.values |> filterObsoleteBallotIds
+                    ]
+
+        oldBallots =
+            Dict.filter
+                (\ballotId _ -> not <| Set.member ballotId obsoleteBallotIds)
+                old.ballots
+    in
+        { old
+            | ballots = Dict.union new.ballots oldBallots
+            , cards = Dict.union new.cards old.cards
+            , collections = Dict.union new.collections old.collections
+            , properties = Dict.union new.properties old.properties
+            , users = Dict.union new.users old.users
+            , values = Dict.union new.values old.values
+        }
 
 
 mergeDataId : DataId -> DataId -> DataId
