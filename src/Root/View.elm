@@ -80,13 +80,13 @@ view model =
             in
                 div
                     [ class "container-fluid" ]
-                    [ nav [ class "navbar navbar-fixed-top navbar-inverse navbar-toggleable-md bg-inverse" ]
+                    [ nav [ class "bg-dark fixed-top navbar navbar-dark navbar-expand-sm" ]
                         [ aForPath Navigate language "/" [ class "navbar-brand" ] [ text "Retruco.org" ]
                         , button
                             [ attribute "aria-controls" "collapsable-navbar"
                             , attribute "aria-expanded" "false"
                             , attribute "aria-label" "Toggle navigation"
-                            , class "navbar-toggler navbar-toggler-right"
+                            , class "navbar-toggler"
                             , attribute "data-target" "#collapsable-navbar"
                             , attribute "data-toggle" "collapse"
                             , type_ "button"

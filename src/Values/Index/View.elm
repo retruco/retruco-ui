@@ -42,7 +42,7 @@ view model =
     in
         div []
             [ nav
-                [ class "navbar navbar-light navbar-toggleable bg-faded" ]
+                [ class "bg-light navbar navbar-expand-sm navbar-light" ]
                 [ div [ class "navbar-collapse" ]
                     [ Html.form [ class "form-inline mr-auto", onSubmit (ForSelf Submit) ]
                         [ viewInlineSearchSort
