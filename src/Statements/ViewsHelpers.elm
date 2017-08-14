@@ -116,6 +116,7 @@ viewDebatePropertiesBlock language navigateMsg data debatePropertyIds =
                                                                 "fa-info"
                                                           , True
                                                           )
+                                                        , ( "fa-fw", True )
                                                         , ( "mr-2", True )
                                                         ]
                                                     ]
@@ -165,6 +166,7 @@ viewRatingPanel language navigateMsg objectsUrlName { arguments, id, ratingCount
                         "btn-outline-danger"
                   , True
                   )
+                , ( "ml-3", True )
                 ]
 
         buttonWithAttributes =
