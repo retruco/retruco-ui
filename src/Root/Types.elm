@@ -1,5 +1,6 @@
 module Root.Types exposing (..)
 
+import About.Types
 import Affirmations.Index.Types
 import Affirmations.Item.Types
 import Affirmations.New.Types
@@ -20,7 +21,8 @@ import Values.New.Types
 
 
 type alias Model =
-    { affirmationModel : Maybe Affirmations.Item.Types.Model
+    { aboutModel : Maybe About.Types.Model
+    , affirmationModel : Maybe Affirmations.Item.Types.Model
     , affirmationsModel : Maybe Affirmations.Index.Types.Model
     , argumentModel : Maybe Arguments.Item.Types.Model
     , authentication : Maybe Authentication
@@ -45,7 +47,8 @@ type alias Model =
 
 
 type Msg
-    = AffirmationMsg Affirmations.Item.Types.InternalMsg
+    = AboutMsg About.Types.InternalMsg
+    | AffirmationMsg Affirmations.Item.Types.InternalMsg
     | AffirmationsMsg Affirmations.Index.Types.InternalMsg
     | AffirmationUpserted Types.DataId
     | ArgumentMsg Arguments.Item.Types.InternalMsg
@@ -72,6 +75,14 @@ type Msg
     | ValueMsg Values.Item.Types.InternalMsg
     | ValuesMsg Values.Index.Types.InternalMsg
     | ValueUpserted Types.DataId
+
+
+translateAboutMsg : About.Types.MsgTranslator Msg
+translateAboutMsg =
+    About.Types.translateMsg
+        { onInternalMsg = AboutMsg
+        , onNavigate = Navigate
+        }
 
 
 translateAffirmationMsg : Affirmations.Item.Types.MsgTranslator Msg

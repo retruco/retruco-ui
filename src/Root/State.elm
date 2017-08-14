@@ -1,5 +1,6 @@
 module Root.State exposing (..)
 
+import About.State
 import Affirmations.Index.State
 import Affirmations.Item.State
 import Affirmations.New.State
@@ -46,7 +47,8 @@ init flags location =
         searchModel =
             Search.init
     in
-        { affirmationModel = Nothing
+        { aboutModel = Nothing
+        , affirmationModel = Nothing
         , affirmationsModel = Nothing
         , argumentModel = Nothing
         , authentication = authentication
@@ -169,6 +171,20 @@ update msg model =
                 update completionMsg model
     in
         case msg of
+            AboutMsg childMsg ->
+                case model.aboutModel of
+                    Just aboutModel ->
+                        let
+                            ( updatedAboutModel, childCmd ) =
+                                About.State.update childMsg aboutModel
+                        in
+                            ( { model | aboutModel = Just updatedAboutModel }
+                            , Cmd.map translateAboutMsg childCmd
+                            )
+
+                    Nothing ->
+                        ( model, Cmd.none )
+
             AffirmationMsg childMsg ->
                 case model.affirmationModel of
                     Just affirmationModel ->
@@ -460,7 +476,8 @@ urlUpdate location model =
         cleanModel =
             if clearSubModels then
                 { model
-                    | affirmationModel = Nothing
+                    | aboutModel = Nothing
+                    , affirmationModel = Nothing
                     , affirmationsModel = Nothing
                     , argumentModel = Nothing
                     , cardModel = Nothing
@@ -487,7 +504,21 @@ urlUpdate location model =
                         ( localizedModel, localizedCmd ) =
                             case localizedRoute of
                                 AboutRoute ->
-                                    ( cleanModel, Cmd.none )
+                                    let
+                                        aboutModel =
+                                            case model.aboutModel of
+                                                Just existingAboutModel ->
+                                                    existingAboutModel
+
+                                                Nothing ->
+                                                    About.State.init model.authentication language
+
+                                        ( updatedAboutModel, updatedAboutCmd ) =
+                                            About.State.urlUpdate location aboutModel
+                                    in
+                                        ( { cleanModel | aboutModel = Just updatedAboutModel }
+                                        , Cmd.map translateAboutMsg updatedAboutCmd
+                                        )
 
                                 AffirmationsRoute childRoute ->
                                     case childRoute of

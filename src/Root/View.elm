@@ -1,5 +1,6 @@
 module Root.View exposing (..)
 
+import About.View
 import Affirmations.Index.View
 import Affirmations.Item.View
 import Affirmations.New.View
@@ -104,14 +105,15 @@ view model =
                                 --         , text <| I18n.translate language I18n.Search
                                 --         ]
                                 --     ]
-                                -- , li [ class "nav-item" ]
-                                --     [ aForPath
-                                --         Navigate
-                                --         language
-                                --         "/about"
-                                --         [ class "nav-link" ]
-                                --         [ text <| I18n.translate language I18n.About ]
-                                --     ]
+                                [ li [ class "nav-item" ]
+                                    [ aForPath
+                                        Navigate
+                                        language
+                                        "/about"
+                                        [ class "nav-link" ]
+                                        [ text <| I18n.translate language I18n.About ]
+                                    ]
+
                                 -- [ li [ class "nav-item" ]
                                 --     [ aForPath Navigate
                                 --         language
@@ -119,7 +121,7 @@ view model =
                                 --         [ class "nav-link" ]
                                 --         [ text <| I18n.translate language I18n.Cards ]
                                 --     ]
-                                [ li [ class "nav-item" ]
+                                , li [ class "nav-item" ]
                                     [ aForPath Navigate
                                         language
                                         "/affirmations"
@@ -156,11 +158,13 @@ view model =
                         ]
                     , case localizedRoute of
                         AboutRoute ->
-                            p
-                                []
-                                [ img [ src "./img/elm.png" ] []
-                                , text "About Retruco"
-                                ]
+                            case model.aboutModel of
+                                Just aboutModel ->
+                                    About.View.view aboutModel
+                                        |> Html.map translateAboutMsg
+
+                                Nothing ->
+                                    text "This should not occur: aboutModel == Nothing!"
 
                         AffirmationsRoute childRoute ->
                             case childRoute of
