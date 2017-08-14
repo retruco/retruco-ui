@@ -95,6 +95,18 @@ update msg model =
                 , Cmd.map translateNewArgumentMsg childCmd
                 )
 
+        Rate statementId rating ->
+            ( model
+            , case rating of
+                Just rating ->
+                    Requests.rateStatement model.authentication statementId rating
+                        |> Http.send (ForSelf << RatingPosted)
+
+                Nothing ->
+                    Requests.unrateStatement model.authentication statementId
+                        |> Http.send (ForSelf << RatingPosted)
+            )
+
         RatingPosted (Err httpError) ->
             ( { model | httpError = Just httpError }, Cmd.none )
 
@@ -140,12 +152,6 @@ update msg model =
             , Task.perform
                 (\_ -> ForParent <| Navigate <| Urls.languagePath model.language ("/properties/" ++ body.data.id))
                 (Task.succeed ())
-            )
-
-        UnvoteRating statementId ->
-            ( model
-            , Requests.unrateStatement model.authentication statementId
-                |> Http.send (ForSelf << RatingPosted)
             )
 
         Upserted data ->
@@ -194,18 +200,6 @@ update msg model =
         ValueUpdated (Ok { data }) ->
             ( mergeModelData data model
             , Cmd.none
-            )
-
-        VoteRatingDown statementId ->
-            ( model
-            , Requests.rateStatement model.authentication statementId -1
-                |> Http.send (ForSelf << RatingPosted)
-            )
-
-        VoteRatingUp statementId ->
-            ( model
-            , Requests.rateStatement model.authentication statementId 1
-                |> Http.send (ForSelf << RatingPosted)
             )
 
 

@@ -15,16 +15,14 @@ type ExternalMsg
 type InternalMsg
     = DebatePropertiesRetrieved (Result Http.Error DataIdsBody)
     | NewArgumentMsg Arguments.New.Types.InternalMsg
+    | Rate String (Maybe Int)
     | RatingPosted (Result Http.Error DataIdBody)
     | Retrieve
     | Trash String
     | TrashUpserted (Result Http.Error DataIdBody)
-    | UnvoteRating String
     | Upserted Types.DataId
     | ValueRetrieved (Result Http.Error DataIdBody)
     | ValueUpdated (Result Http.Error DataIdBody)
-    | VoteRatingDown String
-    | VoteRatingUp String
 
 
 type alias Model =

@@ -65,6 +65,18 @@ update msg model =
                 , Cmd.map translateNewArgumentMsg childCmd
                 )
 
+        Rate statementId rating ->
+            ( model
+            , case rating of
+                Just rating ->
+                    Requests.rateStatement model.authentication statementId rating
+                        |> Http.send (ForSelf << RatingPosted)
+
+                Nothing ->
+                    Requests.unrateStatement model.authentication statementId
+                        |> Http.send (ForSelf << RatingPosted)
+            )
+
         RatingPosted (Err httpError) ->
             ( { model | httpError = Just httpError }, Cmd.none )
 
@@ -106,12 +118,6 @@ update msg model =
                     }
                 )
 
-        UnvoteRating statementId ->
-            ( model
-            , Requests.unrateStatement model.authentication statementId
-                |> Http.send (ForSelf << RatingPosted)
-            )
-
         Upserted data ->
             let
                 mergedModel =
@@ -134,18 +140,6 @@ update msg model =
                   }
                 , Cmd.none
                 )
-
-        VoteRatingDown statementId ->
-            ( model
-            , Requests.rateStatement model.authentication statementId -1
-                |> Http.send (ForSelf << RatingPosted)
-            )
-
-        VoteRatingUp statementId ->
-            ( model
-            , Requests.rateStatement model.authentication statementId 1
-                |> Http.send (ForSelf << RatingPosted)
-            )
 
 
 urlUpdate : Navigation.Location -> Model -> ( Model, Cmd Msg )

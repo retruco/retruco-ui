@@ -65,16 +65,6 @@ update msg model =
                 , Cmd.map translateNewValueMsg childCmd
                 )
 
-        RatingPosted (Err httpError) ->
-            ( { model | httpError = Just httpError }, Cmd.none )
-
-        RatingPosted (Ok body) ->
-            ( { model
-                | data = mergeData body.data model.data
-              }
-            , Cmd.none
-            )
-
         Retrieve ->
             ( { model
                 | httpError = Nothing
@@ -110,12 +100,6 @@ update msg model =
                     }
                 )
 
-        UnvoteRating statementId ->
-            ( model
-            , Requests.unrateStatement model.authentication statementId
-                |> Http.send (ForSelf << RatingPosted)
-            )
-
         Upserted (Err httpError) ->
             ( { model
                 | httpError = Just httpError
@@ -150,18 +134,6 @@ update msg model =
             ( mergeModelData data model
             , Requests.postProperty model.authentication model.objectId model.keyId data.id (Just 1)
                 |> Http.send (ForSelf << Upserted)
-            )
-
-        VoteRatingDown statementId ->
-            ( model
-            , Requests.rateStatement model.authentication statementId -1
-                |> Http.send (ForSelf << RatingPosted)
-            )
-
-        VoteRatingUp statementId ->
-            ( model
-            , Requests.rateStatement model.authentication statementId 1
-                |> Http.send (ForSelf << RatingPosted)
             )
 
 

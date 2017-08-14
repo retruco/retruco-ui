@@ -47,7 +47,6 @@ cardDecoder =
     succeed Card
         |: oneOf [ (field "arguments" (list argumentDecoder)), succeed [] ]
         |: (field "createdAt" string)
-        |: oneOf [ (field "deleted" bool), succeed False ]
         |: (field "id" string)
         |: (field "properties" (dict string))
         |: oneOf [ (field "ratingCount" int), succeed 0 ]
@@ -55,6 +54,7 @@ cardDecoder =
         |: oneOf [ (field "references" (dict (list string))), succeed Dict.empty ]
         |: oneOf [ (field "subTypeIds" (list string)), succeed [] ]
         |: oneOf [ (field "tagIds" (list string)), succeed [] ]
+        |: oneOf [ (field "trashed" bool), succeed False ]
         |: (field "type" string)
         |: oneOf [ (field "usageIds" (list string)), succeed [] ]
 
@@ -167,7 +167,6 @@ propertyDecoder =
         |: oneOf [ (field "arguments" (list argumentDecoder)), succeed [] ]
         |: oneOf [ (field "ballotId" string), succeed "" ]
         |: (field "createdAt" string)
-        |: oneOf [ (field "deleted" bool), succeed False ]
         |: (field "id" string)
         |: (field "keyId" string)
         |: (field "objectId" string)
@@ -177,6 +176,7 @@ propertyDecoder =
         |: oneOf [ (field "references" (dict (list string))), succeed Dict.empty ]
         |: oneOf [ (field "subTypeIds" (list string)), succeed [] ]
         |: oneOf [ (field "tags" (list (dict string))), succeed [] ]
+        |: oneOf [ (field "trashed" bool), succeed False ]
         |: (field "type" string)
         |: (field "valueId" string)
 
@@ -191,28 +191,44 @@ typedValueAutocompletionDecoder =
 
 typedValueDecoder : Decoder TypedValue
 typedValueDecoder =
-    map8 (,,,,,,,)
-        (oneOf [ (field "arguments" (list argumentDecoder)), succeed [] ])
-        (oneOf [ (field "ballotId" string), succeed "" ])
-        -- (field "createdAt" string) -- Removed because a JSON decoder can decode only 8 fields at max.
-        (field "id" string)
-        (oneOf [ (field "ratingCount" int), succeed 0 ])
-        (oneOf [ (field "ratingSum" int), succeed 0 ])
-        (field "schemaId" string)
-        (field "type" string)
-        (oneOf [ (field "widgetId" string), succeed "" ])
+    succeed
+        (\arguments ballotId createdAt id ratingCount ratingSum schemaId trashed type_ widgetId ->
+            { arguments = arguments
+            , ballotId = ballotId
+            , createdAt = createdAt
+            , id = id
+            , ratingCount = ratingCount
+            , ratingSum = ratingSum
+            , schemaId = schemaId
+            , trashed = trashed
+            , type_ = type_
+            , widgetId = widgetId
+            }
+        )
+        |: oneOf [ (field "arguments" (list argumentDecoder)), succeed [] ]
+        |: oneOf [ (field "ballotId" string), succeed "" ]
+        |: (field "createdAt" string)
+        |: (field "id" string)
+        |: oneOf [ (field "ratingCount" int), succeed 0 ]
+        |: oneOf [ (field "ratingSum" int), succeed 0 ]
+        |: (field "schemaId" string)
+        |: oneOf [ (field "trashed" bool), succeed False ]
+        |: (field "type" string)
+        |: oneOf [ (field "widgetId" string), succeed "" ]
         |> andThen
-            (\( arguments, ballotId, id, ratingCount, ratingSum, schemaId, type_, widgetId ) ->
+            (\{ arguments, ballotId, createdAt, id, ratingCount, ratingSum, schemaId, trashed, type_, widgetId } ->
                 (field "value" (valueTypeDecoder schemaId widgetId))
                     |> map
                         (\value ->
                             TypedValue
                                 arguments
                                 ballotId
+                                createdAt
                                 id
                                 ratingCount
                                 ratingSum
                                 schemaId
+                                trashed
                                 type_
                                 value
                                 widgetId

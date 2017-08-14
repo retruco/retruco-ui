@@ -10,13 +10,6 @@ import I18n
 import Values.New.View
 
 
-keyIdLabelCouples : List ( String, I18n.TranslationId )
-keyIdLabelCouples =
-    [ ( "pros", I18n.DebateProsLabel )
-    , ( "cons", I18n.DebateConsLabel )
-    ]
-
-
 view : Model -> Html Msg
 view model =
     section []

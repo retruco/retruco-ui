@@ -32,7 +32,6 @@ type alias BijectiveCardReference =
 type alias Card =
     { arguments : List Argument
     , createdAt : String
-    , deleted : Bool
     , id : String
     , properties : Dict String String
     , ratingCount : Int
@@ -40,6 +39,7 @@ type alias Card =
     , references : Dict String (List String)
     , subTypeIds : List String
     , tagIds : List String
+    , trashed : Bool
     , type_ : String
     , usageIds : List String
     }
@@ -161,7 +161,6 @@ type alias Property =
     , -- TODO Use Maybe
       ballotId : String
     , createdAt : String
-    , deleted : Bool
     , id : String
     , keyId : String
     , objectId : String
@@ -171,6 +170,7 @@ type alias Property =
     , references : Dict String (List String)
     , subTypeIds : List String
     , tags : List (Dict String String)
+    , trashed : Bool
     , type_ : String
     , valueId : String
     }
@@ -188,12 +188,12 @@ type alias TypedValue =
     { arguments : List Argument
     , -- TODO Use Maybe
       ballotId : String
-
-    -- , createdAt : String -- Removed because a JSON decoder can decode only 8 fields at max.
+    , createdAt : String -- Removed because a JSON decoder can decode only 8 fields at max.
     , id : String
     , ratingCount : Int
     , ratingSum : Int
     , schemaId : String
+    , trashed : Bool
     , type_ : String
     , value : ValueType
     , widgetId : String

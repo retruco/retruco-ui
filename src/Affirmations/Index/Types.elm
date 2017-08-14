@@ -16,15 +16,11 @@ type alias FormErrors =
 
 
 type InternalMsg
-    = RatingPosted (Result Http.Error DataIdBody)
-    | Retrieve
+    = Retrieve
     | Retrieved (Result Http.Error DataIdsBody)
     | SearchSortChanged String
     | SearchTermChanged String
     | Submit
-    | UnvoteRating String
-    | VoteRatingDown String
-    | VoteRatingUp String
 
 
 type alias Model =

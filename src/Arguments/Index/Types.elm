@@ -14,13 +14,11 @@ type ExternalMsg
 
 type InternalMsg
     = NewArgumentMsg Arguments.New.Types.InternalMsg
+    | Rate String (Maybe Int)
     | RatingPosted (Result Http.Error DataIdBody)
     | Retrieve
     | Retrieved (Result Http.Error DataIdsBody)
-    | UnvoteRating String
     | Upserted Types.DataId
-    | VoteRatingDown String
-    | VoteRatingUp String
 
 
 type alias Model =

@@ -82,12 +82,6 @@ mergeModelData data model =
 update : InternalMsg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        RatingPosted (Err httpError) ->
-            ( { model | httpError = Just httpError }, Cmd.none )
-
-        RatingPosted (Ok body) ->
-            ( mergeModelData body.data model, Cmd.none )
-
         Retrieve ->
             ( { model
                 | httpError = Nothing
@@ -140,24 +134,6 @@ update msg model =
                     update
                         Retrieve
                         { model | errors = Dict.empty, searchCriteria = searchCriteria }
-
-        UnvoteRating statementId ->
-            ( model
-            , Requests.unrateStatement model.authentication statementId
-                |> Http.send (ForSelf << RatingPosted)
-            )
-
-        VoteRatingDown statementId ->
-            ( model
-            , Requests.rateStatement model.authentication statementId -1
-                |> Http.send (ForSelf << RatingPosted)
-            )
-
-        VoteRatingUp statementId ->
-            ( model
-            , Requests.rateStatement model.authentication statementId 1
-                |> Http.send (ForSelf << RatingPosted)
-            )
 
 
 urlUpdate : Navigation.Location -> Model -> ( Model, Cmd Msg )

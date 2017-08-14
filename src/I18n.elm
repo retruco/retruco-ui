@@ -17,6 +17,7 @@ type TranslationId
     | AboutLead
     | AboutLegal
     | AboutLegalContent
+    | Abstain
     | AccountCreationFailed
     | ActivationDescription
     | ActivationFailed
@@ -32,6 +33,7 @@ type TranslationId
     | Affirmations
     | AffirmationsDescription
     | AffirmationsRetrievalFailed
+    | Agree
     | Arguments
     | ArgumentsAbout
     | ArgumentsRetrievalFailed
@@ -66,7 +68,9 @@ type TranslationId
     | Close
     | Colon
     | Copyright
+    | CountArguments Int
     | CountVersionsAvailable Int
+    | CountVotes Int
     | Create
     | CreateAccountNow
     | CreateYourAccount
@@ -75,6 +79,7 @@ type TranslationId
     | DebateArgumentFor
     | DebateConsLabel
     | DebateProsLabel
+    | Disagree
     | Edit
     | Email
     | EmailPlaceholder
@@ -277,6 +282,13 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        Abstain ->
+            { emptyTranslationSet
+                | english = s "Abstain"
+                , french = s "M'abstenir"
+                , spanish = todo
+            }
+
         AccountCreationFailed ->
             { emptyTranslationSet
                 | english = s "Account création failed"
@@ -397,6 +409,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Retrieval of affirmations failed"
                 , french = s "Échec de la récupération des affirmations"
+                , spanish = todo
+            }
+
+        Agree ->
+            { emptyTranslationSet
+                | english = s "Agree"
+                , french = s "Approuver"
                 , spanish = todo
             }
 
@@ -630,6 +649,31 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        CountArguments count ->
+            { emptyTranslationSet
+                | english =
+                    case count of
+                        0 ->
+                            s "No argument"
+
+                        1 ->
+                            s "1 argument"
+
+                        _ ->
+                            s ((toString count) ++ " arguments")
+                , french =
+                    case count of
+                        0 ->
+                            s "Pas d'argument"
+
+                        1 ->
+                            s "1 argument"
+
+                        _ ->
+                            s ((toString count) ++ " arguments")
+                , spanish = todo
+            }
+
         CountVersionsAvailable count ->
             { emptyTranslationSet
                 | english =
@@ -652,6 +696,31 @@ getTranslationSet translationId =
 
                         _ ->
                             s ((toString count) ++ " versions disponibles")
+                , spanish = todo
+            }
+
+        CountVotes count ->
+            { emptyTranslationSet
+                | english =
+                    case count of
+                        0 ->
+                            s "0 vote"
+
+                        1 ->
+                            s "1 vote"
+
+                        _ ->
+                            s ((toString count) ++ " votes")
+                , french =
+                    case count of
+                        0 ->
+                            s "0 vote"
+
+                        1 ->
+                            s "1 vote"
+
+                        _ ->
+                            s ((toString count) ++ " votes")
                 , spanish = todo
             }
 
@@ -708,6 +777,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "+ Argument For"
                 , french = s "+ Argument pour"
+                , spanish = todo
+            }
+
+        Disagree ->
+            { emptyTranslationSet
+                | english = s "Disagree"
+                , french = s "Désapprouver"
                 , spanish = todo
             }
 
