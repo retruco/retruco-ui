@@ -78,28 +78,28 @@ viewDebatePropertiesBlock :
     -> DataProxy a
     -> List String
     -> Html msg
-viewDebatePropertiesBlock language navigateMsg data propertyIds =
+viewDebatePropertiesBlock language navigateMsg data debatePropertyIds =
     div []
         [ h2 [] [ text <| I18n.translate language I18n.Arguments ]
-        , if List.isEmpty propertyIds then
+        , if List.isEmpty debatePropertyIds then
             p [] [ text <| I18n.translate language I18n.MissingArguments ]
           else
             ul [ class "list-group" ]
                 (List.filterMap
-                    (\propertyId ->
-                        case Dict.get propertyId data.properties of
-                            Just property ->
+                    (\debatePropertyId ->
+                        case Dict.get debatePropertyId data.properties of
+                            Just debateProperty ->
                                 let
                                     ballot =
-                                        Dict.get property.ballotId data.ballots
+                                        Dict.get debateProperty.ballotId data.ballots
 
                                     ballotRating =
                                         Maybe.map .rating ballot
 
                                     keyLabel =
-                                        Dict.get property.keyId (Dict.fromList keyIdLabelCouples)
+                                        Dict.get debateProperty.keyId (Dict.fromList keyIdLabelCouples)
                                             |> Maybe.map (I18n.translate language)
-                                            |> Maybe.withDefault property.keyId
+                                            |> Maybe.withDefault debateProperty.keyId
                                 in
                                     Just <|
                                         li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
@@ -108,9 +108,9 @@ viewDebatePropertiesBlock language navigateMsg data propertyIds =
                                                     [ ariaHidden True
                                                     , classList
                                                         [ ( "fa", True )
-                                                        , ( if property.keyId == "cons" then
+                                                        , ( if debateProperty.keyId == "cons" then
                                                                 "fa-minus"
-                                                            else if property.keyId == "pros" then
+                                                            else if debateProperty.keyId == "pros" then
                                                                 "fa-plus"
                                                             else
                                                                 "fa-info"
@@ -127,20 +127,20 @@ viewDebatePropertiesBlock language navigateMsg data propertyIds =
                                                         (Just navigateMsg)
                                                         data
                                                         False
-                                                        property.valueId
+                                                        debateProperty.valueId
                                                     ]
                                                 ]
                                             , viewRatingPanel
                                                 language
                                                 navigateMsg
                                                 (Just "arguments")
-                                                property
+                                                debateProperty
                                             ]
 
                             Nothing ->
                                 Nothing
                     )
-                    propertyIds
+                    debatePropertyIds
                 )
         ]
 
