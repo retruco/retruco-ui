@@ -145,6 +145,9 @@ if (TARGET_ENV === 'production') {
         {
           from: 'static/favicon.ico'
         },
+        {
+          from: 'static/manifest.json'
+        }
       ]),
       // extract CSS into a separate file
       new ExtractTextPlugin( './[hash].css', { allChunks: true } ),

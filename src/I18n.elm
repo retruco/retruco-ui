@@ -165,6 +165,7 @@ type TranslationId
     | ResetPasswordExplanation
     | ResetPasswordLink
     | ResetPasswordTitle
+    | RetrucoLogo
     | SameKeyPropertiesRetrievalFailed
     | Save
     | Score
@@ -1392,6 +1393,13 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        RetrucoLogo ->
+            { emptyTranslationSet
+                | english = s "Retruco logo"
+                , french = s "Logo de Retruco"
+                , spanish = todo
+            }
+
         SameKeyPropertiesRetrievalFailed ->
             { emptyTranslationSet
                 | english = s "Retrieval of properties having both the samek object and the same key failed"
@@ -1611,8 +1619,8 @@ getTranslationSet translationId =
 
         TweetMessage name url ->
             { emptyTranslationSet
-                | english = s ("Discover " ++ name ++ " on OGPToolbox.org: " ++ url)
-                , french = s ("Découvrez " ++ name ++ " dans OGPToolbox.org : " ++ url)
+                | english = s ("Discover " ++ name ++ " on Retruco.org: " ++ url)
+                , french = s ("Découvrez " ++ name ++ " dans Retruco.org : " ++ url)
                 , spanish = todo
             }
 

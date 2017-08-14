@@ -82,7 +82,22 @@ view model =
                 div
                     [ class "container-fluid" ]
                     [ nav [ class "bg-dark fixed-top navbar navbar-dark navbar-expand-sm" ]
-                        [ aForPath Navigate language "/" [ class "navbar-brand" ] [ text "Retruco.org" ]
+                        [ aForPath
+                            Navigate
+                            language
+                            "/"
+                            [ class "navbar-brand" ]
+                            [ img
+                                [ alt ""
+                                , class "align-top d-inline-block"
+                                , height 30
+                                , src "/img/icon-30x30.png"
+                                , width 30
+                                ]
+                                []
+                            , text " "
+                            , text "Retruco.org"
+                            ]
                         , button
                             [ attribute "aria-controls" "collapsable-navbar"
                             , attribute "aria-expanded" "false"

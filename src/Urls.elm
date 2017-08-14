@@ -13,7 +13,7 @@ import Types exposing (DataProxy)
 
 appLogoFullUrl : String
 appLogoFullUrl =
-    Configuration.appUrl ++ "img/ogptoolbox-logo.png"
+    Configuration.appUrl ++ "img/img/logo-1503x975.png"
 
 
 idRegex : Regex.Regex
