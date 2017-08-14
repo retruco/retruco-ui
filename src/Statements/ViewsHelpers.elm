@@ -8,7 +8,6 @@ import Html.Events exposing (onClick)
 import Html.Helpers exposing (aForPath)
 import I18n
 import Types exposing (Argument, DataProxy)
-import Urls
 import Values.ViewsHelpers
 
 
@@ -19,41 +18,60 @@ keyIdLabelCouples =
     ]
 
 
+
+-- Replace this function with viewDebatePropertiesBlock once arguments have been replaced by debate properties.
+
+
 viewArgumentsBlock : I18n.Language -> (String -> msg) -> DataProxy a -> String -> String -> List Argument -> Html msg
 viewArgumentsBlock language navigateMsg data objectsUrlName objectId arguments =
     let
         viewArgument argument =
-            li [ class "list-group-item justify-content-between" ]
-                [ div [ class "d-inline-flex" ]
-                    [ span
-                        [ ariaHidden True
-                        , class
-                            ("fa "
-                                ++ (if argument.keyId == "cons" then
+            let
+                keyLabel =
+                    Dict.get argument.keyId (Dict.fromList keyIdLabelCouples)
+                        |> Maybe.map (I18n.translate language)
+                        |> Maybe.withDefault argument.keyId
+            in
+                li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
+                    [ div [ class "align-items-baseline d-flex flex-nowrap" ]
+                        [ span
+                            [ ariaHidden True
+                            , classList
+                                [ ( "fa", True )
+                                , ( if argument.keyId == "cons" then
                                         "fa-minus"
                                     else if argument.keyId == "pros" then
                                         "fa-plus"
                                     else
-                                        "fa-circle"
-                                   )
-                                ++ " fa-fw mr-2"
-                            )
+                                        "fa-info"
+                                  , True
+                                  )
+                                , ( "fa-fw", True )
+                                , ( "mr-2", True )
+                                ]
+                            ]
+                            []
+                        , div []
+                            [ h4 [] [ text keyLabel ]
+                            , Values.ViewsHelpers.viewValueIdLine
+                                language
+                                (Just navigateMsg)
+                                data
+                                False
+                                argument.valueId
+                            ]
                         ]
-                        []
-                    , Values.ViewsHelpers.viewValueIdLine
+                    , viewRatingPanel
                         language
-                        (Just navigateMsg)
-                        data
-                        False
-                        argument.valueId
+                        navigateMsg
+                        (Just "arguments")
+                        { arguments = [] -- dummy value, because an argument doesn't have this attribute.
+                        , id = argument.id
+                        , ratingCount = argument.ratingCount
+                        , ratingSum = argument.ratingSum
+                        , trashed = False -- dummy value, because an argument doesn't have this attribute.
+                        }
                     ]
-                , aForPath
-                    navigateMsg
-                    language
-                    ((Urls.objectIdPath argument.valueId data) ++ "/arguments")
-                    [ class "btn btn-secondary" ]
-                    [ text (I18n.translate language (I18n.Debate)) ]
-                ]
     in
         div []
             [ h2 [ class "d-flex justify-content-between" ]
@@ -65,10 +83,13 @@ viewArgumentsBlock language navigateMsg data objectsUrlName objectId arguments =
                     [ class "btn btn-secondary" ]
                     [ text (I18n.translate language (I18n.Debate)) ]
                 ]
-            , ul [ class "list-group" ]
-                (arguments
-                    |> List.map viewArgument
-                )
+            , if List.isEmpty arguments then
+                p [] [ text <| I18n.translate language I18n.MissingArguments ]
+              else
+                ul [ class "list-group" ]
+                    (arguments
+                        |> List.map viewArgument
+                    )
             ]
 
 
