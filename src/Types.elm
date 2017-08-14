@@ -6,7 +6,8 @@ import Set
 
 
 type alias Argument =
-    { keyId : String
+    { id : String
+    , keyId : String
     , ratingCount : Int
     , ratingSum : Int
     , valueId : String

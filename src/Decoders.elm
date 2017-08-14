@@ -10,6 +10,7 @@ import Types exposing (..)
 argumentDecoder : Decoder Argument
 argumentDecoder =
     succeed Argument
+        |: (field "id" string)
         |: (field "keyId" string)
         |: oneOf [ (field "ratingCount" int), succeed 0 ]
         |: oneOf [ (field "ratingSum" int), succeed 0 ]
