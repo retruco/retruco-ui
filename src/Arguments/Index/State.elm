@@ -16,11 +16,11 @@ init : Maybe Authentication -> I18n.Language -> String -> Model
 init authentication language objectId =
     { authentication = authentication
     , data = initData
+    , debatePropertyIds = Nothing
     , httpError = Nothing
     , language = language
     , newArgumentModel = Arguments.New.State.init authentication language objectId []
     , objectId = objectId
-    , propertyIds = Nothing
     , showTrashed = False
     }
 
@@ -85,8 +85,8 @@ update msg model =
 
         Retrieve ->
             ( { model
-                | httpError = Nothing
-                , propertyIds = Nothing
+                | debatePropertyIds = Nothing
+                , httpError = Nothing
               }
             , Requests.getDebateProperties model.authentication model.showTrashed model.objectId
                 |> Http.send (ForSelf << Retrieved)
@@ -108,7 +108,7 @@ update msg model =
                     model.language
             in
                 ( { mergedModel
-                    | propertyIds = Just data.ids
+                    | debatePropertyIds = Just data.ids
                   }
                 , -- TODO
                   Ports.setDocumentMetadata
@@ -127,13 +127,13 @@ update msg model =
                     model.language
             in
                 ( { mergedModel
-                    | propertyIds =
-                        case model.propertyIds of
-                            Just propertyIds ->
-                                if List.member data.id propertyIds then
-                                    Just propertyIds
+                    | debatePropertyIds =
+                        case model.debatePropertyIds of
+                            Just debatePropertyIds ->
+                                if List.member data.id debatePropertyIds then
+                                    Just debatePropertyIds
                                 else
-                                    Just (data.id :: propertyIds)
+                                    Just (data.id :: debatePropertyIds)
 
                             Nothing ->
                                 Just [ data.id ]

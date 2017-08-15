@@ -2,7 +2,6 @@ module Values.Item.State exposing (..)
 
 import Arguments.Index.State
 import Authenticator.Types exposing (Authentication)
-import Dict exposing (Dict)
 import Http
 import I18n
 import Navigation
@@ -19,11 +18,13 @@ init authentication language id =
     { argumentsModel = Nothing
     , authentication = authentication
     , data = initData
+    , debatePropertyIds = Nothing
     , httpError = Nothing
     , id = id
     , language = language
 
     -- , sameKeyPropertiesModel = Nothing
+    , showTrashed = False
     }
 
 
@@ -105,13 +106,39 @@ update msg model =
                 Nothing ->
                     ( model, Cmd.none )
 
+        DebatePropertiesRetrieved (Err httpError) ->
+            ( { model
+                | httpError = Just httpError
+              }
+            , Cmd.none
+            )
+
+        DebatePropertiesRetrieved (Ok { data }) ->
+            let
+                mergedModel =
+                    mergeModelData data model
+
+                language =
+                    model.language
+            in
+                ( { mergedModel
+                    | debatePropertyIds = Just data.ids
+                  }
+                , -- TODO
+                  Ports.setDocumentMetadata
+                    { description = I18n.translate model.language I18n.ValuesDescription
+                    , imageUrl = Urls.appLogoFullUrl
+                    , title = I18n.translate model.language I18n.Values
+                    }
+                )
+
         Retrieve ->
             ( { model | httpError = Nothing }
             , Requests.getValue model.authentication model.id
-                |> Http.send (ForSelf << Retrieved)
+                |> Http.send (ForSelf << ValueRetrieved)
             )
 
-        Retrieved (Err httpError) ->
+        ValueRetrieved (Err httpError) ->
             ( { model
                 | httpError = Just httpError
 
@@ -120,27 +147,17 @@ update msg model =
             , Cmd.none
             )
 
-        Retrieved (Ok { data }) ->
+        ValueRetrieved (Ok { data }) ->
             let
                 mergedModel =
                     mergeModelData data model
-
-                typedValue =
-                    Dict.get data.id data.values
-
-                language =
-                    model.language
             in
                 -- ( { mergedModel
                 --     | keysAutocompleteModel = Properties.KeysAutocomplete.State.init card.subTypeIds True
                 --   }
                 ( mergedModel
-                , -- TODO
-                  Ports.setDocumentMetadata
-                    { description = I18n.translate model.language I18n.ValuesDescription
-                    , imageUrl = Urls.appLogoFullUrl
-                    , title = I18n.translate model.language I18n.Values
-                    }
+                , Requests.getDebateProperties model.authentication model.showTrashed model.id
+                    |> Http.send (ForSelf << DebatePropertiesRetrieved)
                 )
 
 
@@ -161,6 +178,7 @@ urlUpdate location route model =
                 | argumentsModel = Nothing
 
                 -- , sameKeyPropertiesModel = Nothing
+                , showTrashed = Urls.queryToggle "trashed" location
             }
 
         ( updatedModel, updatedCmd ) =

@@ -21,11 +21,13 @@ init authentication language id =
     { argumentsModel = Nothing
     , authentication = authentication
     , data = initData
+    , debatePropertyIds = Nothing
     , httpError = Nothing
     , id = id
     , keysAutocompleteModel = Properties.KeysAutocomplete.State.init [] True
     , language = language
     , sameKeyPropertiesModel = Nothing
+    , showTrashed = False
     }
 
 
@@ -119,6 +121,29 @@ update msg model =
                 Nothing ->
                     ( model, Cmd.none )
 
+        CardRetrieved (Err httpError) ->
+            ( { model
+                | httpError = Just httpError
+                , keysAutocompleteModel = Properties.KeysAutocomplete.State.init [] True
+              }
+            , Cmd.none
+            )
+
+        CardRetrieved (Ok { data }) ->
+            let
+                mergedModel =
+                    mergeModelData data model
+
+                card =
+                    getCard data.cards data.id
+            in
+                ( { mergedModel
+                    | keysAutocompleteModel = Properties.KeysAutocomplete.State.init card.subTypeIds True
+                  }
+                , Requests.getDebateProperties model.authentication model.showTrashed model.id
+                    |> Http.send (ForSelf << DebatePropertiesRetrieved)
+                )
+
         CreateKey keyName ->
             case model.authentication of
                 Just authentication ->
@@ -135,6 +160,32 @@ update msg model =
                         (\_ -> ForParent <| RequireSignIn <| CreateKey keyName)
                         (Task.succeed ())
                     )
+
+        DebatePropertiesRetrieved (Err httpError) ->
+            ( { model
+                | httpError = Just httpError
+              }
+            , Cmd.none
+            )
+
+        DebatePropertiesRetrieved (Ok { data }) ->
+            let
+                mergedModel =
+                    mergeModelData data model
+
+                language =
+                    model.language
+            in
+                ( { mergedModel
+                    | debatePropertyIds = Just data.ids
+                  }
+                , -- TODO
+                  Ports.setDocumentMetadata
+                    { description = I18n.translate language I18n.CardsDescription
+                    , imageUrl = Urls.appLogoFullUrl
+                    , title = I18n.translate language I18n.Cards
+                    }
+                )
 
         KeysAutocompleteMsg childMsg ->
             let
@@ -162,40 +213,13 @@ update msg model =
             ( model, Cmd.none )
 
         Retrieve ->
-            ( { model | httpError = Nothing }
-            , Requests.getCard model.authentication model.id
-                |> Http.send (ForSelf << Retrieved)
-            )
-
-        Retrieved (Err httpError) ->
             ( { model
-                | httpError = Just httpError
-                , keysAutocompleteModel = Properties.KeysAutocomplete.State.init [] True
+                | debatePropertyIds = Nothing
+                , httpError = Nothing
               }
-            , Cmd.none
+            , Requests.getCard model.authentication model.id
+                |> Http.send (ForSelf << CardRetrieved)
             )
-
-        Retrieved (Ok { data }) ->
-            let
-                mergedModel =
-                    mergeModelData data model
-
-                card =
-                    getCard data.cards data.id
-
-                language =
-                    model.language
-            in
-                ( { mergedModel
-                    | keysAutocompleteModel = Properties.KeysAutocomplete.State.init card.subTypeIds True
-                  }
-                , -- TODO
-                  Ports.setDocumentMetadata
-                    { description = I18n.translate language I18n.CardsDescription
-                    , imageUrl = Urls.appLogoFullUrl
-                    , title = I18n.translate language I18n.Cards
-                    }
-                )
 
         SameKeyPropertiesMsg childMsg ->
             case model.sameKeyPropertiesModel of
@@ -228,6 +252,7 @@ urlUpdate location route model =
             { model
                 | argumentsModel = Nothing
                 , sameKeyPropertiesModel = Nothing
+                , showTrashed = Urls.queryToggle "trashed" location
             }
 
         ( updatedModel, updatedCmd ) =

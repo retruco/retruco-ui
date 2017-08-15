@@ -7,7 +7,7 @@ import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Http.Error
 import I18n
-import Statements.ViewsHelpers exposing (viewArgumentsBlock)
+import Statements.ViewsHelpers exposing (viewDebatePropertiesBlock)
 import Values.Item.Types exposing (..)
 import Values.ViewsHelpers exposing (viewValueTypeLine)
 import Views
@@ -28,8 +28,8 @@ view model =
                 language =
                     model.language
             in
-                case Dict.get model.id data.values of
-                    Just typedValue ->
+                case ( Dict.get model.id data.values, model.debatePropertyIds ) of
+                    ( Just typedValue, Just debatePropertyIds ) ->
                         div []
                             [ viewValueTypeLine
                                 language
@@ -38,16 +38,10 @@ view model =
                                 True
                                 typedValue.value
                             , hr [] []
-                            , viewArgumentsBlock
-                                language
-                                (ForParent << Navigate)
-                                data
-                                "values"
-                                typedValue.id
-                                typedValue.arguments
+                            , viewDebatePropertiesBlock language (ForParent << Navigate) data debatePropertyIds
                             ]
 
-                    Nothing ->
+                    ( _, _ ) ->
                         case model.httpError of
                             Just httpError ->
                                 div

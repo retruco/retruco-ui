@@ -17,11 +17,12 @@ type ExternalMsg
 type InternalMsg
     = AddKey TypedValue
     | ArgumentsMsg Arguments.Index.Types.InternalMsg
+    | CardRetrieved (Result Http.Error DataIdBody)
     | CreateKey String
+    | DebatePropertiesRetrieved (Result Http.Error DataIdsBody)
     | KeyUpserted (Result Http.Error DataIdBody)
     | KeysAutocompleteMsg Properties.KeysAutocomplete.Types.InternalMsg
     | Retrieve
-    | Retrieved (Result Http.Error DataIdBody)
     | SameKeyPropertiesMsg SameKeyProperties.Types.InternalMsg
 
 
@@ -29,11 +30,13 @@ type alias Model =
     { argumentsModel : Maybe Arguments.Index.Types.Model
     , authentication : Maybe Authentication
     , data : DataProxy {}
+    , debatePropertyIds : Maybe (List String)
     , id : String
     , keysAutocompleteModel : Properties.KeysAutocomplete.Types.Model
     , httpError : Maybe Http.Error
     , language : I18n.Language
     , sameKeyPropertiesModel : Maybe SameKeyProperties.Types.Model
+    , showTrashed : Bool
     }
 
 

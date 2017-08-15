@@ -46,7 +46,7 @@ cardAutocompletionDecoder =
 cardDecoder : Decoder Card
 cardDecoder =
     succeed Card
-        |: oneOf [ (field "arguments" (list argumentDecoder)), succeed [] ]
+        |: oneOf [ (field "argumentCount" int), succeed 0 ]
         |: (field "createdAt" string)
         |: (field "id" string)
         |: (field "properties" (dict string))
@@ -165,7 +165,7 @@ popularTagsDataDecoder =
 propertyDecoder : Decoder Property
 propertyDecoder =
     succeed Property
-        |: oneOf [ (field "arguments" (list argumentDecoder)), succeed [] ]
+        |: oneOf [ (field "argumentCount" int), succeed 0 ]
         |: oneOf [ (field "ballotId" string), succeed "" ]
         |: (field "createdAt" string)
         |: (field "id" string)
@@ -193,8 +193,8 @@ typedValueAutocompletionDecoder =
 typedValueDecoder : Decoder TypedValue
 typedValueDecoder =
     succeed
-        (\arguments ballotId createdAt id ratingCount ratingSum schemaId trashed type_ widgetId ->
-            { arguments = arguments
+        (\argumentCount ballotId createdAt id ratingCount ratingSum schemaId trashed type_ widgetId ->
+            { argumentCount = argumentCount
             , ballotId = ballotId
             , createdAt = createdAt
             , id = id
@@ -206,7 +206,7 @@ typedValueDecoder =
             , widgetId = widgetId
             }
         )
-        |: oneOf [ (field "arguments" (list argumentDecoder)), succeed [] ]
+        |: oneOf [ (field "argumentCount" int), succeed 0 ]
         |: oneOf [ (field "ballotId" string), succeed "" ]
         |: (field "createdAt" string)
         |: (field "id" string)
@@ -217,12 +217,12 @@ typedValueDecoder =
         |: (field "type" string)
         |: oneOf [ (field "widgetId" string), succeed "" ]
         |> andThen
-            (\{ arguments, ballotId, createdAt, id, ratingCount, ratingSum, schemaId, trashed, type_, widgetId } ->
+            (\{ argumentCount, ballotId, createdAt, id, ratingCount, ratingSum, schemaId, trashed, type_, widgetId } ->
                 (field "value" (valueTypeDecoder schemaId widgetId))
                     |> map
                         (\value ->
                             TypedValue
-                                arguments
+                                argumentCount
                                 ballotId
                                 createdAt
                                 id

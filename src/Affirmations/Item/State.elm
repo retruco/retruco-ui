@@ -20,11 +20,11 @@ init : Maybe Authentication -> I18n.Language -> String -> Model
 init authentication language id =
     { authentication = authentication
     , data = initData
+    , debatePropertyIds = Nothing
     , httpError = Nothing
     , id = id
     , language = language
     , newArgumentModel = Arguments.New.State.init authentication language id []
-    , propertyIds = Nothing
     , showTrashed = False
     }
 
@@ -76,7 +76,7 @@ update msg model =
                     model.language
             in
                 ( { mergedModel
-                    | propertyIds = Just data.ids
+                    | debatePropertyIds = Just data.ids
                   }
                 , -- TODO
                   Ports.setDocumentMetadata
@@ -131,8 +131,8 @@ update msg model =
 
         Retrieve ->
             ( { model
-                | httpError = Nothing
-                , propertyIds = Nothing
+                | debatePropertyIds = Nothing
+                , httpError = Nothing
               }
             , Requests.getValue model.authentication model.id
                 |> Http.send (ForSelf << ValueRetrieved)
@@ -163,13 +163,13 @@ update msg model =
                     model.language
             in
                 ( { mergedModel
-                    | propertyIds =
-                        case model.propertyIds of
-                            Just propertyIds ->
-                                if List.member data.id propertyIds then
-                                    Just propertyIds
+                    | debatePropertyIds =
+                        case model.debatePropertyIds of
+                            Just debatePropertyIds ->
+                                if List.member data.id debatePropertyIds then
+                                    Just debatePropertyIds
                                 else
-                                    Just (data.id :: propertyIds)
+                                    Just (data.id :: debatePropertyIds)
 
                             Nothing ->
                                 Just [ data.id ]

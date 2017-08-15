@@ -31,7 +31,7 @@ type alias BijectiveCardReference =
 
 
 type alias Card =
-    { arguments : List Argument
+    { argumentCount : Int
     , createdAt : String
     , id : String
     , properties : Dict String String
@@ -158,7 +158,7 @@ type alias PopularTagsData =
 
 
 type alias Property =
-    { arguments : List Argument
+    { argumentCount : Int
     , -- TODO Use Maybe
       ballotId : String
     , createdAt : String
@@ -186,7 +186,7 @@ type alias SearchCriteria =
 
 
 type alias TypedValue =
-    { arguments : List Argument
+    { argumentCount : Int
     , -- TODO Use Maybe
       ballotId : String
     , createdAt : String -- Removed because a JSON decoder can decode only 8 fields at max.

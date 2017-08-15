@@ -14,8 +14,9 @@ type ExternalMsg
 
 type InternalMsg
     = ArgumentsMsg Arguments.Index.Types.InternalMsg
+    | DebatePropertiesRetrieved (Result Http.Error DataIdsBody)
     | Retrieve
-    | Retrieved (Result Http.Error DataIdBody)
+    | ValueRetrieved (Result Http.Error DataIdBody)
 
 
 
@@ -26,11 +27,13 @@ type alias Model =
     { argumentsModel : Maybe Arguments.Index.Types.Model
     , authentication : Maybe Authentication
     , data : DataProxy {}
+    , debatePropertyIds : Maybe (List String)
     , httpError : Maybe Http.Error
     , id : String
     , language : I18n.Language
 
     -- , sameKeyPropertiesModel : Maybe SameKeyProperties.Types.Model
+    , showTrashed : Bool
     }
 
 

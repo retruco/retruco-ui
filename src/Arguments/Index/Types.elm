@@ -24,11 +24,11 @@ type InternalMsg
 type alias Model =
     { authentication : Maybe Authentication
     , data : DataProxy {}
+    , debatePropertyIds : Maybe (List String)
     , httpError : Maybe Http.Error
     , language : I18n.Language
     , newArgumentModel : Arguments.New.Types.Model
     , objectId : String
-    , propertyIds : Maybe (List String)
     , showTrashed : Bool
     }
 

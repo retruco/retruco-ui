@@ -11,7 +11,7 @@ import Http.Error
 import I18n
 import Properties.KeysAutocomplete.View
 import SameKeyProperties.View
-import Statements.ViewsHelpers exposing (viewArgumentsBlock)
+import Statements.ViewsHelpers exposing (viewDebatePropertiesBlock)
 import Types exposing (..)
 import Values.ViewsHelpers exposing (..)
 import Views
@@ -36,8 +36,8 @@ view model =
                 language =
                     model.language
             in
-                case Dict.get model.id data.cards of
-                    Just card ->
+                case ( Dict.get model.id data.cards, model.debatePropertyIds ) of
+                    ( Just card, Just debatePropertyIds ) ->
                         let
                             cardName =
                                 I18n.getOneString language nameKeys card data.values
@@ -102,16 +102,10 @@ view model =
                                         model.keysAutocompleteModel
                                         |> Html.map translateKeysAutocompleteMsg
                                 , hr [] []
-                                , viewArgumentsBlock
-                                    language
-                                    (ForParent << Navigate)
-                                    data
-                                    "cards"
-                                    card.id
-                                    card.arguments
+                                , viewDebatePropertiesBlock language (ForParent << Navigate) data debatePropertyIds
                                 ]
 
-                    Nothing ->
+                    ( _, _ ) ->
                         case model.httpError of
                             Just httpError ->
                                 div

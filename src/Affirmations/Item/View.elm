@@ -22,8 +22,8 @@ view model =
         language =
             model.language
     in
-        case ( Dict.get model.id data.values, model.propertyIds ) of
-            ( Just typedValue, Just propertyIds ) ->
+        case ( Dict.get model.id data.values, model.debatePropertyIds ) of
+            ( Just typedValue, Just debatePropertyIds ) ->
                 div []
                     [ div [ class "align-items-center d-flex flex-nowrap justify-content-between" ]
                         [ h1 []
@@ -43,7 +43,7 @@ view model =
                         (ForSelf << Trash)
                         typedValue
                     , hr [] []
-                    , viewDebatePropertiesBlock language (ForParent << Navigate) data propertyIds
+                    , viewDebatePropertiesBlock language (ForParent << Navigate) data debatePropertyIds
                     , hr [] []
                     , Arguments.New.View.view model.newArgumentModel
                         |> Html.map translateNewArgumentMsg
