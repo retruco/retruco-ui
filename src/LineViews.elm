@@ -113,7 +113,7 @@ viewPropertyLine language navigateMsg independent data property =
                         navigateMsg
                         True
                         data
-                        property.valueId
+                        property.objectId
                     ]
               else
                 text ""
