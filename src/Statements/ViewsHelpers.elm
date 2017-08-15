@@ -7,15 +7,14 @@ import Html.Attributes.Aria exposing (..)
 import Html.Events exposing (onClick)
 import Html.Helpers exposing (aForPath)
 import I18n
+import LineViews exposing (viewPropertyIdLine, viewStatementIdLine)
+import Set exposing (Set)
 import Types exposing (Argument, DataProxy)
-import Values.ViewsHelpers
 
 
-keyIdLabelCouples : List ( String, I18n.TranslationId )
-keyIdLabelCouples =
-    [ ( "pros", I18n.DebateArgumentFor )
-    , ( "cons", I18n.DebateArgumentAgainst )
-    ]
+debatePropertyKeyIds : Set String
+debatePropertyKeyIds =
+    Set.fromList [ "cons", "pro" ]
 
 
 viewDebatePropertiesBlock :
@@ -31,74 +30,45 @@ viewDebatePropertiesBlock language navigateMsg data debatePropertyIds =
             p [] [ text <| I18n.translate language I18n.MissingArguments ]
           else
             ul [ class "list-group" ]
-                (List.filterMap
+                (List.map
                     (\debatePropertyId ->
-                        case Dict.get debatePropertyId data.properties of
-                            Just debateProperty ->
-                                let
-                                    ballot =
-                                        Dict.get debateProperty.ballotId data.ballots
-
-                                    ballotRating =
-                                        Maybe.map .rating ballot
-
-                                    keyLabel =
-                                        Dict.get debateProperty.keyId (Dict.fromList keyIdLabelCouples)
-                                            |> Maybe.map (I18n.translate language)
-                                            |> Maybe.withDefault debateProperty.keyId
-                                in
-                                    Just <|
-                                        li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
-                                            [ div [ class "align-items-baseline d-flex flex-nowrap" ]
-                                                [ span
-                                                    [ ariaHidden True
-                                                    , classList
-                                                        [ ( "fa", True )
-                                                        , ( if debateProperty.keyId == "cons" then
-                                                                "fa-minus"
-                                                            else if debateProperty.keyId == "pros" then
-                                                                "fa-plus"
-                                                            else
-                                                                "fa-info"
-                                                          , True
-                                                          )
-                                                        , ( "fa-fw", True )
-                                                        , ( "mr-2", True )
-                                                        ]
-                                                    ]
-                                                    []
-                                                , div []
-                                                    [ h4 [] [ text keyLabel ]
-                                                    , Values.ViewsHelpers.viewValueIdLine
-                                                        language
-                                                        (Just navigateMsg)
-                                                        data
-                                                        False
-                                                        debateProperty.valueId
-                                                    ]
-                                                ]
-                                            , viewRatingPanel
-                                                language
-                                                navigateMsg
-                                                (Just "arguments")
-                                                debateProperty
-                                            ]
-
-                            Nothing ->
-                                Nothing
+                        li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
+                            [ viewPropertyIdLine language (Just navigateMsg) data debatePropertyId
+                            , viewStatementIdRatingPanel language navigateMsg data debatePropertyId
+                            ]
                     )
                     debatePropertyIds
                 )
         ]
 
 
-viewRatingPanel :
+viewStatementIdRatingPanel : I18n.Language -> (String -> msg) -> DataProxy a -> String -> Html msg
+viewStatementIdRatingPanel language navigateMsg data statementId =
+    case Dict.get statementId data.cards of
+        Just card ->
+            viewStatementRatingPanel language navigateMsg (Just "cards") card
+
+        Nothing ->
+            case Dict.get statementId data.properties of
+                Just property ->
+                    viewStatementRatingPanel language navigateMsg (Just "properties") property
+
+                Nothing ->
+                    case Dict.get statementId data.values of
+                        Just typedValue ->
+                            viewStatementRatingPanel language navigateMsg (Just "affirmations") typedValue
+
+                        Nothing ->
+                            i [ class "text-warning" ] [ text ("Missing statement with ID: " ++ statementId) ]
+
+
+viewStatementRatingPanel :
     I18n.Language
     -> (String -> msg)
     -> Maybe String
     -> { a | argumentCount : Int, id : String, ratingCount : Int, ratingSum : Int, trashed : Bool }
     -> Html msg
-viewRatingPanel language navigateMsg objectsUrlName { argumentCount, id, ratingCount, ratingSum, trashed } =
+viewStatementRatingPanel language navigateMsg objectsUrlName { argumentCount, id, ratingCount, ratingSum, trashed } =
     let
         buttonClass =
             classList
@@ -146,14 +116,14 @@ viewRatingPanel language navigateMsg objectsUrlName { argumentCount, id, ratingC
             ]
 
 
-viewRatingToolbar :
+viewStatementRatingToolbar :
     I18n.Language
     -> DataProxy a
     -> (String -> Maybe Int -> msg)
     -> (String -> msg)
     -> { b | ballotId : String, id : String }
     -> Html msg
-viewRatingToolbar language data rateMsg trashMsg { ballotId, id } =
+viewStatementRatingToolbar language data rateMsg trashMsg { ballotId, id } =
     div
         [ class "toolbar"
         , role "toolbar"

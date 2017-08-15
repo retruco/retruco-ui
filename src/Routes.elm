@@ -1,7 +1,6 @@
 module Routes exposing (..)
 
 import Affirmations.Item.Routes
-import Arguments.Item.Routes
 import Authenticator.Routes
 import Cards.Item.Routes
 import I18n
@@ -17,10 +16,6 @@ type AffirmationsRoute
     | NewAffirmationRoute
 
 
-type ArgumentsRoute
-    = ArgumentRoute String Arguments.Item.Routes.Route
-
-
 type CardsRoute
     = CardRoute String Cards.Item.Routes.Route
     | CardsIndexRoute
@@ -33,7 +28,6 @@ type CardsRoute
 type LocalizedRoute
     = AboutRoute
     | AffirmationsRoute AffirmationsRoute
-    | ArgumentsRoute ArgumentsRoute
     | AuthenticatorRoute Authenticator.Routes.Route
     | CardsRoute CardsRoute
     | NotFoundRoute (List String)
@@ -74,20 +68,6 @@ affirmationsRouteParser =
         ]
 
 
-argumentRouteParser : Parser (Arguments.Item.Routes.Route -> a) a
-argumentRouteParser =
-    oneOf
-        [ map Arguments.Item.Routes.IndexRoute top
-        ]
-
-
-argumentsRouteParser : Parser (ArgumentsRoute -> a) a
-argumentsRouteParser =
-    oneOf
-        [ map ArgumentRoute (idParser </> argumentRouteParser)
-        ]
-
-
 cardRouteParser : Parser (Cards.Item.Routes.Route -> a) a
 cardRouteParser =
     oneOf
@@ -118,7 +98,6 @@ localizedRouteParser =
         [ map SearchRoute top
         , map AboutRoute (s "about")
         , map AffirmationsRoute (s "affirmations" </> affirmationsRouteParser)
-        , map ArgumentsRoute (s "arguments" </> argumentsRouteParser)
         , map CardsRoute (s "cards" </> cardsRouteParser)
         , map UserProfileRoute (s "profile")
         , map PropertiesRoute (s "properties" </> propertiesRouteParser)

@@ -9,11 +9,11 @@ import Html.Attributes.Aria exposing (..)
 import Html.Helpers exposing (aForPath)
 import Http.Error
 import I18n
+import LineViews exposing (viewValueTypeLine)
 import Properties.KeysAutocomplete.View
 import SameKeyProperties.View
 import Statements.ViewsHelpers exposing (viewDebatePropertiesBlock)
 import Types exposing (..)
-import Values.ViewsHelpers exposing (..)
 import Views
 
 

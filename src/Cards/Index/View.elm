@@ -9,7 +9,7 @@ import Html.Events exposing (..)
 import Html.Helpers exposing (aForPath, aIfIsUrl)
 import I18n
 import Json.Decode
-import Values.ViewsHelpers exposing (..)
+import LineViews exposing (viewCardIdLine)
 import Views
 import WebData
 

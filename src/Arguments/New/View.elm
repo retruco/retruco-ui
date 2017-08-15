@@ -9,15 +9,9 @@ import Html.Events exposing (..)
 import Http.Error
 import I18n
 import Json.Decode
+import LineViews exposing (keyIdLabelCouples)
 import Values.New.View
 import Views exposing (errorInfos)
-
-
-keyIdLabelCouples : List ( String, I18n.TranslationId )
-keyIdLabelCouples =
-    [ ( "pros", I18n.DebateProsLabel )
-    , ( "cons", I18n.DebateConsLabel )
-    ]
 
 
 view : Model -> Html Msg

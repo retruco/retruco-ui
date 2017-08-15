@@ -8,8 +8,13 @@ import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Http.Error
 import I18n
-import Statements.ViewsHelpers exposing (viewDebatePropertiesBlock, viewRatingPanel, viewRatingToolbar)
-import Values.ViewsHelpers exposing (viewValueIdLine, viewValueTypeLine)
+import LineViews exposing (viewValueIdLine, viewValueTypeLine)
+import Statements.ViewsHelpers
+    exposing
+        ( viewDebatePropertiesBlock
+        , viewStatementRatingPanel
+        , viewStatementRatingToolbar
+        )
 import Views
 
 
@@ -34,9 +39,9 @@ view model =
                                 False
                                 typedValue.value
                             ]
-                        , viewRatingPanel language (ForParent << Navigate) Nothing typedValue
+                        , viewStatementRatingPanel language (ForParent << Navigate) Nothing typedValue
                         ]
-                    , viewRatingToolbar
+                    , viewStatementRatingToolbar
                         language
                         data
                         (\id rating -> ForSelf <| Rate id rating)

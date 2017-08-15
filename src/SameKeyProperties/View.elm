@@ -6,10 +6,10 @@ import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Http.Error
 import I18n
+import LineViews exposing (viewValueIdLine)
 import SameKeyProperties.Types exposing (..)
-import Statements.ViewsHelpers exposing (viewRatingPanel)
+import Statements.ViewsHelpers exposing (viewStatementRatingPanel)
 import Values.New.View
-import Values.ViewsHelpers exposing (viewValueIdLine)
 import Views
 
 
@@ -33,7 +33,7 @@ view model =
                                         Just <|
                                             li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
                                                 [ viewValueIdLine language Nothing data False property.valueId
-                                                , viewRatingPanel language (ForParent << Navigate) Nothing property
+                                                , viewStatementRatingPanel language (ForParent << Navigate) Nothing property
                                                 ]
 
                                     Nothing ->

@@ -8,9 +8,9 @@ import Html.Attributes.Aria exposing (..)
 import Html.Helpers exposing (aForPath)
 import Http.Error
 import I18n
-import Urls
+import LineViews exposing (viewValueIdLine)
 import Statements.ViewsHelpers exposing (viewDebatePropertiesBlock)
-import Values.ViewsHelpers exposing (viewValueIdLine)
+import Urls
 import Views
 
 

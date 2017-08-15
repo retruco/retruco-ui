@@ -9,8 +9,8 @@ import Html.Events exposing (..)
 import Html.Helpers exposing (aForPath)
 import Http.Error
 import I18n
-import Statements.ViewsHelpers exposing (viewRatingPanel)
-import Values.ViewsHelpers exposing (viewValueTypeLine)
+import LineViews exposing (viewValueTypeLine)
+import Statements.ViewsHelpers exposing (viewStatementRatingPanel)
 import Views
 
 
@@ -75,7 +75,7 @@ view model =
                                                         data
                                                         False
                                                         typedValue.value
-                                                    , viewRatingPanel
+                                                    , viewStatementRatingPanel
                                                         language
                                                         (ForParent << Navigate)
                                                         (Just "affirmations")

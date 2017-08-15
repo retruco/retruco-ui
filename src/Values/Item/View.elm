@@ -7,9 +7,9 @@ import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Http.Error
 import I18n
+import LineViews exposing (viewValueTypeLine)
 import Statements.ViewsHelpers exposing (viewDebatePropertiesBlock)
 import Values.Item.Types exposing (..)
-import Values.ViewsHelpers exposing (viewValueTypeLine)
 import Views
 
 

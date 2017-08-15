@@ -7,9 +7,15 @@ import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Http.Error
 import I18n
+import LineViews exposing (keyIdLabelCouples, viewStatementIdLine)
 import Properties.Item.Types exposing (..)
-import Statements.ViewsHelpers exposing (viewDebatePropertiesBlock, viewRatingPanel, viewRatingToolbar)
-import Values.ViewsHelpers exposing (viewValueIdLine, viewValueTypeLine)
+import Statements.ViewsHelpers
+    exposing
+        ( viewDebatePropertiesBlock
+        , viewStatementIdRatingPanel
+        , viewStatementRatingPanel
+        , viewStatementRatingToolbar
+        )
 import Views
 
 
@@ -25,40 +31,29 @@ view model =
         case ( Dict.get model.id data.properties, model.debatePropertyIds ) of
             ( Just property, Just debatePropertyIds ) ->
                 div []
-                    [ case Dict.get property.objectId data.values of
-                        Just typedValue ->
-                            div [ class "align-items-center d-flex flex-nowrap justify-content-between" ]
+                    [ div [ class "align-items-center d-flex flex-nowrap justify-content-between" ]
+                        [ div []
+                            [ div [ class "align-items-center d-flex flex-nowrap justify-content-between" ]
                                 [ h1 []
-                                    [ viewValueTypeLine
+                                    [ viewStatementIdLine
                                         language
                                         (Just (ForParent << Navigate))
                                         data
-                                        False
-                                        typedValue.value
+                                        property.objectId
                                     ]
-                                , viewRatingPanel language (ForParent << Navigate) (Just "affirmations") typedValue
+                                , viewStatementIdRatingPanel
+                                    language
+                                    (ForParent << Navigate)
+                                    data
+                                    property.objectId
                                 ]
-
-                        Nothing ->
-                            i [ class "text-warning" ] [ text ("Missing affirmation with ID: " ++ property.objectId) ]
-                    , let
-                        ballot =
-                            Dict.get property.ballotId data.ballots
-
-                        ballotRating =
-                            Maybe.map .rating ballot
-
-                        keyLabel =
-                            property.keyId
-
-                        -- TODO
-                        -- Dict.get property.keyId data.values
-                        --     |> Maybe.map (I18n.translate language)
-                        --     |> Maybe.withDefault property.keyId
-                      in
-                        ul [ class "list-group" ]
-                            [ li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
-                                [ div [ class "align-items-baseline d-flex flex-nowrap" ]
+                            , let
+                                keyLabel =
+                                    Dict.get property.keyId (Dict.fromList keyIdLabelCouples)
+                                        |> Maybe.map (I18n.translate language)
+                                        |> Maybe.withDefault property.keyId
+                              in
+                                div [ class "align-items-baseline d-flex flex-nowrap" ]
                                     [ span
                                         [ ariaHidden True
                                         , classList
@@ -71,33 +66,31 @@ view model =
                                                     "fa-info"
                                               , True
                                               )
+                                            , ( "fa-fw", True )
                                             , ( "mr-2", True )
                                             ]
                                         ]
                                         []
-                                    , div []
-                                        [ h1 [] [ text keyLabel ]
-                                        ]
-                                    , case Dict.get property.valueId data.values of
-                                        Just typedValue ->
-                                            div [ class "align-items-center d-flex flex-nowrap justify-content-between" ]
-                                                [ h1 []
-                                                    [ viewValueTypeLine
-                                                        language
-                                                        (Just (ForParent << Navigate))
-                                                        data
-                                                        False
-                                                        typedValue.value
-                                                    ]
-                                                , viewRatingPanel language (ForParent << Navigate) (Just "affirmations") typedValue
-                                                ]
-
-                                        Nothing ->
-                                            i [ class "text-warning" ] [ text ("Missing affirmation with ID: " ++ property.objectId) ]
+                                    , h1 [] [ text keyLabel ]
                                     ]
+                            , div [ class "align-items-center d-flex flex-nowrap justify-content-between" ]
+                                [ h1 []
+                                    [ viewStatementIdLine
+                                        language
+                                        (Just (ForParent << Navigate))
+                                        data
+                                        property.valueId
+                                    ]
+                                , viewStatementIdRatingPanel
+                                    language
+                                    (ForParent << Navigate)
+                                    data
+                                    property.valueId
                                 ]
                             ]
-                    , viewRatingToolbar
+                        , viewStatementRatingPanel language (ForParent << Navigate) Nothing property
+                        ]
+                    , viewStatementRatingToolbar
                         language
                         data
                         (\id rating -> ForSelf <| Rate id rating)

@@ -8,8 +8,8 @@ import Html.Events exposing (..)
 import Html.Helpers exposing (aForPath)
 import I18n
 import Json.Decode
+import LineViews exposing (viewValueIdLine)
 import Values.Index.Types exposing (..)
-import Values.ViewsHelpers exposing (..)
 import Views
 import WebData
 

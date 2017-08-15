@@ -4,7 +4,6 @@ import About.View
 import Affirmations.Index.View
 import Affirmations.Item.View
 import Affirmations.New.View
-import Arguments.Item.View
 import Authenticator.View
 import Cards.Index.View
 import Cards.Item.View
@@ -209,17 +208,6 @@ view model =
 
                                         Nothing ->
                                             text "This should not occur: newAffirmationModel == Nothing!"
-
-                        ArgumentsRoute childRoute ->
-                            case childRoute of
-                                ArgumentRoute _ _ ->
-                                    case model.argumentModel of
-                                        Just argumentModel ->
-                                            Arguments.Item.View.view argumentModel
-                                                |> Html.map translateArgumentMsg
-
-                                        Nothing ->
-                                            text "This should not occur: argumentModel == Nothing!"
 
                         AuthenticatorRoute childRoute ->
                             Authenticator.View.view childRoute model.authenticatorModel
