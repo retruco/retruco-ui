@@ -86,18 +86,19 @@ viewCardLine language navigateMsg data card =
                 text cardName
 
 
-viewPropertyIdLine : I18n.Language -> Maybe (String -> msg) -> DataProxy a -> String -> Html msg
-viewPropertyIdLine language navigateMsg data propertyId =
+viewPropertyIdLine : I18n.Language -> Maybe (String -> msg) -> Bool -> DataProxy a -> String -> Html msg
+viewPropertyIdLine language navigateMsg independent data propertyId =
     case Dict.get propertyId data.properties of
         Just property ->
-            viewPropertyLine language navigateMsg data property
+            viewPropertyLine language navigateMsg independent data property
 
         Nothing ->
             i [ class "text-warning" ] [ text ("Missing property with ID: " ++ propertyId) ]
 
 
-viewPropertyLine : I18n.Language -> Maybe (String -> msg) -> DataProxy a -> Property -> Html msg
-viewPropertyLine language navigateMsg data property =
+viewPropertyLine : I18n.Language -> Maybe (String -> msg) -> Bool -> DataProxy a -> Property -> Html msg
+viewPropertyLine language navigateMsg independent data property =
+    -- The `independent` flag indicates whether to display the object of the property along with it key and value.
     let
         keyLabel =
             Dict.get property.keyId (Dict.fromList keyIdLabelCouples)
@@ -105,7 +106,18 @@ viewPropertyLine language navigateMsg data property =
                 |> Maybe.withDefault property.keyId
     in
         div []
-            [ div [ class "align-items-baseline d-flex flex-nowrap" ]
+            [ if independent then
+                div []
+                    [ viewStatementIdLine
+                        language
+                        navigateMsg
+                        True
+                        data
+                        property.valueId
+                    ]
+              else
+                text ""
+            , div [ class "align-items-baseline d-flex flex-nowrap" ]
                 [ span
                     [ ariaHidden True
                     , classList
@@ -129,14 +141,15 @@ viewPropertyLine language navigateMsg data property =
                 [ viewStatementIdLine
                     language
                     navigateMsg
+                    True
                     data
                     property.valueId
                 ]
             ]
 
 
-viewStatementIdLine : I18n.Language -> Maybe (String -> msg) -> DataProxy a -> String -> Html msg
-viewStatementIdLine language navigateMsg data statementId =
+viewStatementIdLine : I18n.Language -> Maybe (String -> msg) -> Bool -> DataProxy a -> String -> Html msg
+viewStatementIdLine language navigateMsg independent data statementId =
     case Dict.get statementId data.cards of
         Just card ->
             viewCardLine language navigateMsg data card
@@ -144,7 +157,7 @@ viewStatementIdLine language navigateMsg data statementId =
         Nothing ->
             case Dict.get statementId data.properties of
                 Just property ->
-                    viewPropertyLine language navigateMsg data property
+                    viewPropertyLine language navigateMsg independent data property
 
                 Nothing ->
                     case Dict.get statementId data.values of

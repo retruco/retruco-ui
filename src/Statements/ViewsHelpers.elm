@@ -7,7 +7,7 @@ import Html.Attributes.Aria exposing (..)
 import Html.Events exposing (onClick)
 import Html.Helpers exposing (aForPath)
 import I18n
-import LineViews exposing (viewPropertyIdLine, viewStatementIdLine)
+import LineViews exposing (viewPropertyIdLine)
 import Set exposing (Set)
 import Types exposing (Argument, DataProxy)
 
@@ -33,7 +33,7 @@ viewDebatePropertiesBlock language navigateMsg data debatePropertyIds =
                 (List.map
                     (\debatePropertyId ->
                         li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
-                            [ viewPropertyIdLine language (Just navigateMsg) data debatePropertyId
+                            [ viewPropertyIdLine language (Just navigateMsg) False data debatePropertyId
                             , viewStatementIdRatingPanel language navigateMsg data debatePropertyId
                             ]
                     )

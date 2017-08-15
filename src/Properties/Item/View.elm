@@ -38,6 +38,7 @@ view model =
                                     [ viewStatementIdLine
                                         language
                                         (Just (ForParent << Navigate))
+                                        True
                                         data
                                         property.objectId
                                     ]
@@ -78,6 +79,7 @@ view model =
                                     [ viewStatementIdLine
                                         language
                                         (Just (ForParent << Navigate))
+                                        True
                                         data
                                         property.valueId
                                     ]
