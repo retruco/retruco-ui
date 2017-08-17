@@ -1,5 +1,6 @@
 module LineViews exposing (..)
 
+import Constants exposing (nameKeyIds)
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -75,7 +76,7 @@ viewCardLine : I18n.Language -> Maybe (String -> msg) -> DataProxy a -> Card -> 
 viewCardLine language navigateMsg data card =
     let
         cardName =
-            I18n.getOneString language nameKeys card data.values
+            I18n.getOneString language nameKeyIds card data.values
                 |> Maybe.withDefault card.id
     in
         case navigateMsg of

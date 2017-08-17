@@ -70,7 +70,7 @@ update msg model =
                 | httpError = Nothing
                 , propertyIds = Nothing
               }
-            , Requests.getObjectProperties model.authentication model.objectId model.keyId
+            , Requests.getObjectProperties model.authentication False model.objectId [ model.keyId ] []
                 |> Http.send (ForSelf << Retrieved)
             )
 

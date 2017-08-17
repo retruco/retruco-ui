@@ -2,6 +2,7 @@ module Values.Item.State exposing (..)
 
 import Arguments.Index.State
 import Authenticator.Types exposing (Authentication)
+import Constants exposing (debateKeyIds)
 import Http
 import I18n
 import Navigation
@@ -156,7 +157,7 @@ update msg model =
                 --     | keysAutocompleteModel = Properties.KeysAutocomplete.State.init card.subTypeIds True
                 --   }
                 ( mergedModel
-                , Requests.getDebateProperties model.authentication model.showTrashed model.id
+                , Requests.getObjectProperties model.authentication model.showTrashed model.id debateKeyIds []
                     |> Http.send (ForSelf << DebatePropertiesRetrieved)
                 )
 

@@ -2,6 +2,7 @@ module Cards.Item.View exposing (..)
 
 import Arguments.Index.View
 import Cards.Item.Types exposing (..)
+import Constants exposing (nameKeyIds)
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -13,7 +14,6 @@ import LineViews exposing (viewValueTypeLine)
 import Properties.KeysAutocomplete.View
 import SameKeyProperties.View
 import Statements.ViewsHelpers exposing (viewDebatePropertiesBlock)
-import Types exposing (..)
 import Views
 
 
@@ -40,7 +40,7 @@ view model =
                     ( Just card, Just debatePropertyIds ) ->
                         let
                             cardName =
-                                I18n.getOneString language nameKeys card data.values
+                                I18n.getOneString language nameKeyIds card data.values
                                     |> Maybe.withDefault card.id
 
                             values =

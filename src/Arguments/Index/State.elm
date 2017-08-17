@@ -3,6 +3,7 @@ module Arguments.Index.State exposing (..)
 import Arguments.Index.Types exposing (..)
 import Arguments.New.State
 import Authenticator.Types exposing (Authentication)
+import Constants exposing (debateKeyIds)
 import Http
 import I18n
 import Navigation
@@ -88,7 +89,7 @@ update msg model =
                 | debatePropertyIds = Nothing
                 , httpError = Nothing
               }
-            , Requests.getDebateProperties model.authentication model.showTrashed model.objectId
+            , Requests.getObjectProperties model.authentication model.showTrashed model.objectId debateKeyIds []
                 |> Http.send (ForSelf << Retrieved)
             )
 

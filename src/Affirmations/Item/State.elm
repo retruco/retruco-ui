@@ -4,6 +4,7 @@ import Affirmations.Item.Routes exposing (..)
 import Affirmations.Item.Types exposing (..)
 import Arguments.New.State
 import Authenticator.Types exposing (Authentication)
+import Constants exposing (debateKeyIds)
 import Http
 import I18n
 import Navigation
@@ -186,7 +187,7 @@ update msg model =
 
         ValueRetrieved (Ok { data }) ->
             ( mergeModelData data model
-            , Requests.getDebateProperties model.authentication model.showTrashed model.id
+            , Requests.getObjectProperties model.authentication model.showTrashed model.id debateKeyIds []
                 |> Http.send (ForSelf << DebatePropertiesRetrieved)
             )
 

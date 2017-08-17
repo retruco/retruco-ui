@@ -385,12 +385,3 @@ mergeDataIds new old =
         { mergedData
             | ids = List.append old.ids new.ids
         }
-
-
-
--- KEYS
-
-
-nameKeys : List String
-nameKeys =
-    [ "name" ]
