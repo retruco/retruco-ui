@@ -104,19 +104,11 @@ update msg model =
             let
                 mergedModel =
                     mergeModelData data model
-
-                language =
-                    model.language
             in
                 ( { mergedModel
                     | debatePropertyIds = Just data.ids
                   }
-                , -- TODO
-                  Ports.setDocumentMetadata
-                    { description = I18n.translate language I18n.ValuesDescription
-                    , imageUrl = Urls.appLogoFullUrl
-                    , title = I18n.translate language I18n.Values
-                    }
+                , Cmd.none
                 )
 
         DebatePropertyUpserted data ->
@@ -184,10 +176,20 @@ update msg model =
             )
 
         ValueRetrieved (Ok { data }) ->
-            ( mergeModelData data model
-            , Requests.getObjectProperties model.authentication model.showTrashed model.id debateKeyIds []
-                |> Http.send (ForSelf << DebatePropertiesRetrieved)
-            )
+            let
+                language =
+                    model.language
+            in
+                mergeModelData data model
+                    ! [ -- TODO
+                        Ports.setDocumentMetadata
+                            { description = I18n.translate language I18n.ValuesDescription
+                            , imageUrl = Urls.appLogoFullUrl
+                            , title = I18n.translate language I18n.Values
+                            }
+                      , Requests.getObjectProperties model.authentication model.showTrashed model.id debateKeyIds []
+                            |> Http.send (ForSelf << DebatePropertiesRetrieved)
+                      ]
 
 
 urlUpdate : Navigation.Location -> Route -> Model -> ( Model, Cmd Msg )
