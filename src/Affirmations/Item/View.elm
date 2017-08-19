@@ -25,7 +25,7 @@ view model =
         case ( model.affirmation, model.debatePropertyIds, model.toolbarModel ) of
             ( Just typedValue, Just debatePropertyIds, Just toolbarModel ) ->
                 div []
-                    [ div [ class "align-items-center d-flex flex-nowrap justify-content-between" ]
+                    [ div [ class "align-items-center d-flex flex-nowrap justify-content-between mb-3" ]
                         [ h1 []
                             [ viewValueTypeLine
                                 language
