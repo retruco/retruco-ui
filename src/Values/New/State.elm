@@ -17,36 +17,6 @@ import Values.Autocomplete.State
 import Values.New.Types exposing (..)
 
 
-init : Maybe Authentication -> I18n.Language -> List String -> Model
-init authentication language validFieldTypes =
-    let
-        fieldType =
-            case List.head validFieldTypes of
-                Just firstFieldType ->
-                    if List.member "TextField" validFieldTypes then
-                        "TextField"
-                    else
-                        firstFieldType
-
-                Nothing ->
-                    "TextField"
-    in
-        { authentication = authentication
-        , booleanValue = False
-        , cardsAutocompleteModel = Cards.Autocomplete.State.init []
-        , errors = Dict.empty
-        , field = Nothing
-        , fieldType = fieldType
-        , httpError = Nothing
-        , imageUploadStatus = ImageNotUploadedStatus
-        , language = language
-        , languageIso639_1 = I18n.iso639_1FromLanguage language
-        , validFieldTypes = validFieldTypes
-        , value = ""
-        , valuesAutocompleteModel = Values.Autocomplete.State.init []
-        }
-
-
 convertControls : Model -> Model
 convertControls model =
     let
@@ -222,9 +192,78 @@ convertControls model =
         }
 
 
+init : Maybe Authentication -> I18n.Language -> List String -> Model
+init authentication language validFieldTypes =
+    let
+        fieldType =
+            case List.head validFieldTypes of
+                Just firstFieldType ->
+                    if List.member "TextField" validFieldTypes then
+                        "TextField"
+                    else
+                        firstFieldType
+
+                Nothing ->
+                    "TextField"
+
+        languageIso639_1 =
+            I18n.iso639_1FromLanguage language
+
+        ( schemaIds, widgetIds ) =
+            schemaIdsAndWidgetIds fieldType languageIso639_1
+    in
+        { authentication = authentication
+        , booleanValue = False
+        , cardsAutocompleteModel = Cards.Autocomplete.State.init []
+        , errors = Dict.empty
+        , field = Nothing
+        , fieldType = fieldType
+        , httpError = Nothing
+        , imageUploadStatus = ImageNotUploadedStatus
+        , language = language
+        , languageIso639_1 = languageIso639_1
+        , validFieldTypes = validFieldTypes
+        , value = ""
+        , valuesAutocompleteModel = Values.Autocomplete.State.init schemaIds widgetIds
+        }
+
+
 mergeModelData : DataProxy a -> Model -> Model
 mergeModelData data model =
     model
+
+
+schemaIdsAndWidgetIds : String -> String -> ( List String, List String )
+schemaIdsAndWidgetIds fieldType languageIso639_1 =
+    case fieldType of
+        "BooleanField" ->
+            ( [ "schema:boolean" ], [] )
+
+        "CardIdField" ->
+            ( [ "schema:card-id" ], [] )
+
+        "ImageField" ->
+            ( [ "schema:uri" ], [ "widget:image" ] )
+
+        "InputEmailField" ->
+            ( [ "schema:email" ], [] )
+
+        "InputNumberField" ->
+            ( [ "schema:number" ], [] )
+
+        "InputUrlField" ->
+            ( [ "schema:uri" ], [] )
+
+        "TextField" ->
+            case languageIso639_1 of
+                "" ->
+                    ( [ "schema:string" ], [] )
+
+                _ ->
+                    ( [ "schema:localized-string" ], [] )
+
+        _ ->
+            ( [], [] )
 
 
 setContext : Maybe Authentication -> I18n.Language -> Model -> Model
@@ -261,9 +300,21 @@ update msg model =
                 )
 
         FieldTypeChanged fieldType ->
-            ( convertControls { model | fieldType = fieldType }
-            , Cmd.none
-            )
+            let
+                ( schemaIds, widgetIds ) =
+                    schemaIdsAndWidgetIds fieldType model.languageIso639_1
+            in
+                ( convertControls
+                    { model
+                        | fieldType = fieldType
+                        , valuesAutocompleteModel =
+                            Values.Autocomplete.State.setSchemaIdsAndWidgetIds
+                                schemaIds
+                                widgetIds
+                                model.valuesAutocompleteModel
+                    }
+                , Cmd.none
+                )
 
         ImageRead data ->
             let
@@ -307,9 +358,21 @@ update msg model =
             )
 
         LanguageChanged languageIso639_1 ->
-            ( convertControls { model | languageIso639_1 = languageIso639_1 }
-            , Cmd.none
-            )
+            let
+                ( schemaIds, widgetIds ) =
+                    schemaIdsAndWidgetIds model.fieldType languageIso639_1
+            in
+                ( convertControls
+                    { model
+                        | languageIso639_1 = languageIso639_1
+                        , valuesAutocompleteModel =
+                            Values.Autocomplete.State.setSchemaIdsAndWidgetIds
+                                schemaIds
+                                widgetIds
+                                model.valuesAutocompleteModel
+                    }
+                , Cmd.none
+                )
 
         Submit ->
             let
@@ -339,19 +402,23 @@ update msg model =
             ( { model | httpError = Just httpError }, Cmd.none )
 
         Upserted (Ok body) ->
-            ( -- Reset fields.
-              { model
-                | booleanValue = False
-                , cardsAutocompleteModel = Cards.Autocomplete.State.init []
-                , errors = Dict.empty
-                , field = Nothing
-                , httpError = Nothing
-                , imageUploadStatus = ImageNotUploadedStatus
-                , value = ""
-                , valuesAutocompleteModel = Values.Autocomplete.State.init []
-              }
-            , Task.perform (\_ -> ForParent <| ValueUpserted body.data) (Task.succeed ())
-            )
+            -- Reset fields.
+            let
+                ( schemaIds, widgetIds ) =
+                    schemaIdsAndWidgetIds model.fieldType model.languageIso639_1
+            in
+                ( { model
+                    | booleanValue = False
+                    , cardsAutocompleteModel = Cards.Autocomplete.State.init []
+                    , errors = Dict.empty
+                    , field = Nothing
+                    , httpError = Nothing
+                    , imageUploadStatus = ImageNotUploadedStatus
+                    , value = ""
+                    , valuesAutocompleteModel = Values.Autocomplete.State.init schemaIds widgetIds
+                  }
+                , Task.perform (\_ -> ForParent <| ValueUpserted body.data) (Task.succeed ())
+                )
 
         ValueChanged value ->
             ( convertControls { model | value = value }

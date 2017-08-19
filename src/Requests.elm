@@ -143,10 +143,11 @@ autocompleteValues :
     Maybe Authentication
     -> I18n.Language
     -> List String
+    -> List String
     -> String
     -> Int
     -> Http.Request TypedValuesAutocompletionBody
-autocompleteValues authentication language schemas term limit =
+autocompleteValues authentication language schemas widgets term limit =
     Http.request
         { method = "GET"
         , headers = authenticationHeaders authentication
@@ -168,6 +169,7 @@ autocompleteValues authentication language schemas term limit =
                        )
                      ]
                         ++ List.map (\schema -> ( "schema", Just schema )) schemas
+                        ++ List.map (\widget -> ( "widget", Just widget )) widgets
                     )
         , body = Http.emptyBody
         , expect = Http.expectJson typedValuesAutocompletionBodyDecoder

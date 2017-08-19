@@ -30,13 +30,23 @@ idToAutocompletion id model =
         |> List.head
 
 
-init : List String -> Model
-init valueTypes =
+init : List String -> List String -> Model
+init schemaIds widgetIds =
     { autocomplete = ""
     , autocompleterState = AutocompleterHidden
     , autocompletions = []
+    , schemaIds = schemaIds
     , selected = Nothing
-    , valueTypes = valueTypes
+    , widgetIds = widgetIds
+    }
+
+
+setSchemaIdsAndWidgetIds : List String -> List String -> Model -> Model
+setSchemaIdsAndWidgetIds schemaIds widgetIds model =
+    { model
+        | autocompletions = []
+        , schemaIds = schemaIds
+        , widgetIds = widgetIds
     }
 
 
@@ -79,7 +89,8 @@ update msg authentication language fieldId model =
             , Requests.autocompleteValues
                 authentication
                 language
-                model.valueTypes
+                model.schemaIds
+                model.widgetIds
                 model.autocomplete
                 autocompleterSize
                 |> Http.send (ForSelf << SuggestionsLoaded)
@@ -107,7 +118,8 @@ update msg authentication language fieldId model =
                     , Requests.autocompleteValues
                         authentication
                         language
-                        model.valueTypes
+                        model.schemaIds
+                        model.widgetIds
                         model.autocomplete
                         autocompleterSize
                         |> Http.send (ForSelf << SuggestionsLoaded)

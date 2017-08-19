@@ -15,8 +15,9 @@ type alias Model =
     { autocomplete : String
     , autocompleterState : AutocompleterState
     , autocompletions : List TypedValueAutocompletion
+    , schemaIds : List String
     , selected : Maybe TypedValueAutocompletion
-    , valueTypes : List String
+    , widgetIds : List String
     }
 
 
