@@ -193,11 +193,12 @@ typedValueAutocompletionDecoder =
 typedValueDecoder : Decoder TypedValue
 typedValueDecoder =
     succeed
-        (\argumentCount ballotId createdAt id ratingCount ratingSum schemaId trashed type_ widgetId ->
+        (\argumentCount ballotId createdAt id properties ratingCount ratingSum schemaId trashed type_ widgetId ->
             { argumentCount = argumentCount
             , ballotId = ballotId
             , createdAt = createdAt
             , id = id
+            , properties = properties
             , ratingCount = ratingCount
             , ratingSum = ratingSum
             , schemaId = schemaId
@@ -210,6 +211,7 @@ typedValueDecoder =
         |: oneOf [ (field "ballotId" string), succeed "" ]
         |: (field "createdAt" string)
         |: (field "id" string)
+        |: oneOf [ (field "properties" (dict string)), succeed Dict.empty ]
         |: oneOf [ (field "ratingCount" int), succeed 0 ]
         |: oneOf [ (field "ratingSum" int), succeed 0 ]
         |: (field "schemaId" string)
@@ -217,7 +219,7 @@ typedValueDecoder =
         |: (field "type" string)
         |: oneOf [ (field "widgetId" string), succeed "" ]
         |> andThen
-            (\{ argumentCount, ballotId, createdAt, id, ratingCount, ratingSum, schemaId, trashed, type_, widgetId } ->
+            (\{ argumentCount, ballotId, createdAt, id, properties, ratingCount, ratingSum, schemaId, trashed, type_, widgetId } ->
                 (field "value" (valueTypeDecoder schemaId widgetId))
                     |> map
                         (\value ->
@@ -226,6 +228,7 @@ typedValueDecoder =
                                 ballotId
                                 createdAt
                                 id
+                                properties
                                 ratingCount
                                 ratingSum
                                 schemaId

@@ -204,8 +204,9 @@ type alias TypedValue =
     { argumentCount : Int
     , -- TODO Use Maybe
       ballotId : String
-    , createdAt : String -- Removed because a JSON decoder can decode only 8 fields at max.
+    , createdAt : String
     , id : String
+    , properties : Dict String String
     , ratingCount : Int
     , ratingSum : Int
     , schemaId : String
