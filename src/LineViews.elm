@@ -108,7 +108,7 @@ viewPropertyLine language navigateMsg independent data property =
     in
         div []
             [ if independent then
-                div []
+                div [ class "ml-4" ]
                     [ viewStatementIdLine
                         language
                         navigateMsg
@@ -128,7 +128,7 @@ viewPropertyLine language navigateMsg independent data property =
                             else if property.keyId == "pros" then
                                 "fa-plus"
                             else
-                                "fa-info"
+                                "fa-circle"
                           , True
                           )
                         , ( "fa-fw", True )
@@ -138,7 +138,7 @@ viewPropertyLine language navigateMsg independent data property =
                     []
                 , span [] [ text keyLabel ]
                 ]
-            , div []
+            , div [ class "ml-4" ]
                 [ viewStatementIdLine
                     language
                     navigateMsg
