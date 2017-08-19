@@ -190,6 +190,8 @@ type TranslationId
     | SignUp
     | SignUpDescription
     | SignUpTitle
+    | SimilarArgumentsDescription Int
+    | SimilarArgumentsTitle Int
     | String
     | Suggestions
     | Tags
@@ -1559,6 +1561,56 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Sign Up"
                 , french = s "Inscription"
+                , spanish = todo
+            }
+
+        SimilarArgumentsDescription count ->
+            { emptyTranslationSet
+                | english =
+                    case count of
+                        0 ->
+                            s "This argument has no similar argument."
+
+                        1 ->
+                            s "This argument is similar to the argument below. Please, rate the best one."
+
+                        _ ->
+                            s "This argument is similar to the arguments below. Please, rate the best one."
+                , french =
+                    case count of
+                        0 ->
+                            s "Cet argument n'a aucun argument similaire."
+
+                        1 ->
+                            s "Cet argument est similaire à l'argument ci-dessous. Veuillez noter le meilleur."
+
+                        _ ->
+                            s "Cet argument est similaire aux arguments ci-dessous. Veuillez noter le meilleur."
+                , spanish = todo
+            }
+
+        SimilarArgumentsTitle count ->
+            { emptyTranslationSet
+                | english =
+                    case count of
+                        0 ->
+                            s "No Similar Argument"
+
+                        1 ->
+                            s "1 Similar Argument"
+
+                        _ ->
+                            s ((toString count) ++ " Similar Arguments")
+                , french =
+                    case count of
+                        0 ->
+                            s "Aucun argument similaire"
+
+                        1 ->
+                            s "1 argument similaire"
+
+                        _ ->
+                            s ((toString count) ++ " arguments similaires")
                 , spanish = todo
             }
 

@@ -30,6 +30,7 @@ init authentication language id =
     , newArgumentModel = Arguments.New.State.init authentication language id []
     , property = Nothing
     , showTrashed = False
+    , similarDebatePropertyIds = Nothing
     , toolbarModel = Nothing
     }
 
@@ -151,11 +152,30 @@ update msg model =
                 | debatePropertyIds = Nothing
                 , httpError = Nothing
                 , property = Nothing
+                , similarDebatePropertyIds = Nothing
                 , toolbarModel = Nothing
               }
             , Requests.getValue model.authentication model.id
                 |> Http.send (ForSelf << ValueRetrieved)
             )
+
+        SimilarDebatePropertiesRetrieved (Err httpError) ->
+            ( { model
+                | httpError = Just httpError
+              }
+            , Cmd.none
+            )
+
+        SimilarDebatePropertiesRetrieved (Ok { data }) ->
+            let
+                mergedModel =
+                    mergeModelData data model
+            in
+                ( { mergedModel
+                    | similarDebatePropertyIds = Just data.ids
+                  }
+                , Cmd.none
+                )
 
         ToolbarMsg childMsg ->
             case model.toolbarModel of
@@ -187,14 +207,34 @@ update msg model =
                     mergeModelData data model
             in
                 mergedModel
-                    ! [ Ports.setDocumentMetadata
+                    ! ([ Ports.setDocumentMetadata
                             { description = I18n.translate language I18n.ValuesDescription
                             , imageUrl = Urls.appLogoFullUrl
                             , title = I18n.translate language I18n.Values
                             }
-                      , Requests.getObjectProperties model.authentication model.showTrashed model.id debateKeyIds []
+                       , Requests.getObjectProperties model.authentication model.showTrashed model.id debateKeyIds []
                             |> Http.send (ForSelf << DebatePropertiesRetrieved)
-                      ]
+                       ]
+                        ++ case mergedModel.property of
+                            Just property ->
+                                if List.member property.keyId debateKeyIds then
+                                    [ Requests.getObjectProperties
+                                        model.authentication
+                                        model.showTrashed
+                                        property.objectId
+                                        (List.filter
+                                            (\debateKeyId -> debateKeyId /= property.keyId)
+                                            debateKeyIds
+                                        )
+                                        [ property.valueId ]
+                                        |> Http.send (ForSelf << SimilarDebatePropertiesRetrieved)
+                                    ]
+                                else
+                                    []
+
+                            Nothing ->
+                                []
+                      )
 
 
 urlUpdate : Navigation.Location -> Route -> Model -> ( Model, Cmd Msg )

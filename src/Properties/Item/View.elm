@@ -7,7 +7,7 @@ import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Http.Error
 import I18n
-import LineViews exposing (keyIdLabelCouples, viewStatementIdLine)
+import LineViews exposing (keyIdLabelCouples, viewPropertyIdLine, viewStatementIdLine)
 import Properties.Item.Types exposing (..)
 import Statements.Toolbar.View
 import Statements.ViewsHelpers
@@ -28,11 +28,11 @@ view model =
         language =
             model.language
     in
-        case ( model.property, model.debatePropertyIds, model.toolbarModel ) of
-            ( Just property, Just debatePropertyIds, Just toolbarModel ) ->
+        case ( model.property, model.toolbarModel ) of
+            ( Just property, Just toolbarModel ) ->
                 div []
-                    [ div [ class "align-items-center d-flex flex-nowrap justify-content-between" ]
-                        [ div [ class "w-100" ]
+                    ([ div [ class "align-items-center d-flex flex-nowrap justify-content-between" ]
+                        [ div [ class "mb-3 w-100" ]
                             [ div [ class "align-items-center d-flex flex-nowrap justify-content-between ml-4" ]
                                 [ div [ class "lead" ]
                                     [ viewStatementIdLine
@@ -92,16 +92,71 @@ view model =
                             ]
                         , viewStatementRatingPanel language (ForParent << Navigate) Nothing property
                         ]
-                    , Statements.Toolbar.View.view toolbarModel
-                        |> Html.map translateToolbarMsg
-                    , hr [] []
-                    , viewDebatePropertiesBlock language (ForParent << Navigate) data debatePropertyIds
-                    , hr [] []
-                    , Arguments.New.View.view model.newArgumentModel
-                        |> Html.map translateNewArgumentMsg
-                    ]
+                     ]
+                        ++ (case model.similarDebatePropertyIds of
+                                Just similarDebatePropertyIds ->
+                                    let
+                                        similarDebatePropertyCount =
+                                            List.length similarDebatePropertyIds
+                                    in
+                                        if similarDebatePropertyCount > 0 then
+                                            [ div [ class "alert alert-warning", role "alert" ]
+                                                [ h3 [ class "alert-heading" ]
+                                                    [ text <|
+                                                        I18n.translate language <|
+                                                            I18n.SimilarArgumentsTitle similarDebatePropertyCount
+                                                    ]
+                                                , p []
+                                                    [ text <|
+                                                        I18n.translate language <|
+                                                            I18n.SimilarArgumentsDescription similarDebatePropertyCount
+                                                    ]
+                                                , ul [ class "list-group" ]
+                                                    (List.map
+                                                        (\similarDebatePropertyId ->
+                                                            li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
+                                                                [ viewPropertyIdLine
+                                                                    language
+                                                                    (Just (ForParent << Navigate))
+                                                                    True
+                                                                    data
+                                                                    similarDebatePropertyId
+                                                                , viewStatementIdRatingPanel
+                                                                    language
+                                                                    (ForParent << Navigate)
+                                                                    data
+                                                                    similarDebatePropertyId
+                                                                ]
+                                                        )
+                                                        similarDebatePropertyIds
+                                                    )
+                                                ]
+                                            ]
+                                        else
+                                            []
 
-            ( _, _, _ ) ->
+                                Nothing ->
+                                    []
+                           )
+                        ++ [ Statements.Toolbar.View.view toolbarModel
+                                |> Html.map translateToolbarMsg
+                           ]
+                        ++ (case model.debatePropertyIds of
+                                Just debatePropertyIds ->
+                                    [ hr [] []
+                                    , viewDebatePropertiesBlock language (ForParent << Navigate) data debatePropertyIds
+                                    ]
+
+                                Nothing ->
+                                    []
+                           )
+                        ++ [ hr [] []
+                           , Arguments.New.View.view model.newArgumentModel
+                                |> Html.map translateNewArgumentMsg
+                           ]
+                    )
+
+            ( _, _ ) ->
                 case model.httpError of
                     Just httpError ->
                         div

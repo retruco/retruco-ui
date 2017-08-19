@@ -19,6 +19,7 @@ type InternalMsg
     | DebatePropertyUpserted Types.DataId
     | NewArgumentMsg Arguments.New.Types.InternalMsg
     | Retrieve
+    | SimilarDebatePropertiesRetrieved (Result Http.Error DataIdsBody)
     | ToolbarMsg Statements.Toolbar.Types.InternalMsg
     | ValueRetrieved (Result Http.Error DataIdBody)
 
@@ -33,6 +34,7 @@ type alias Model =
     , newArgumentModel : Arguments.New.Types.Model
     , property : Maybe Property
     , showTrashed : Bool
+    , similarDebatePropertyIds : Maybe (List String)
     , toolbarModel : Maybe (Statements.Toolbar.Types.Model Property)
     }
 
