@@ -2,19 +2,14 @@ module Affirmations.Item.View exposing (..)
 
 import Affirmations.Item.Types exposing (..)
 import Arguments.New.View
-import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Http.Error
 import I18n
 import LineViews exposing (viewValueIdLine, viewValueTypeLine)
-import Statements.ViewsHelpers
-    exposing
-        ( viewDebatePropertiesBlock
-        , viewStatementRatingPanel
-        , viewStatementRatingToolbar
-        )
+import Statements.Toolbar.View
+import Statements.ViewsHelpers exposing (viewDebatePropertiesBlock, viewStatementRatingPanel)
 import Views
 
 
@@ -27,8 +22,8 @@ view model =
         language =
             model.language
     in
-        case ( Dict.get model.id data.values, model.debatePropertyIds ) of
-            ( Just typedValue, Just debatePropertyIds ) ->
+        case ( model.affirmation, model.debatePropertyIds, model.toolbarModel ) of
+            ( Just typedValue, Just debatePropertyIds, Just toolbarModel ) ->
                 div []
                     [ div [ class "align-items-center d-flex flex-nowrap justify-content-between" ]
                         [ h1 []
@@ -41,12 +36,8 @@ view model =
                             ]
                         , viewStatementRatingPanel language (ForParent << Navigate) Nothing typedValue
                         ]
-                    , viewStatementRatingToolbar
-                        language
-                        data
-                        (\id rating -> ForSelf <| Rate id rating)
-                        (ForSelf << Trash)
-                        typedValue
+                    , Statements.Toolbar.View.view toolbarModel
+                        |> Html.map translateToolbarMsg
                     , hr [] []
                     , viewDebatePropertiesBlock language (ForParent << Navigate) data debatePropertyIds
                     , hr [] []
@@ -54,7 +45,7 @@ view model =
                         |> Html.map translateNewArgumentMsg
                     ]
 
-            ( _, _ ) ->
+            ( _, _, _ ) ->
                 case model.httpError of
                     Just httpError ->
                         div

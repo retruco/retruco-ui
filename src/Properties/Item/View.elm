@@ -9,12 +9,12 @@ import Http.Error
 import I18n
 import LineViews exposing (keyIdLabelCouples, viewStatementIdLine)
 import Properties.Item.Types exposing (..)
+import Statements.Toolbar.View
 import Statements.ViewsHelpers
     exposing
         ( viewDebatePropertiesBlock
         , viewStatementIdRatingPanel
         , viewStatementRatingPanel
-        , viewStatementRatingToolbar
         )
 import Views
 
@@ -28,13 +28,13 @@ view model =
         language =
             model.language
     in
-        case ( Dict.get model.id data.properties, model.debatePropertyIds ) of
-            ( Just property, Just debatePropertyIds ) ->
+        case ( model.property, model.debatePropertyIds, model.toolbarModel ) of
+            ( Just property, Just debatePropertyIds, Just toolbarModel ) ->
                 div []
                     [ div [ class "align-items-center d-flex flex-nowrap justify-content-between" ]
-                        [ div []
-                            [ div [ class "align-items-center d-flex flex-nowrap justify-content-between" ]
-                                [ h1 []
+                        [ div [ class "w-100" ]
+                            [ div [ class "align-items-center d-flex flex-nowrap justify-content-between ml-4" ]
+                                [ div [ class "lead" ]
                                     [ viewStatementIdLine
                                         language
                                         (Just (ForParent << Navigate))
@@ -64,7 +64,7 @@ view model =
                                                 else if property.keyId == "pros" then
                                                     "fa-plus"
                                                 else
-                                                    "fa-info"
+                                                    "fa-circle"
                                               , True
                                               )
                                             , ( "fa-fw", True )
@@ -72,10 +72,10 @@ view model =
                                             ]
                                         ]
                                         []
-                                    , h1 [] [ text keyLabel ]
+                                    , span [ class "lead" ] [ text keyLabel ]
                                     ]
-                            , div [ class "align-items-center d-flex flex-nowrap justify-content-between" ]
-                                [ h1 []
+                            , div [ class "align-items-center d-flex flex-nowrap justify-content-between ml-4" ]
+                                [ div [ class "lead" ]
                                     [ viewStatementIdLine
                                         language
                                         (Just (ForParent << Navigate))
@@ -92,12 +92,8 @@ view model =
                             ]
                         , viewStatementRatingPanel language (ForParent << Navigate) Nothing property
                         ]
-                    , viewStatementRatingToolbar
-                        language
-                        data
-                        (\id rating -> ForSelf <| Rate id rating)
-                        (ForSelf << Trash)
-                        property
+                    , Statements.Toolbar.View.view toolbarModel
+                        |> Html.map translateToolbarMsg
                     , hr [] []
                     , viewDebatePropertiesBlock language (ForParent << Navigate) data debatePropertyIds
                     , hr [] []
@@ -105,7 +101,7 @@ view model =
                         |> Html.map translateNewArgumentMsg
                     ]
 
-            ( _, _ ) ->
+            ( _, _, _ ) ->
                 case model.httpError of
                     Just httpError ->
                         div

@@ -118,12 +118,12 @@ viewStatementRatingPanel language navigateMsg objectsUrlName { argumentCount, id
 
 viewStatementRatingToolbar :
     I18n.Language
+    -> (Maybe Int -> msg)
+    -> msg
     -> DataProxy a
-    -> (String -> Maybe Int -> msg)
-    -> (String -> msg)
-    -> { b | ballotId : String, id : String }
+    -> { b | ballotId : String }
     -> Html msg
-viewStatementRatingToolbar language data rateMsg trashMsg { ballotId, id } =
+viewStatementRatingToolbar language rateMsg trashMsg data { ballotId } =
     div
         [ class "toolbar"
         , role "toolbar"
@@ -149,9 +149,9 @@ viewStatementRatingToolbar language data rateMsg trashMsg { ballotId, id } =
                         ]
                     , onClick
                         (if ballotRating == Just 1 then
-                            rateMsg id Nothing
+                            rateMsg Nothing
                          else
-                            rateMsg id (Just 1)
+                            rateMsg (Just 1)
                         )
                     , type_ "button"
                     ]
@@ -175,9 +175,9 @@ viewStatementRatingToolbar language data rateMsg trashMsg { ballotId, id } =
                         ]
                     , onClick
                         (if ballotRating == Just 0 then
-                            rateMsg id Nothing
+                            rateMsg Nothing
                          else
-                            rateMsg id (Just 0)
+                            rateMsg (Just 0)
                         )
                     , type_ "button"
                     ]
@@ -201,9 +201,9 @@ viewStatementRatingToolbar language data rateMsg trashMsg { ballotId, id } =
                         ]
                     , onClick
                         (if ballotRating == Just -1 then
-                            rateMsg id Nothing
+                            rateMsg Nothing
                          else
-                            rateMsg id (Just -1)
+                            rateMsg (Just -1)
                         )
                     , type_ "button"
                     ]
@@ -225,7 +225,7 @@ viewStatementRatingToolbar language data rateMsg trashMsg { ballotId, id } =
                 [ ( "btn", True )
                 , ( "btn-danger", True )
                 ]
-            , onClick (trashMsg id)
+            , onClick trashMsg
             , type_ "button"
             ]
             [ span

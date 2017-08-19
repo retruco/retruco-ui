@@ -5,21 +5,21 @@ import Affirmations.Item.Types exposing (..)
 import Arguments.New.State
 import Authenticator.Types exposing (Authentication)
 import Constants exposing (debateKeyIds)
+import Dict exposing (Dict)
 import Http
 import I18n
 import Navigation
 import Ports
-import Process
 import Requests
-import Task
-import Time
+import Statements.Toolbar.State
 import Types exposing (..)
 import Urls
 
 
 init : Maybe Authentication -> I18n.Language -> String -> Model
 init authentication language id =
-    { authentication = authentication
+    { affirmation = Nothing
+    , authentication = authentication
     , data = initData
     , debatePropertyIds = Nothing
     , httpError = Nothing
@@ -27,6 +27,7 @@ init authentication language id =
     , language = language
     , newArgumentModel = Arguments.New.State.init authentication language id []
     , showTrashed = False
+    , toolbarModel = Nothing
     }
 
 
@@ -35,10 +36,31 @@ mergeModelData data model =
     let
         mergedData =
             mergeData data model.data
+
+        affirmation =
+            Dict.get model.id mergedData.values
     in
         { model
-            | data = mergedData
+            | affirmation = affirmation
+            , data = mergedData
             , newArgumentModel = Arguments.New.State.mergeModelData mergedData model.newArgumentModel
+            , toolbarModel =
+                case affirmation of
+                    Just affirmation ->
+                        case model.toolbarModel of
+                            Just toolbarModel ->
+                                Just <| Statements.Toolbar.State.setData mergedData affirmation toolbarModel
+
+                            Nothing ->
+                                Just <|
+                                    Statements.Toolbar.State.init
+                                        model.authentication
+                                        model.language
+                                        mergedData
+                                        affirmation
+
+                    Nothing ->
+                        Nothing
         }
 
 
@@ -48,6 +70,13 @@ setContext authentication language model =
         | authentication = authentication
         , language = language
         , newArgumentModel = Arguments.New.State.setContext authentication language model.newArgumentModel
+        , toolbarModel =
+            case model.toolbarModel of
+                Just toolbarModel ->
+                    Just <| Statements.Toolbar.State.setContext authentication language toolbarModel
+
+                Nothing ->
+                    Nothing
     }
 
 
@@ -61,6 +90,9 @@ subscriptions model =
 update : InternalMsg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        DataUpdated data ->
+            ( mergeModelData data model, Cmd.none )
+
         DebatePropertiesRetrieved (Err httpError) ->
             ( { model
                 | httpError = Just httpError
@@ -87,75 +119,7 @@ update msg model =
                     }
                 )
 
-        NewArgumentMsg childMsg ->
-            let
-                ( updatedNewArgumentModel, childCmd ) =
-                    Arguments.New.State.update childMsg model.newArgumentModel
-            in
-                ( { model | newArgumentModel = updatedNewArgumentModel }
-                , Cmd.map translateNewArgumentMsg childCmd
-                )
-
-        Rate statementId rating ->
-            ( model
-            , case rating of
-                Just rating ->
-                    Requests.rateStatement model.authentication statementId rating
-                        |> Http.send (ForSelf << RatingPosted)
-
-                Nothing ->
-                    Requests.unrateStatement model.authentication statementId
-                        |> Http.send (ForSelf << RatingPosted)
-            )
-
-        RatingPosted (Err httpError) ->
-            ( { model | httpError = Just httpError }, Cmd.none )
-
-        RatingPosted (Ok { data }) ->
-            ( mergeModelData data model
-            , if data.id == model.id then
-                Cmd.none
-              else
-                -- The rating of an argument may have changed => the affirmation rating may also have changed.
-                -- => Retrieve it.
-                Task.attempt (ForSelf << ValueUpdated)
-                    (Process.sleep (1 * Time.second)
-                        |> Task.andThen
-                            (\_ ->
-                                Requests.getValue
-                                    model.authentication
-                                    model.id
-                                    |> Http.toTask
-                            )
-                    )
-            )
-
-        Retrieve ->
-            ( { model
-                | debatePropertyIds = Nothing
-                , httpError = Nothing
-              }
-            , Requests.getValue model.authentication model.id
-                |> Http.send (ForSelf << ValueRetrieved)
-            )
-
-        Trash statementId ->
-            ( model
-            , Requests.postProperty model.authentication statementId "trashed" "true" Nothing
-                |> Http.send (ForSelf << TrashUpserted)
-            )
-
-        TrashUpserted (Err httpError) ->
-            ( { model | httpError = Just httpError }, Cmd.none )
-
-        TrashUpserted (Ok body) ->
-            ( model
-            , Task.perform
-                (\_ -> ForParent <| Navigate <| Urls.languagePath model.language ("/properties/" ++ body.data.id))
-                (Task.succeed ())
-            )
-
-        Upserted data ->
+        DebatePropertyUpserted data ->
             let
                 mergedModel =
                     mergeModelData data model
@@ -178,6 +142,40 @@ update msg model =
                 , Cmd.none
                 )
 
+        NewArgumentMsg childMsg ->
+            let
+                ( updatedNewArgumentModel, childCmd ) =
+                    Arguments.New.State.update childMsg model.newArgumentModel
+            in
+                ( { model | newArgumentModel = updatedNewArgumentModel }
+                , Cmd.map translateNewArgumentMsg childCmd
+                )
+
+        Retrieve ->
+            ( { model
+                | affirmation = Nothing
+                , debatePropertyIds = Nothing
+                , httpError = Nothing
+                , toolbarModel = Nothing
+              }
+            , Requests.getValue model.authentication model.id
+                |> Http.send (ForSelf << ValueRetrieved)
+            )
+
+        ToolbarMsg childMsg ->
+            case model.toolbarModel of
+                Just toolbarModel ->
+                    let
+                        ( updatedToolbarModel, childCmd ) =
+                            Statements.Toolbar.State.update childMsg toolbarModel
+                    in
+                        ( { model | toolbarModel = Just updatedToolbarModel }
+                        , Cmd.map translateToolbarMsg childCmd
+                        )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
         ValueRetrieved (Err httpError) ->
             ( { model
                 | httpError = Just httpError
@@ -189,18 +187,6 @@ update msg model =
             ( mergeModelData data model
             , Requests.getObjectProperties model.authentication model.showTrashed model.id debateKeyIds []
                 |> Http.send (ForSelf << DebatePropertiesRetrieved)
-            )
-
-        ValueUpdated (Err httpError) ->
-            ( { model
-                | httpError = Just httpError
-              }
-            , Cmd.none
-            )
-
-        ValueUpdated (Ok { data }) ->
-            ( mergeModelData data model
-            , Cmd.none
             )
 
 

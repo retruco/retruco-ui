@@ -4,6 +4,7 @@ import Arguments.New.Types
 import Authenticator.Types exposing (Authentication)
 import Http
 import I18n
+import Statements.Toolbar.Types
 import Types exposing (..)
 
 
@@ -13,16 +14,13 @@ type ExternalMsg
 
 
 type InternalMsg
-    = DebatePropertiesRetrieved (Result Http.Error DataIdsBody)
+    = DataUpdated (DataProxy {})
+    | DebatePropertiesRetrieved (Result Http.Error DataIdsBody)
+    | DebatePropertyUpserted Types.DataId
     | NewArgumentMsg Arguments.New.Types.InternalMsg
-    | Rate String (Maybe Int)
-    | RatingPosted (Result Http.Error DataIdBody)
     | Retrieve
-    | Trash String
-    | TrashUpserted (Result Http.Error DataIdBody)
-    | Upserted Types.DataId
+    | ToolbarMsg Statements.Toolbar.Types.InternalMsg
     | ValueRetrieved (Result Http.Error DataIdBody)
-    | ValueUpdated (Result Http.Error DataIdBody)
 
 
 type alias Model =
@@ -33,7 +31,9 @@ type alias Model =
     , id : String
     , language : I18n.Language
     , newArgumentModel : Arguments.New.Types.Model
+    , property : Maybe Property
     , showTrashed : Bool
+    , toolbarModel : Maybe (Statements.Toolbar.Types.Model Property)
     }
 
 
@@ -70,6 +70,16 @@ translateNewArgumentMsg : Arguments.New.Types.MsgTranslator Msg
 translateNewArgumentMsg =
     Arguments.New.Types.translateMsg
         { onInternalMsg = ForSelf << NewArgumentMsg
-        , onPropertyUpserted = ForSelf << Upserted
+        , onPropertyUpserted = ForSelf << DebatePropertyUpserted
         , onRequireSignIn = ForParent << RequireSignIn << NewArgumentMsg
+        }
+
+
+translateToolbarMsg : Statements.Toolbar.Types.MsgTranslator Msg
+translateToolbarMsg =
+    Statements.Toolbar.Types.translateMsg
+        { onDataUpdated = ForSelf << DataUpdated
+        , onInternalMsg = ForSelf << ToolbarMsg
+        , onNavigate = ForParent << Navigate
+        , onRequireSignIn = ForParent << RequireSignIn << ToolbarMsg
         }

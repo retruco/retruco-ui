@@ -185,6 +185,21 @@ type alias SearchCriteria =
     }
 
 
+type alias Statement a =
+    { a
+        | argumentCount : Int
+        , -- TODO Use Maybe
+          ballotId : String
+        , createdAt : String
+        , id : String
+        , properties : Dict String String
+        , ratingCount : Int
+        , ratingSum : Int
+        , trashed : Bool
+        , type_ : String
+    }
+
+
 type alias TypedValue =
     { argumentCount : Int
     , -- TODO Use Maybe
