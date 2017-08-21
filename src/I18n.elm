@@ -1714,9 +1714,9 @@ getTranslationSet translationId =
 
         UntitledCard cardId ->
             { emptyTranslationSet
-                | english = s "Untitled Card <" ++ cardId ++ ">"
-                , french = s "Fiche sans titre <" ++ cardId ++ ">"
-                , spanish = s "Tipo <" ++ cardId ++ ">"
+                | english = s <| "Untitled Card <" ++ cardId ++ ">"
+                , french = s <| "Fiche sans titre <" ++ cardId ++ ">"
+                , spanish = s <| "Tipo <" ++ cardId ++ ">"
             }
 
         UploadImage ->
@@ -2041,10 +2041,10 @@ getOneStringFromValueType language values valueType =
             Nothing
 
 
-getName : Language -> Card -> Dict String TypedValue -> String
-getName language card values =
+getName : Language -> DataProxy a -> Card -> String
+getName language data card =
     -- Note: Name can be Nothing, if down-voted.
-    getOneString language nameKeyIds card values
+    getOneString language nameKeyIds card data.values
         |> Maybe.withDefault (translate language <| UntitledCard card.id)
 
 

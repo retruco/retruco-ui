@@ -75,7 +75,7 @@ viewCardLine : I18n.Language -> Maybe (String -> msg) -> DataProxy a -> Card -> 
 viewCardLine language navigateMsg data card =
     let
         cardName =
-            I18n.getName language card data.values
+            I18n.getName language data card
     in
         case navigateMsg of
             Just navigateMsg ->

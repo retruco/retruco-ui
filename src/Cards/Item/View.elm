@@ -39,7 +39,7 @@ view model =
                     ( Just card, Just debatePropertyIds ) ->
                         let
                             cardName =
-                                I18n.getName language card data.values
+                                I18n.getName language data card
 
                             values =
                                 data.values
