@@ -2,7 +2,6 @@ module Cards.Item.View exposing (..)
 
 import Arguments.Index.View
 import Cards.Item.Types exposing (..)
-import Constants exposing (nameKeyIds)
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -40,8 +39,7 @@ view model =
                     ( Just card, Just debatePropertyIds ) ->
                         let
                             cardName =
-                                I18n.getOneString language nameKeyIds card data.values
-                                    |> Maybe.withDefault card.id
+                                I18n.getName language card data.values
 
                             values =
                                 data.values

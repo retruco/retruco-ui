@@ -206,7 +206,7 @@ type TranslationId
     | UnknownSchemaId String
     | UnknownUser
     | UnknownValue
-    | UntitledCard
+    | UntitledCard String
     | UploadImage
     | UploadingImage String
     | Url
@@ -1712,11 +1712,11 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
-        UntitledCard ->
+        UntitledCard cardId ->
             { emptyTranslationSet
-                | english = s "Untitled Card"
-                , french = s "Fiche sans titre"
-                , spanish = s "Tipo"
+                | english = s "Untitled Card <" ++ cardId ++ ">"
+                , french = s "Fiche sans titre <" ++ cardId ++ ">"
+                , spanish = s "Tipo <" ++ cardId ++ ">"
             }
 
         UploadImage ->
@@ -2045,7 +2045,7 @@ getName : Language -> Card -> Dict String TypedValue -> String
 getName language card values =
     -- Note: Name can be Nothing, if down-voted.
     getOneString language nameKeyIds card values
-        |> Maybe.withDefault (translate language UntitledCard)
+        |> Maybe.withDefault (translate language <| UntitledCard card.id)
 
 
 getLocalizedStringFromValueId : Language -> Dict String TypedValue -> String -> String
