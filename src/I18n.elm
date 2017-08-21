@@ -1914,8 +1914,24 @@ todo =
 -- FUNCTIONS
 
 
-getManyStrings : Language -> List String -> Card -> Dict String TypedValue -> List String
-getManyStrings language keyIds card values =
+getLocalizedStringFromValueId : Language -> DataProxy a -> String -> String
+getLocalizedStringFromValueId language data valueId =
+    case Dict.get valueId data.values of
+        Nothing ->
+            "Error: value not found for ID: " ++ valueId
+
+        Just { value } ->
+            case value of
+                LocalizedStringValue localizedValues ->
+                    getValueByPreferredLanguage language localizedValues
+                        |> Maybe.withDefault ("No localization for string valueId=" ++ valueId)
+
+                _ ->
+                    "This should not happen"
+
+
+getManyStrings : Language -> List String -> Dict String TypedValue -> Card -> List String
+getManyStrings language keyIds values card =
     let
         getStrings : ValueType -> List String
         getStrings value =
@@ -1982,20 +1998,27 @@ getManyStrings language keyIds card values =
             |> Maybe.withDefault []
 
 
-getOneString : Language -> List String -> Card -> Dict String TypedValue -> Maybe String
-getOneString language keyIds card values =
+getName : Language -> DataProxy a -> Card -> String
+getName language data card =
+    -- Note: Name can be Nothing, if down-voted.
+    getOneString language nameKeyIds data card
+        |> Maybe.withDefault (translate language <| UntitledCard card.id)
+
+
+getOneString : Language -> List String -> DataProxy a -> Card -> Maybe String
+getOneString language keyIds data card =
     keyIds
         |> List.map
             (\keyId ->
                 Dict.get keyId card.properties
-                    |> Maybe.andThen (\valueId -> Dict.get valueId values)
-                    |> Maybe.andThen (\value -> getOneStringFromValueType language values value.value)
+                    |> Maybe.andThen (\valueId -> Dict.get valueId data.values)
+                    |> Maybe.andThen (\value -> getOneStringFromValueType language data value.value)
             )
         |> oneOfMaybes
 
 
-getOneStringFromValueType : Language -> Dict String TypedValue -> ValueType -> Maybe String
-getOneStringFromValueType language values valueType =
+getOneStringFromValueType : Language -> DataProxy a -> ValueType -> Maybe String
+getOneStringFromValueType language data valueType =
     case valueType of
         BijectiveCardReferenceValue _ ->
             Nothing
@@ -2031,62 +2054,39 @@ getOneStringFromValueType language values valueType =
             Nothing
 
         ValueIdArrayValue (childValue :: _) ->
-            getOneStringFromValueType language values (ValueIdValue childValue)
+            getOneStringFromValueType language data (ValueIdValue childValue)
 
         ValueIdValue valueId ->
-            Dict.get valueId values
-                |> Maybe.andThen (\subValue -> getOneStringFromValueType language values subValue.value)
+            Dict.get valueId data.values
+                |> Maybe.andThen (\subValue -> getOneStringFromValueType language data subValue.value)
 
         WrongValue _ _ ->
             Nothing
 
 
-getName : Language -> DataProxy a -> Card -> String
-getName language data card =
-    -- Note: Name can be Nothing, if down-voted.
-    getOneString language nameKeyIds card data.values
-        |> Maybe.withDefault (translate language <| UntitledCard card.id)
-
-
-getLocalizedStringFromValueId : Language -> Dict String TypedValue -> String -> String
-getLocalizedStringFromValueId language values valueId =
-    case Dict.get valueId values of
-        Nothing ->
-            "Error: value not found for ID: " ++ valueId
-
-        Just { value } ->
-            case value of
-                LocalizedStringValue localizedValues ->
-                    getValueByPreferredLanguage language localizedValues
-                        |> Maybe.withDefault ("No localization for string valueId=" ++ valueId)
-
-                _ ->
-                    "This should not happen"
-
-
-getSubTypes : Language -> Card -> Dict String TypedValue -> List String
-getSubTypes language card values =
+getSubTypes : Language -> DataProxy a -> Card -> List String
+getSubTypes language data card =
     List.map
-        (getLocalizedStringFromValueId language values)
+        (getLocalizedStringFromValueId language data)
         card.subTypeIds
 
 
-getTags : Language -> Card -> Dict String TypedValue -> List { tag : String, tagId : String }
-getTags language card values =
+getTags : Language -> DataProxy a -> Card -> List { tag : String, tagId : String }
+getTags language data card =
     List.map
         (\tagId ->
-            { tag = getLocalizedStringFromValueId language values tagId
+            { tag = getLocalizedStringFromValueId language data tagId
             , tagId = tagId
             }
         )
         card.tagIds
 
 
-getUsages : Language -> Card -> Dict String TypedValue -> List { tag : String, tagId : String }
-getUsages language card values =
+getUsages : Language -> DataProxy a -> Card -> List { tag : String, tagId : String }
+getUsages language data card =
     List.map
         (\tagId ->
-            { tag = getLocalizedStringFromValueId language values tagId
+            { tag = getLocalizedStringFromValueId language data tagId
             , tagId = tagId
             }
         )
@@ -2122,6 +2122,19 @@ getValueByPreferredLanguage language valueByLanguage =
             |> List.head
 
 
+iso639_1FromLanguage : Language -> String
+iso639_1FromLanguage language =
+    case language of
+        English ->
+            "en"
+
+        Spanish ->
+            "es"
+
+        French ->
+            "fr"
+
+
 languageFromIso639_1 : String -> Maybe Language
 languageFromIso639_1 str =
     case str of
@@ -2136,19 +2149,6 @@ languageFromIso639_1 str =
 
         _ ->
             Nothing
-
-
-iso639_1FromLanguage : Language -> String
-iso639_1FromLanguage language =
-    case language of
-        English ->
-            "en"
-
-        Spanish ->
-            "es"
-
-        French ->
-            "fr"
 
 
 {-| Pick the first `Maybe` that actually has a value. Useful when you want to
