@@ -21,17 +21,14 @@ valueTypeToTypeLabel : I18n.Language -> ValueType -> String
 valueTypeToTypeLabel language valueType =
     I18n.translate language <|
         case valueType of
-            BijectiveCardReferenceValue _ ->
-                I18n.BijectiveCardReference
-
             BooleanValue _ ->
                 I18n.Boolean
 
-            CardIdArrayValue _ ->
-                I18n.CardIdArray
+            IdArrayValue _ ->
+                I18n.IdArray
 
-            CardIdValue _ ->
-                I18n.CardId
+            IdValue _ ->
+                I18n.Id
 
             EmailValue _ ->
                 I18n.Email
@@ -50,12 +47,6 @@ valueTypeToTypeLabel language valueType =
 
             UrlValue _ ->
                 I18n.Url
-
-            ValueIdArrayValue _ ->
-                I18n.ValueIdArray
-
-            ValueIdValue _ ->
-                I18n.ValueId
 
             WrongValue _ schemaId ->
                 I18n.UnknownSchemaId schemaId
@@ -111,6 +102,7 @@ viewPropertyLine language navigateMsg independent data property =
                         language
                         navigateMsg
                         True
+                        False
                         data
                         property.objectId
                     ]
@@ -141,14 +133,15 @@ viewPropertyLine language navigateMsg independent data property =
                     language
                     navigateMsg
                     True
+                    False
                     data
                     property.valueId
                 ]
             ]
 
 
-viewStatementIdLine : I18n.Language -> Maybe (String -> msg) -> Bool -> DataProxy a -> String -> Html msg
-viewStatementIdLine language navigateMsg independent data statementId =
+viewStatementIdLine : I18n.Language -> Maybe (String -> msg) -> Bool -> Bool -> DataProxy a -> String -> Html msg
+viewStatementIdLine language navigateMsg independent showDetails data statementId =
     case Dict.get statementId data.cards of
         Just card ->
             viewCardLine language navigateMsg data card
@@ -161,59 +154,56 @@ viewStatementIdLine language navigateMsg independent data statementId =
                 Nothing ->
                     case Dict.get statementId data.values of
                         Just typedValue ->
-                            viewValueTypeLine language navigateMsg data False typedValue.value
+                            viewValueTypeLine language navigateMsg showDetails data typedValue.value
 
                         Nothing ->
                             i [ class "text-warning" ] [ text ("Missing statement with ID: " ++ statementId) ]
 
 
-viewValueIdLine : I18n.Language -> Maybe (String -> msg) -> DataProxy a -> Bool -> String -> Html msg
-viewValueIdLine language navigateMsg data showDetails valueId =
+viewValueIdLine : I18n.Language -> Maybe (String -> msg) -> Bool -> DataProxy a -> String -> Html msg
+viewValueIdLine language navigateMsg showDetails data valueId =
     case Dict.get valueId data.values of
         Just typedValue ->
-            viewValueTypeLine language navigateMsg data showDetails typedValue.value
+            viewValueTypeLine language navigateMsg showDetails data typedValue.value
 
         Nothing ->
             i [ class "text-warning" ] [ text ("Missing value with ID: " ++ valueId) ]
 
 
-viewValueTypeLine : I18n.Language -> Maybe (String -> msg) -> DataProxy a -> Bool -> ValueType -> Html msg
-viewValueTypeLine language navigateMsg data showDetails valueType =
+viewValueTypeLine : I18n.Language -> Maybe (String -> msg) -> Bool -> DataProxy a -> ValueType -> Html msg
+viewValueTypeLine language navigateMsg showDetails data valueType =
     if showDetails then
         div []
             [ i [] [ text (valueTypeToTypeLabel language valueType) ]
             , text (I18n.translate language I18n.Colon)
-            , viewValueTypeLineContent language navigateMsg data showDetails valueType
+            , viewValueTypeLineContent language navigateMsg showDetails data valueType
             ]
     else
-        viewValueTypeLineContent language navigateMsg data showDetails valueType
+        viewValueTypeLineContent language navigateMsg showDetails data valueType
 
 
-viewValueTypeLineContent : I18n.Language -> Maybe (String -> msg) -> DataProxy a -> Bool -> ValueType -> Html msg
-viewValueTypeLineContent language navigateMsg data showDetails valueType =
+viewValueTypeLineContent : I18n.Language -> Maybe (String -> msg) -> Bool -> DataProxy a -> ValueType -> Html msg
+viewValueTypeLineContent language navigateMsg showDetails data valueType =
     case valueType of
-        BijectiveCardReferenceValue { targetId } ->
-            viewCardIdLine language navigateMsg data targetId
-
         BooleanValue bool ->
             text (toString bool)
 
-        CardIdArrayValue childValues ->
-            ul []
-                (List.map
-                    (\childValue ->
-                        li
-                            []
-                            [ viewValueTypeLine language navigateMsg data showDetails (CardIdValue childValue) ]
-                    )
-                    childValues
-                )
-
-        CardIdValue cardId ->
-            viewCardIdLine language navigateMsg data cardId
-
         EmailValue str ->
             aIfIsUrl [] str
+
+        IdArrayValue ids ->
+            ul []
+                (List.map
+                    (\id ->
+                        li
+                            []
+                            [ viewStatementIdLine language navigateMsg True showDetails data id ]
+                    )
+                    ids
+                )
+
+        IdValue id ->
+            viewStatementIdLine language navigateMsg True showDetails data id
 
         ImagePathValue path ->
             figure
@@ -255,25 +245,6 @@ viewValueTypeLineContent language navigateMsg data showDetails valueType =
 
         UrlValue str ->
             aIfIsUrl [] str
-
-        ValueIdArrayValue childValues ->
-            ul []
-                (List.map
-                    (\childValue ->
-                        li
-                            []
-                            [ viewValueTypeLine language navigateMsg data showDetails (ValueIdValue childValue) ]
-                    )
-                    childValues
-                )
-
-        ValueIdValue valueId ->
-            case Dict.get valueId data.values of
-                Just subValue ->
-                    viewValueTypeLine language navigateMsg data showDetails subValue.value
-
-                Nothing ->
-                    text ("Error: referenced value not found for valueId: " ++ valueId)
 
         WrongValue str schemaId ->
             div []

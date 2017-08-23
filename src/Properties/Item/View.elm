@@ -39,6 +39,7 @@ view model =
                                         language
                                         (Just (ForParent << Navigate))
                                         True
+                                        False
                                         data
                                         property.objectId
                                     ]
@@ -80,6 +81,7 @@ view model =
                                         language
                                         (Just (ForParent << Navigate))
                                         True
+                                        False
                                         data
                                         property.valueId
                                     ]

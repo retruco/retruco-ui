@@ -28,13 +28,6 @@ ballotDecoder =
         |: (field "voterId" string)
 
 
-bijectiveCardReferenceDecoder : Decoder BijectiveCardReference
-bijectiveCardReferenceDecoder =
-    succeed BijectiveCardReference
-        |: (field "targetId" string)
-        |: (field "reverseKeyId" string)
-
-
 cardAutocompletionDecoder : Decoder CardAutocompletion
 cardAutocompletionDecoder =
     succeed CardAutocompletion
@@ -49,7 +42,7 @@ cardDecoder =
         |: oneOf [ (field "argumentCount" int), succeed 0 ]
         |: (field "createdAt" string)
         |: (field "id" string)
-        |: (field "properties" (dict string))
+        |: (field "properties" (dict (list string)))
         |: oneOf [ (field "ratingCount" int), succeed 0 ]
         |: oneOf [ (field "ratingSum" int), succeed 0 ]
         |: oneOf [ (field "references" (dict (list string))), succeed Dict.empty ]
@@ -171,7 +164,7 @@ propertyDecoder =
         |: (field "id" string)
         |: (field "keyId" string)
         |: (field "objectId" string)
-        |: oneOf [ (field "properties" (dict string)), succeed Dict.empty ]
+        |: oneOf [ (field "properties" (dict (list string))), succeed Dict.empty ]
         |: oneOf [ (field "ratingCount" int), succeed 0 ]
         |: oneOf [ (field "ratingSum" int), succeed 0 ]
         |: oneOf [ (field "references" (dict (list string))), succeed Dict.empty ]
@@ -211,7 +204,7 @@ typedValueDecoder =
         |: oneOf [ (field "ballotId" string), succeed "" ]
         |: (field "createdAt" string)
         |: (field "id" string)
-        |: oneOf [ (field "properties" (dict string)), succeed Dict.empty ]
+        |: oneOf [ (field "properties" (dict (list string))), succeed Dict.empty ]
         |: oneOf [ (field "ratingCount" int), succeed 0 ]
         |: oneOf [ (field "ratingSum" int), succeed 0 ]
         |: (field "schemaId" string)
@@ -269,20 +262,17 @@ valueTypeDecoder schemaId widgetId =
     let
         decoder =
             case ( schemaId, widgetId ) of
-                ( "schema:bijective-card-reference", _ ) ->
-                    bijectiveCardReferenceDecoder |> map BijectiveCardReferenceValue
-
                 ( "schema:boolean", _ ) ->
                     bool |> map BooleanValue
 
-                ( "schema:card-id", _ ) ->
-                    string |> map CardIdValue
-
-                ( "schema:card-ids-array", _ ) ->
-                    list string |> map CardIdArrayValue
-
                 ( "schema:email", _ ) ->
                     string |> map EmailValue
+
+                ( "schema:id", _ ) ->
+                    string |> map IdValue
+
+                ( "schema:ids-array", _ ) ->
+                    list string |> map IdArrayValue
 
                 ( "schema:localized-string", _ ) ->
                     dict string |> map LocalizedStringValue
@@ -298,9 +288,6 @@ valueTypeDecoder schemaId widgetId =
 
                 ( "schema:uri", _ ) ->
                     string |> map UrlValue
-
-                ( "schema:value-ids-array", _ ) ->
-                    list string |> map ValueIdArrayValue
 
                 ( _, _ ) ->
                     fail ("TODO Unsupported schemaId \"" ++ schemaId ++ "\" & widgetId \"" ++ widgetId ++ "\"")

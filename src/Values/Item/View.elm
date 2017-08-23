@@ -34,8 +34,8 @@ view model =
                             [ viewValueTypeLine
                                 language
                                 (Just (ForParent << Navigate))
-                                data
                                 True
+                                data
                                 typedValue.value
                             , hr [] []
                             , viewDebatePropertiesBlock language (ForParent << Navigate) data debatePropertyIds

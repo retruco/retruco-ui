@@ -91,7 +91,7 @@ view model =
                                             language
                                             ("/values/" ++ valueId)
                                             [ class "list-group-item list-group-item-action" ]
-                                            [ viewValueIdLine language Nothing body.data False valueId ]
+                                            [ viewValueIdLine language Nothing False body.data valueId ]
                                     )
                                     body.data.ids
                                 )

@@ -72,8 +72,8 @@ view model =
                                                     [ viewValueTypeLine
                                                         language
                                                         (Just (ForParent << Navigate))
-                                                        data
                                                         False
+                                                        data
                                                         typedValue.value
                                                     , viewStatementRatingPanel
                                                         language

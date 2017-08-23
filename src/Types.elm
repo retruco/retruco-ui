@@ -24,17 +24,11 @@ type alias Ballot =
     }
 
 
-type alias BijectiveCardReference =
-    { targetId : String
-    , reverseKeyId : String
-    }
-
-
 type alias Card =
     { argumentCount : Int
     , createdAt : String
     , id : String
-    , properties : Dict String String
+    , properties : Dict String (List String)
     , ratingCount : Int
     , ratingSum : Int
     , references : Dict String (List String)
@@ -165,7 +159,7 @@ type alias Property =
     , id : String
     , keyId : String
     , objectId : String
-    , properties : Dict String String
+    , properties : Dict String (List String)
     , ratingCount : Int
     , ratingSum : Int
     , references : Dict String (List String)
@@ -192,7 +186,7 @@ type alias Statement a =
           ballotId : String
         , createdAt : String
         , id : String
-        , properties : Dict String String
+        , properties : Dict String (List String)
         , ratingCount : Int
         , ratingSum : Int
         , trashed : Bool
@@ -206,7 +200,7 @@ type alias TypedValue =
       ballotId : String
     , createdAt : String
     , id : String
-    , properties : Dict String String
+    , properties : Dict String (List String)
     , ratingCount : Int
     , ratingSum : Int
     , schemaId : String
@@ -246,18 +240,15 @@ type alias UserBody =
 
 
 type ValueType
-    = BijectiveCardReferenceValue BijectiveCardReference
-    | BooleanValue Bool
-    | CardIdArrayValue (List String)
-    | CardIdValue String
+    = BooleanValue Bool
     | EmailValue String
+    | IdArrayValue (List String)
+    | IdValue String
     | ImagePathValue String
     | LocalizedStringValue (Dict String String)
     | NumberValue Float
     | StringValue String
     | UrlValue String
-    | ValueIdArrayValue (List String)
-    | ValueIdValue String
     | WrongValue String String
 
 

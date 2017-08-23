@@ -50,13 +50,10 @@ type TranslationId
     | BadUrl
     | BadUrlExplanation
     | BestOf Int
-    | BijectiveCardReference
     | Boolean
     | BooleanField
     | Cancel
     | Card
-    | CardId
-    | CardIdArray
     | CardIdField
     | CardPlaceholder
     | CardRetrievalFailed
@@ -114,6 +111,8 @@ type TranslationId
     | Home
     | HomeDescription
     | HomeTitle
+    | Id
+    | IdArray
     | Image
     | ImageAlt
     | ImageField
@@ -528,13 +527,6 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
-        BijectiveCardReference ->
-            { emptyTranslationSet
-                | english = s "Bijective link to a card"
-                , french = s "Lien bijectif vers une fiche"
-                , spanish = todo
-            }
-
         Boolean ->
             { emptyTranslationSet
                 | english = s "Boolean"
@@ -559,22 +551,12 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
-        CardId ->
+        CardIdField ->
             { emptyTranslationSet
                 | english = s "Link to a card"
                 , french = s "Lien vers une fiche"
                 , spanish = todo
             }
-
-        CardIdArray ->
-            { emptyTranslationSet
-                | english = s "Array of links to cards"
-                , french = s "Tableau de liens vers des fiches"
-                , spanish = todo
-            }
-
-        CardIdField ->
-            getTranslationSet CardId
 
         CardPlaceholder ->
             { emptyTranslationSet
@@ -1029,6 +1011,20 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "OGP Toolbox"
                 , french = s "OGP Toolbox"
+                , spanish = todo
+            }
+
+        Id ->
+            { emptyTranslationSet
+                | english = s "Link to an object"
+                , french = s "Lien vers un object"
+                , spanish = todo
+            }
+
+        IdArray ->
+            { emptyTranslationSet
+                | english = s "Array of links to objects"
+                , french = s "Tableau de liens vers des objets"
                 , spanish = todo
             }
 
@@ -1936,31 +1932,33 @@ getManyStrings language keyIds values card =
         getStrings : ValueType -> List String
         getStrings value =
             case value of
-                BijectiveCardReferenceValue _ ->
-                    []
-
                 BooleanValue _ ->
-                    []
-
-                CardIdArrayValue ids ->
-                    []
-
-                CardIdValue cardId ->
                     []
 
                 EmailValue value ->
                     [ value ]
+
+                IdArrayValue ids ->
+                    List.concatMap (\id -> getStrings (IdValue id)) ids
+
+                IdValue id ->
+                    case Dict.get id values of
+                        Just subValue ->
+                            getStrings subValue.value
+
+                        Nothing ->
+                            []
 
                 ImagePathValue path ->
                     []
 
                 LocalizedStringValue valueByLanguage ->
                     case getValueByPreferredLanguage language valueByLanguage of
-                        Nothing ->
-                            []
-
                         Just value ->
                             [ value ]
+
+                        Nothing ->
+                            []
 
                 NumberValue _ ->
                     []
@@ -1971,27 +1969,21 @@ getManyStrings language keyIds values card =
                 UrlValue value ->
                     [ value ]
 
-                ValueIdArrayValue ids ->
-                    List.concatMap (\id -> getStrings (ValueIdValue id)) ids
-
-                ValueIdValue valueId ->
-                    case Dict.get valueId values of
-                        Nothing ->
-                            []
-
-                        Just subValue ->
-                            getStrings subValue.value
-
                 WrongValue _ _ ->
                     []
     in
         keyIds
             |> List.map
                 (\keyId ->
-                    Dict.get keyId card.properties
-                        |> Maybe.andThen (\valueId -> Dict.get valueId values)
-                        |> Maybe.map (\value -> getStrings value.value)
-                        |> Maybe.withDefault []
+                    case Dict.get keyId card.properties of
+                        Just valueIds ->
+                            valueIds
+                                |> List.filterMap (\valueId -> Dict.get valueId values)
+                                |> List.map (\value -> getStrings value.value)
+                                |> List.concat
+
+                        Nothing ->
+                            []
                 )
             |> List.filter (not << List.isEmpty)
             |> List.head
@@ -2010,30 +2002,38 @@ getOneString language keyIds data card =
     keyIds
         |> List.map
             (\keyId ->
-                Dict.get keyId card.properties
-                    |> Maybe.andThen (\valueId -> Dict.get valueId data.values)
-                    |> Maybe.andThen (\value -> getOneStringFromValueType language data value.value)
+                case Dict.get keyId card.properties of
+                    Just valueIds ->
+                        valueIds
+                            |> List.filterMap (\valueId -> Dict.get valueId data.values)
+                            |> List.filterMap
+                                (\value -> getOneStringFromValueType language data value.value)
+
+                    Nothing ->
+                        []
             )
-        |> oneOfMaybes
+        |> List.concat
+        |> List.head
 
 
 getOneStringFromValueType : Language -> DataProxy a -> ValueType -> Maybe String
 getOneStringFromValueType language data valueType =
     case valueType of
-        BijectiveCardReferenceValue _ ->
-            Nothing
-
         BooleanValue _ ->
-            Nothing
-
-        CardIdArrayValue _ ->
-            Nothing
-
-        CardIdValue cardId ->
             Nothing
 
         EmailValue value ->
             Just value
+
+        IdArrayValue (childValue :: _) ->
+            getOneStringFromValueType language data (IdValue childValue)
+
+        IdArrayValue [] ->
+            Nothing
+
+        IdValue id ->
+            Dict.get id data.values
+                |> Maybe.andThen (\subValue -> getOneStringFromValueType language data subValue.value)
 
         ImagePathValue path ->
             Just path
@@ -2049,16 +2049,6 @@ getOneStringFromValueType language data valueType =
 
         UrlValue value ->
             Just value
-
-        ValueIdArrayValue [] ->
-            Nothing
-
-        ValueIdArrayValue (childValue :: _) ->
-            getOneStringFromValueType language data (ValueIdValue childValue)
-
-        ValueIdValue valueId ->
-            Dict.get valueId data.values
-                |> Maybe.andThen (\subValue -> getOneStringFromValueType language data subValue.value)
 
         WrongValue _ _ ->
             Nothing

@@ -7,7 +7,7 @@ import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Http.Error
 import I18n
-import LineViews exposing (viewValueIdLine, viewValueTypeLine)
+import LineViews exposing (viewValueTypeLine)
 import Statements.Toolbar.View
 import Statements.ViewsHelpers exposing (viewDebatePropertiesBlock, viewStatementRatingPanel)
 import Views
@@ -30,8 +30,8 @@ view model =
                             [ viewValueTypeLine
                                 language
                                 (Just (ForParent << Navigate))
-                                data
                                 False
+                                data
                                 typedValue.value
                             ]
                         , viewStatementRatingPanel language (ForParent << Navigate) Nothing typedValue

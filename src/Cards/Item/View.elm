@@ -9,7 +9,7 @@ import Html.Attributes.Aria exposing (..)
 import Html.Helpers exposing (aForPath)
 import Http.Error
 import I18n
-import LineViews exposing (viewValueTypeLine)
+import LineViews exposing (viewStatementIdLine)
 import Properties.KeysAutocomplete.View
 import SameKeyProperties.View
 import Statements.ViewsHelpers exposing (viewDebatePropertiesBlock)
@@ -44,32 +44,43 @@ view model =
                             values =
                                 data.values
 
-                            viewCardPropertiesItem keyId valueId =
+                            viewCardPropertiesItem keyId valueIds =
                                 li [ class "list-group-item justify-content-between" ]
                                     [ div [ class "d-inline-flex" ]
-                                        [ case Dict.get keyId values of
-                                            Nothing ->
-                                                text ("Error: value not found for key: " ++ keyId)
-
-                                            Just keyValue ->
-                                                viewValueTypeLine
-                                                    language
-                                                    (Just (ForParent << Navigate))
-                                                    data
-                                                    False
-                                                    keyValue.value
+                                        [ viewStatementIdLine
+                                            language
+                                            (Just (ForParent << Navigate))
+                                            True
+                                            False
+                                            data
+                                            keyId
                                         , span [ class "mr-1" ] [ text <| I18n.translate language I18n.Colon ]
-                                        , case Dict.get valueId values of
-                                            Nothing ->
-                                                text ("Error: value not found for value: " ++ valueId)
-
-                                            Just valueValue ->
-                                                viewValueTypeLine
+                                        , case valueIds of
+                                            [ valueId ] ->
+                                                viewStatementIdLine
                                                     language
                                                     (Just (ForParent << Navigate))
-                                                    data
+                                                    True
                                                     False
-                                                    valueValue.value
+                                                    data
+                                                    valueId
+
+                                            valueIds ->
+                                                ul []
+                                                    (List.map
+                                                        (\valueId ->
+                                                            li []
+                                                                [ viewStatementIdLine
+                                                                    language
+                                                                    (Just (ForParent << Navigate))
+                                                                    True
+                                                                    False
+                                                                    data
+                                                                    valueId
+                                                                ]
+                                                        )
+                                                        valueIds
+                                                    )
                                         ]
                                     , aForPath
                                         (ForParent << Navigate)
