@@ -151,7 +151,7 @@ update msg model =
                     ( model
                     , Requests.postValue
                         authentication
-                        (LocalizedInputTextField (I18n.iso639_1FromLanguage model.language) keyName)
+                        (InputTextField keyName)
                         |> Http.send (ForSelf << KeyUpserted)
                     )
 

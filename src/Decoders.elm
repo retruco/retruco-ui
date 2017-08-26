@@ -40,6 +40,7 @@ cardDecoder : Decoder Card
 cardDecoder =
     succeed Card
         |: oneOf [ (field "argumentCount" int), succeed 0 ]
+        |: oneOf [ (field "ballotId" string), succeed "" ]
         |: (field "createdAt" string)
         |: (field "id" string)
         |: (field "properties" (dict (list string)))
@@ -268,14 +269,8 @@ valueTypeDecoder schemaId widgetId =
                 ( "schema:email", _ ) ->
                     string |> map EmailValue
 
-                ( "schema:id", _ ) ->
-                    string |> map IdValue
-
                 ( "schema:ids-array", _ ) ->
-                    list string |> map IdArrayValue
-
-                ( "schema:localized-string", _ ) ->
-                    dict string |> map LocalizedStringValue
+                    list string |> map IdsArrayValue
 
                 ( "schema:number", _ ) ->
                     float |> map NumberValue

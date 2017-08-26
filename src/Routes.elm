@@ -140,7 +140,7 @@ routeParser =
     oneOf
         (List.map
             (\language ->
-                map (I18nRouteWithLanguage language) (s (I18n.iso639_1FromLanguage language) </> localizedRouteParser)
+                map (I18nRouteWithLanguage language) (s (I18n.languageIdFromLanguage language) </> localizedRouteParser)
             )
             [ I18n.English
             , I18n.French

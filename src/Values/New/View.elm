@@ -158,17 +158,17 @@ viewFormControls model =
                         (I18n.languages
                             |> List.map
                                 (\languageI18n ->
-                                    ( I18n.iso639_1FromLanguage languageI18n
+                                    ( I18n.languageIdFromLanguage languageI18n
                                     , I18n.translate language (I18n.Language languageI18n)
                                     )
                                 )
-                            |> List.sortBy (\( languageIso639_1, languageLabel ) -> languageLabel)
+                            |> List.sortBy (\( languageLanguageId, languageLabel ) -> languageLabel)
                             |> (::) ( "", I18n.translate language I18n.EveryLanguage )
                             |> List.map
-                                (\( languageIso639_1, languageLabel ) ->
+                                (\( languageLanguageId, languageLabel ) ->
                                     option
-                                        [ selected (languageIso639_1 == model.languageIso639_1)
-                                        , value languageIso639_1
+                                        [ selected (languageLanguageId == model.languageLanguageId)
+                                        , value languageLanguageId
                                         ]
                                         [ text languageLabel ]
                                 )

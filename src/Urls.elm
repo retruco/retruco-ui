@@ -63,7 +63,7 @@ fullUrl url =
 
 languagePath : I18n.Language -> String -> String
 languagePath language path =
-    "/" ++ (I18n.iso639_1FromLanguage language) ++ path
+    "/" ++ (I18n.languageIdFromLanguage language) ++ path
 
 
 objectIdPath : String -> DataProxy a -> String
@@ -168,7 +168,7 @@ replaceLanguageInLocation language location =
         path =
             List.tail url.path
                 |> Maybe.withDefault []
-                |> (::) (I18n.iso639_1FromLanguage language)
+                |> (::) (I18n.languageIdFromLanguage language)
 
         newUrl =
             { url | path = path }

@@ -55,7 +55,7 @@ autocompleteCards authentication language cardTypes term limit =
             apiUrl
                 ++ "cards/autocomplete"
                 ++ Urls.paramsToQuery
-                    ([ ( "language", Just (I18n.iso639_1FromLanguage language) )
+                    ([ ( "language", Just (I18n.languageIdFromLanguage language) )
                      , ( "limit", Just (toString limit) )
                      , ( "term"
                        , let
@@ -117,7 +117,7 @@ autocompletePropertiesKeys authentication language cardTypes term limit =
                 ++ "properties/keys/autocomplete"
                 ++ Urls.paramsToQuery
                     ([ ( "class", Just "Card" )
-                     , ( "language", Just (I18n.iso639_1FromLanguage language) )
+                     , ( "language", Just (I18n.languageIdFromLanguage language) )
                      , ( "limit", Just (toString limit) )
                      , ( "term"
                        , let
@@ -155,7 +155,7 @@ autocompleteValues authentication language schemas widgets term limit =
             apiUrl
                 ++ "values/autocomplete"
                 ++ Urls.paramsToQuery
-                    ([ ( "language", Just (I18n.iso639_1FromLanguage language) )
+                    ([ ( "language", Just (I18n.languageIdFromLanguage language) )
                      , ( "limit", Just (toString limit) )
                      , ( "term"
                        , let
@@ -443,12 +443,8 @@ getValues authentication term limit ratedOnly showTrashed =
 postCard : Maybe Authentication -> Dict String String -> I18n.Language -> Http.Request DataIdBody
 postCard authentication fields language =
     let
-        languageCode =
-            I18n.iso639_1FromLanguage language
-
-        localizedStringEncoder x =
-            Encode.object [ ( languageCode, Encode.string x ) ]
-
+        -- languageCode =
+        --     I18n.languageIdFromLanguage language
         body =
             Encode.object
                 -- Always use en(glish) language because this is the language of the labels below.
@@ -456,19 +452,19 @@ postCard authentication fields language =
                 [ ( "language", Encode.string "en" )
                 , ( "schemas"
                   , Encode.object
-                        [ ( "Description", Encode.string "schema:localized-string" )
+                        [ ( "Description", Encode.string "schema:string" )
                         , ( "Download", Encode.string "schema:uri" )
                         , ( "Logo", Encode.string "schema:uri" )
-                        , ( "Name", Encode.string "schema:localized-string" )
+                        , ( "Name", Encode.string "schema:string" )
                         , ( "Types", Encode.string "schema:value-id" )
                         , ( "Website", Encode.string "schema:uri" )
                         ]
                   )
                 , ( "values"
-                  , [ ( "Description", localizedStringEncoder )
+                  , [ ( "Description", Encode.string )
                     , ( "Download", Encode.string )
                     , ( "Logo", Encode.string )
-                    , ( "Name", localizedStringEncoder )
+                    , ( "Name", Encode.string )
                     , ( "Types", Encode.string )
                     , ( "Website", Encode.string )
                     ]
@@ -595,22 +591,6 @@ postValue authentication field =
 
                 InputUrlField string ->
                     ( "schema:uri", "widget:input-url", Encode.string string )
-
-                LocalizedInputTextField language string ->
-                    ( "schema:localized-string"
-                    , "widget:input-text"
-                    , Encode.object
-                        [ ( language, Encode.string string )
-                        ]
-                    )
-
-                LocalizedTextareaField language string ->
-                    ( "schema:localized-string"
-                    , "widget:textarea"
-                    , Encode.object
-                        [ ( language, Encode.string string )
-                        ]
-                    )
 
                 TextareaField string ->
                     ( "schema:string", "widget:textarea", Encode.string string )

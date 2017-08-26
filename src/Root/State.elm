@@ -38,7 +38,7 @@ init flags location =
             flags.language
                 |> String.left 2
                 |> String.toLower
-                |> I18n.languageFromIso639_1
+                |> I18n.languageFromLanguageId
 
         language =
             navigatorLanguage |> Maybe.withDefault I18n.English
@@ -777,7 +777,7 @@ urlUpdate location model =
                                 |> Erl.parse
 
                         newUrl =
-                            { url | path = (I18n.iso639_1FromLanguage language) :: url.path }
+                            { url | path = (I18n.languageIdFromLanguage language) :: url.path }
                     in
                         ( cleanModel, Navigation.modifyUrl (Erl.toString newUrl) )
     in

@@ -10,6 +10,7 @@ import Html.Helpers exposing (aForPath)
 import Http.Error
 import I18n
 import LineViews exposing (viewStatementIdLine)
+import LocalizedStrings
 import Properties.KeysAutocomplete.View
 import SameKeyProperties.View
 import Statements.ViewsHelpers exposing (viewDebatePropertiesBlock)
@@ -39,7 +40,11 @@ view model =
                     ( Just card, Just debatePropertyIds ) ->
                         let
                             cardName =
-                                I18n.getName language data card
+                                LocalizedStrings.getLocalizedCardName
+                                    (LocalizedStrings.getPreferredLanguages language)
+                                    data
+                                    card
+                                    |> Maybe.withDefault (I18n.translate language <| I18n.UntitledCard card.id)
 
                             values =
                                 data.values

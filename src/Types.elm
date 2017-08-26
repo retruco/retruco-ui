@@ -26,6 +26,7 @@ type alias Ballot =
 
 type alias Card =
     { argumentCount : Int
+    , ballotId : String
     , createdAt : String
     , id : String
     , properties : Dict String (List String)
@@ -123,8 +124,6 @@ type Field
     | InputNumberField Float
     | InputTextField String
     | InputUrlField String
-    | LocalizedInputTextField String String
-    | LocalizedTextareaField String String
     | TextareaField String
     | ValueIdField String
 
@@ -242,10 +241,8 @@ type alias UserBody =
 type ValueType
     = BooleanValue Bool
     | EmailValue String
-    | IdArrayValue (List String)
-    | IdValue String
+    | IdsArrayValue (List String)
     | ImagePathValue String
-    | LocalizedStringValue (Dict String String)
     | NumberValue Float
     | StringValue String
     | UrlValue String

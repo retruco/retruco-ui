@@ -44,7 +44,7 @@ type alias Model =
     , httpError : Maybe Http.Error
     , imageUploadStatus : ImageUploadStatus
     , language : I18n.Language
-    , languageIso639_1 : String
+    , languageLanguageId : String
     , validFieldTypes : List String
     , value : String
     , valuesAutocompleteModel : Values.Autocomplete.Types.Model

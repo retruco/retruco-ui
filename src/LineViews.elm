@@ -6,6 +6,7 @@ import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Html.Helpers exposing (aForPath, aIfIsUrl)
 import I18n
+import LocalizedStrings
 import Types exposing (..)
 import Urls
 
@@ -24,20 +25,14 @@ valueTypeToTypeLabel language valueType =
             BooleanValue _ ->
                 I18n.Boolean
 
-            IdArrayValue _ ->
-                I18n.IdArray
-
-            IdValue _ ->
-                I18n.Id
+            IdsArrayValue _ ->
+                I18n.IdsArray
 
             EmailValue _ ->
                 I18n.Email
 
             ImagePathValue _ ->
                 I18n.Image
-
-            LocalizedStringValue _ ->
-                I18n.LocalizedString
 
             NumberValue _ ->
                 I18n.Number
@@ -66,7 +61,8 @@ viewCardLine : I18n.Language -> Maybe (String -> msg) -> DataProxy a -> Card -> 
 viewCardLine language navigateMsg data card =
     let
         cardName =
-            I18n.getName language data card
+            LocalizedStrings.getLocalizedCardName (LocalizedStrings.getPreferredLanguages language) data card
+                |> Maybe.withDefault (I18n.translate language <| I18n.UntitledCard card.id)
     in
         case navigateMsg of
             Just navigateMsg ->
@@ -191,7 +187,7 @@ viewValueTypeLineContent language navigateMsg showDetails data valueType =
         EmailValue str ->
             aIfIsUrl [] str
 
-        IdArrayValue ids ->
+        IdsArrayValue ids ->
             ul []
                 (List.map
                     (\id ->
@@ -201,9 +197,6 @@ viewValueTypeLineContent language navigateMsg showDetails data valueType =
                     )
                     ids
                 )
-
-        IdValue id ->
-            viewStatementIdLine language navigateMsg True showDetails data id
 
         ImagePathValue path ->
             figure
@@ -218,25 +211,24 @@ viewValueTypeLineContent language navigateMsg showDetails data valueType =
                 , figcaption [ class "figure-caption" ] [ text path ]
                 ]
 
-        LocalizedStringValue values ->
-            if showDetails || Dict.size values > 1 then
-                dl []
-                    (values
-                        |> Dict.toList
-                        |> List.concatMap
-                            (\( languageCode, childValue ) ->
-                                [ dt [] [ text languageCode ]
-                                , dd [] [ aIfIsUrl [] childValue ]
-                                ]
-                            )
-                    )
-            else
-                div []
-                    (values
-                        |> Dict.toList
-                        |> List.map (\( languageCode, childValue ) -> aIfIsUrl [] childValue)
-                    )
-
+        -- LocalizedStringValue values ->
+        --     if showDetails || Dict.size values > 1 then
+        --         dl []
+        --             (values
+        --                 |> Dict.toList
+        --                 |> List.concatMap
+        --                     (\( languageCode, childValue ) ->
+        --                         [ dt [] [ text languageCode ]
+        --                         , dd [] [ aIfIsUrl [] childValue ]
+        --                         ]
+        --                     )
+        --             )
+        --     else
+        --         div []
+        --             (values
+        --                 |> Dict.toList
+        --                 |> List.map (\( languageCode, childValue ) -> aIfIsUrl [] childValue)
+        --             )
         NumberValue float ->
             text (toString float)
 

@@ -126,43 +126,29 @@ convertControls model =
 
                         Nothing ->
                             let
-                                ( languageIso639_1, languageError ) =
-                                    if String.isEmpty model.languageIso639_1 then
+                                ( languageLanguageId, languageError ) =
+                                    if String.isEmpty model.languageLanguageId then
                                         ( Just "", Nothing )
                                     else
-                                        case I18n.languageFromIso639_1 model.languageIso639_1 of
+                                        case I18n.languageFromLanguageId model.languageLanguageId of
                                             Just _ ->
-                                                ( Just model.languageIso639_1, Nothing )
+                                                ( Just model.languageLanguageId, Nothing )
 
                                             Nothing ->
                                                 ( Nothing, Just I18n.UnknownLanguage )
 
-                                ( value, valueError ) =
-                                    -- -- if String.isEmpty model.value then
-                                    -- --     ( Nothing, Just I18n.MissingValue )
-                                    -- -- else
-                                    -- ( Just model.value, Nothing )
-                                    ( Just model.valuesAutocompleteModel.autocomplete, Nothing )
+                                -- ( value, valueError ) =
+                                --     if String.isEmpty model.value then
+                                --         ( Nothing, Just I18n.MissingValue )
+                                --     else
+                                --         ( Just model.value, Nothing )
+                                value =
+                                    model.valuesAutocompleteModel.autocomplete
                             in
-                                case ( languageIso639_1, value ) of
-                                    ( Just "", Just value ) ->
-                                        if String.contains "\n" value || String.contains "\x0D" value then
-                                            ( Just (TextareaField value), [] )
-                                        else
-                                            ( Just (InputTextField value), [] )
-
-                                    ( Just languageIso639_1, Just value ) ->
-                                        if String.contains "\n" value || String.contains "\x0D" value then
-                                            ( Just (LocalizedTextareaField languageIso639_1 value), [] )
-                                        else
-                                            ( Just (LocalizedInputTextField languageIso639_1 value), [] )
-
-                                    _ ->
-                                        ( Nothing
-                                        , [ ( "language", languageError )
-                                          , ( "value", valueError )
-                                          ]
-                                        )
+                                if String.contains "\n" value || String.contains "\x0D" value then
+                                    ( Just (TextareaField value), [] )
+                                else
+                                    ( Just (InputTextField value), [] )
 
                 _ ->
                     ( Nothing
@@ -206,11 +192,11 @@ init authentication language validFieldTypes =
                 Nothing ->
                     "TextField"
 
-        languageIso639_1 =
-            I18n.iso639_1FromLanguage language
+        languageLanguageId =
+            I18n.languageIdFromLanguage language
 
         ( schemaIds, widgetIds ) =
-            schemaIdsAndWidgetIds fieldType languageIso639_1
+            schemaIdsAndWidgetIds fieldType languageLanguageId
     in
         { authentication = authentication
         , booleanValue = False
@@ -221,7 +207,7 @@ init authentication language validFieldTypes =
         , httpError = Nothing
         , imageUploadStatus = ImageNotUploadedStatus
         , language = language
-        , languageIso639_1 = languageIso639_1
+        , languageLanguageId = languageLanguageId
         , validFieldTypes = validFieldTypes
         , value = ""
         , valuesAutocompleteModel = Values.Autocomplete.State.init schemaIds widgetIds
@@ -234,7 +220,7 @@ mergeModelData data model =
 
 
 schemaIdsAndWidgetIds : String -> String -> ( List String, List String )
-schemaIdsAndWidgetIds fieldType languageIso639_1 =
+schemaIdsAndWidgetIds fieldType languageLanguageId =
     case fieldType of
         "BooleanField" ->
             ( [ "schema:boolean" ], [] )
@@ -255,12 +241,7 @@ schemaIdsAndWidgetIds fieldType languageIso639_1 =
             ( [ "schema:uri" ], [] )
 
         "TextField" ->
-            case languageIso639_1 of
-                "" ->
-                    ( [ "schema:string" ], [] )
-
-                _ ->
-                    ( [ "schema:localized-string" ], [] )
+            ( [ "schema:string" ], [] )
 
         _ ->
             ( [], [] )
@@ -302,7 +283,7 @@ update msg model =
         FieldTypeChanged fieldType ->
             let
                 ( schemaIds, widgetIds ) =
-                    schemaIdsAndWidgetIds fieldType model.languageIso639_1
+                    schemaIdsAndWidgetIds fieldType model.languageLanguageId
             in
                 ( convertControls
                     { model
@@ -357,14 +338,14 @@ update msg model =
             , Cmd.none
             )
 
-        LanguageChanged languageIso639_1 ->
+        LanguageChanged languageLanguageId ->
             let
                 ( schemaIds, widgetIds ) =
-                    schemaIdsAndWidgetIds model.fieldType languageIso639_1
+                    schemaIdsAndWidgetIds model.fieldType languageLanguageId
             in
                 ( convertControls
                     { model
-                        | languageIso639_1 = languageIso639_1
+                        | languageLanguageId = languageLanguageId
                         , valuesAutocompleteModel =
                             Values.Autocomplete.State.setSchemaIdsAndWidgetIds
                                 schemaIds
@@ -405,7 +386,7 @@ update msg model =
             -- Reset fields.
             let
                 ( schemaIds, widgetIds ) =
-                    schemaIdsAndWidgetIds model.fieldType model.languageIso639_1
+                    schemaIdsAndWidgetIds model.fieldType model.languageLanguageId
             in
                 ( { model
                     | booleanValue = False

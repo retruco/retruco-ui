@@ -1,9 +1,7 @@
 module I18n exposing (..)
 
-import Constants exposing (nameKeyIds)
 import Dict exposing (Dict)
 import String
-import Types exposing (..)
 
 
 -- STRINGS TO TRANSLATE
@@ -112,7 +110,7 @@ type TranslationId
     | HomeDescription
     | HomeTitle
     | Id
-    | IdArray
+    | IdsArray
     | Image
     | ImageAlt
     | ImageField
@@ -126,7 +124,6 @@ type TranslationId
     | LanguageWord
     | License
     | LoadingMenu
-    | LocalizedString
     | MissingArguments
     | MissingDescription
     | MissingValue
@@ -201,6 +198,7 @@ type TranslationId
     | TrueWord
     | TweetMessage String String
     | Type
+    | UnknownId String
     | UnknownLanguage
     | UnknownSchemaId String
     | UnknownUser
@@ -218,7 +216,7 @@ type TranslationId
     | Value
     | ValueCreationFailed
     | ValueId
-    | ValueIdArray
+    | ValueIdsArray
     | ValueIdField
     | ValuePlaceholder
     | ValueRetrievalFailed
@@ -1021,7 +1019,7 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
-        IdArray ->
+        IdsArray ->
             { emptyTranslationSet
                 | english = s "Array of links to objects"
                 , french = s "Tableau de liens vers des objets"
@@ -1116,13 +1114,6 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Loading menu..."
                 , french = s "Chargement du menu..."
-                , spanish = todo
-            }
-
-        LocalizedString ->
-            { emptyTranslationSet
-                | english = s "Localized string"
-                , french = s "Chaîne de caractères localisée"
                 , spanish = todo
             }
 
@@ -1680,6 +1671,13 @@ getTranslationSet translationId =
                 , spanish = s "Tipo"
             }
 
+        UnknownId id ->
+            { emptyTranslationSet
+                | english = s <| "Unknown ID <" ++ id ++ ">"
+                , french = s <| "ID inconnu <" ++ id ++ ">"
+                , spanish = todo
+            }
+
         UnknownLanguage ->
             { emptyTranslationSet
                 | english = s "Unknown language"
@@ -1799,7 +1797,7 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
-        ValueIdArray ->
+        ValueIdsArray ->
             { emptyTranslationSet
                 | english = s "Array of links to values"
                 , french = s "Tableau de liens vers des valeurs"
@@ -1910,223 +1908,8 @@ todo =
 -- FUNCTIONS
 
 
-getLocalizedStringFromValueId : Language -> DataProxy a -> String -> String
-getLocalizedStringFromValueId language data valueId =
-    case Dict.get valueId data.values of
-        Nothing ->
-            "Error: value not found for ID: " ++ valueId
-
-        Just { value } ->
-            case value of
-                LocalizedStringValue localizedValues ->
-                    getValueByPreferredLanguage language localizedValues
-                        |> Maybe.withDefault ("No localization for string valueId=" ++ valueId)
-
-                _ ->
-                    "This should not happen"
-
-
-getManyStrings : Language -> List String -> Dict String TypedValue -> Card -> List String
-getManyStrings language keyIds values card =
-    let
-        getStrings : ValueType -> List String
-        getStrings value =
-            case value of
-                BooleanValue _ ->
-                    []
-
-                EmailValue value ->
-                    [ value ]
-
-                IdArrayValue ids ->
-                    List.concatMap (\id -> getStrings (IdValue id)) ids
-
-                IdValue id ->
-                    case Dict.get id values of
-                        Just subValue ->
-                            getStrings subValue.value
-
-                        Nothing ->
-                            []
-
-                ImagePathValue path ->
-                    []
-
-                LocalizedStringValue valueByLanguage ->
-                    case getValueByPreferredLanguage language valueByLanguage of
-                        Just value ->
-                            [ value ]
-
-                        Nothing ->
-                            []
-
-                NumberValue _ ->
-                    []
-
-                StringValue value ->
-                    [ value ]
-
-                UrlValue value ->
-                    [ value ]
-
-                WrongValue _ _ ->
-                    []
-    in
-        keyIds
-            |> List.map
-                (\keyId ->
-                    case Dict.get keyId card.properties of
-                        Just valueIds ->
-                            valueIds
-                                |> List.filterMap (\valueId -> Dict.get valueId values)
-                                |> List.map (\value -> getStrings value.value)
-                                |> List.concat
-
-                        Nothing ->
-                            []
-                )
-            |> List.filter (not << List.isEmpty)
-            |> List.head
-            |> Maybe.withDefault []
-
-
-getName : Language -> DataProxy a -> Card -> String
-getName language data card =
-    -- Note: Name can be Nothing, if down-voted.
-    getOneString language nameKeyIds data card
-        |> Maybe.withDefault (translate language <| UntitledCard card.id)
-
-
-getOneString : Language -> List String -> DataProxy a -> Card -> Maybe String
-getOneString language keyIds data card =
-    keyIds
-        |> List.map
-            (\keyId ->
-                case Dict.get keyId card.properties of
-                    Just valueIds ->
-                        valueIds
-                            |> List.filterMap (\valueId -> Dict.get valueId data.values)
-                            |> List.filterMap
-                                (\value -> getOneStringFromValueType language data value.value)
-
-                    Nothing ->
-                        []
-            )
-        |> List.concat
-        |> List.head
-
-
-getOneStringFromValueType : Language -> DataProxy a -> ValueType -> Maybe String
-getOneStringFromValueType language data valueType =
-    case valueType of
-        BooleanValue _ ->
-            Nothing
-
-        EmailValue value ->
-            Just value
-
-        IdArrayValue (childValue :: _) ->
-            getOneStringFromValueType language data (IdValue childValue)
-
-        IdArrayValue [] ->
-            Nothing
-
-        IdValue id ->
-            Dict.get id data.values
-                |> Maybe.andThen (\subValue -> getOneStringFromValueType language data subValue.value)
-
-        ImagePathValue path ->
-            Just path
-
-        LocalizedStringValue valueByLanguage ->
-            getValueByPreferredLanguage language valueByLanguage
-
-        NumberValue _ ->
-            Nothing
-
-        StringValue value ->
-            Just value
-
-        UrlValue value ->
-            Just value
-
-        WrongValue _ _ ->
-            Nothing
-
-
-getSubTypes : Language -> DataProxy a -> Card -> List String
-getSubTypes language data card =
-    List.map
-        (getLocalizedStringFromValueId language data)
-        card.subTypeIds
-
-
-getTags : Language -> DataProxy a -> Card -> List { tag : String, tagId : String }
-getTags language data card =
-    List.map
-        (\tagId ->
-            { tag = getLocalizedStringFromValueId language data tagId
-            , tagId = tagId
-            }
-        )
-        card.tagIds
-
-
-getUsages : Language -> DataProxy a -> Card -> List { tag : String, tagId : String }
-getUsages language data card =
-    List.map
-        (\tagId ->
-            { tag = getLocalizedStringFromValueId language data tagId
-            , tagId = tagId
-            }
-        )
-        card.usageIds
-
-
-getValueByPreferredLanguage : Language -> Dict String String -> Maybe String
-getValueByPreferredLanguage language valueByLanguage =
-    let
-        userLanguageCode =
-            iso639_1FromLanguage language
-    in
-        ([ Dict.get userLanguageCode valueByLanguage
-            |> Maybe.map (\s -> ( userLanguageCode, s ))
-         , Dict.get "en" valueByLanguage
-            |> Maybe.map (\s -> ( "en", s ))
-         ]
-            ++ (Dict.toList valueByLanguage |> List.map Just)
-        )
-            |> List.filterMap identity
-            |> List.filterMap
-                (\( languageCode, s ) ->
-                    if String.isEmpty (String.trim s) then
-                        Nothing
-                    else
-                        -- (if languageCode == userLanguageCode then
-                        --     s
-                        --  else
-                        --     "(" ++ (String.toUpper languageCode) ++ ") " ++ s
-                        -- )
-                        Just s
-                )
-            |> List.head
-
-
-iso639_1FromLanguage : Language -> String
-iso639_1FromLanguage language =
-    case language of
-        English ->
-            "en"
-
-        Spanish ->
-            "es"
-
-        French ->
-            "fr"
-
-
-languageFromIso639_1 : String -> Maybe Language
-languageFromIso639_1 str =
+languageFromLanguageId : String -> Maybe Language
+languageFromLanguageId str =
     case str of
         "en" ->
             Just English
@@ -2141,20 +1924,30 @@ languageFromIso639_1 str =
             Nothing
 
 
+languageIdFromLanguage : Language -> String
+languageIdFromLanguage language =
+    case language of
+        English ->
+            "en"
+
+        Spanish ->
+            "es"
+
+        French ->
+            "fr"
+
+
 {-| Pick the first `Maybe` that actually has a value. Useful when you want to
 try a couple different things, but there is no default value.
 
-    oneOf [ Nothing, Just 42, Just 71 ] == Just 42
-    oneOf [ Nothing, Nothing, Just 71 ] == Just 71
-    oneOf [ Nothing, Nothing, Nothing ] == Nothing
+    oneOfMaybes [ Nothing, Just 42, Just 71 ] == Just 42
+    oneOfMaybes [ Nothing, Nothing, Just 71 ] == Just 71
+    oneOfMaybes [ Nothing, Nothing, Nothing ] == Nothing
 
 -}
 oneOfMaybes : List (Maybe a) -> Maybe a
 oneOfMaybes maybes =
     case maybes of
-        [] ->
-            Nothing
-
         maybe :: rest ->
             case maybe of
                 Nothing ->
@@ -2162,6 +1955,9 @@ oneOfMaybes maybes =
 
                 Just _ ->
                     maybe
+
+        [] ->
+            Nothing
 
 
 translate : Language -> TranslationId -> String
