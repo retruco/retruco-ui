@@ -9,11 +9,14 @@ import Cards.Index.View
 import Cards.Item.View
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (onWithOptions)
 import Html.Helpers exposing (aForPath)
 import I18n
+import Json.Decode
 import Properties.Item.View
 import Root.Types exposing (..)
 import Routes exposing (..)
+import Urls
 import Values.Index.View
 import Values.Item.View
 import Values.New.View
@@ -25,6 +28,49 @@ view model =
     case model.route of
         (I18nRouteWithLanguage language localizedRoute) as route ->
             let
+                languageNavItem =
+                    li [ class "dropdown nav-item" ]
+                        [ a
+                            [ attribute "aria-expanded" "false"
+                            , attribute "aria-haspopup" "true"
+                            , class "dropdown-toggle nav-link"
+                            , attribute "data-toggle" "dropdown"
+                            , href ""
+                            , id "language-dropdown-menu"
+                            ]
+                            [ text (I18n.translate language (I18n.Language language))
+                            ]
+                        , div [ attribute "aria-labelledby" "language-dropdown-menu", class "dropdown-menu" ]
+                            (I18n.languages
+                                |> List.map
+                                    (\language ->
+                                        ( language
+                                        , (I18n.translate language (I18n.Language language))
+                                        )
+                                    )
+                                |> List.sortBy (\( language, languageLabel ) -> languageLabel)
+                                |> List.map
+                                    (\( otherLanguage, otherLanguageLabel ) ->
+                                        let
+                                            path =
+                                                Urls.replaceLanguageInLocation otherLanguage model.location
+                                        in
+                                            a
+                                                [ classList
+                                                    [ ( "dropdown-item", True )
+                                                    , ( "disabled", otherLanguage == language )
+                                                    ]
+                                                , href path
+                                                , onWithOptions
+                                                    "click"
+                                                    { stopPropagation = False, preventDefault = True }
+                                                    (Json.Decode.succeed (Navigate path))
+                                                ]
+                                                [ text otherLanguageLabel ]
+                                    )
+                            )
+                        ]
+
                 profileNavItem =
                     case model.authentication of
                         Just authentication ->
@@ -151,7 +197,8 @@ view model =
                                 --     ]
                                 ]
                             , ul [ class "navbar-nav" ]
-                                [ profileNavItem
+                                [ languageNavItem
+                                , profileNavItem
                                 , signInOrOutNavItem
                                 , signUpNavItem
                                 ]

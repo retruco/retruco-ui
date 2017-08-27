@@ -12,19 +12,6 @@ import String
 import WebData exposing (LoadingStatus, WebData(..))
 
 
-languageCodeLabelCouples : List ( String, String )
-languageCodeLabelCouples =
-    [ ( "en", "English" )
-    , ( "es", "Spanish" )
-    , ( "fr", "French" )
-    ]
-
-
-languageCodes : List String
-languageCodes =
-    List.map (\( item, label ) -> item) languageCodeLabelCouples
-
-
 searchSortLabelCouples : List ( String, String )
 searchSortLabelCouples =
     [ ( "Popular", "Popular" )
@@ -36,14 +23,6 @@ searchSortLabelCouples =
 searchSorts : List String
 searchSorts =
     List.map (\( item, label ) -> item) searchSortLabelCouples
-
-
-decodeLanguageCode : String -> Json.Decode.Decoder String
-decodeLanguageCode value =
-    if List.member value languageCodes then
-        Json.Decode.succeed value
-    else
-        Json.Decode.fail ("Unknown language: " ++ value)
 
 
 decodeSearchSort : String -> Json.Decode.Decoder String
@@ -172,46 +151,6 @@ viewInlineSearchTerm language searchTerm errorMaybe searchTermChanged =
                     ++ errorAttributes
                 )
                 []
-             ]
-                ++ errorBlock
-            )
-
-
-viewLanguageCode : String -> Maybe String -> (String -> msg) -> Html msg
-viewLanguageCode languageCode errorMaybe languageCodeChanged =
-    let
-        ( errorClass, errorAttributes, errorBlock ) =
-            case errorMaybe of
-                Just error ->
-                    ( " has-danger"
-                    , [ ariaDescribedby "language-code-error" ]
-                    , [ div
-                            [ class "form-control-feedback"
-                            , id "language-code-error"
-                            ]
-                            [ text error ]
-                      ]
-                    )
-
-                Nothing ->
-                    ( "", [], [] )
-    in
-        div [ class ("form-group" ++ errorClass) ]
-            ([ label [ class "control-label", for "language-code" ] [ text "Language" ]
-             , select
-                ([ class "form-control"
-                 , id "language-code"
-                 , on "change"
-                    (Json.Decode.map languageCodeChanged
-                        (targetValue |> Json.Decode.andThen decodeLanguageCode)
-                    )
-                 ]
-                    ++ errorAttributes
-                )
-                (List.map
-                    (viewOption languageCode)
-                    languageCodeLabelCouples
-                )
              ]
                 ++ errorBlock
             )
