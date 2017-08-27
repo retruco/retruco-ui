@@ -12,7 +12,6 @@ import I18n
 import Navigation
 import Properties.Item.Types
 import Routes
-import Search
 import Types
 import Values.Index.Types
 import Values.Item.Types
@@ -36,8 +35,6 @@ type alias Model =
     , newValueModel : Maybe Values.New.Types.Model
     , propertyModel : Maybe Properties.Item.Types.Model
     , route : Routes.Route
-    , searchCriteria : Types.SearchCriteria
-    , searchModel : Search.Model
     , signOutMsg : Maybe Msg
     , valueModel : Maybe Values.Item.Types.Model
     , valuesModel : Maybe Values.Index.Types.Model
@@ -67,7 +64,6 @@ type Msg
     | RequireSignInForNewValue Values.New.Types.InternalMsg
     | RequireSignInForProperty Properties.Item.Types.InternalMsg
     | RequireSignInForValue Values.Item.Types.InternalMsg
-    | SearchMsg Search.InternalMsg
     | ValueMsg Values.Item.Types.InternalMsg
     | ValuesMsg Values.Index.Types.InternalMsg
     | ValueUpserted Types.DataId
@@ -165,13 +161,5 @@ translateValuesMsg : Values.Index.Types.MsgTranslator Msg
 translateValuesMsg =
     Values.Index.Types.translateMsg
         { onInternalMsg = ValuesMsg
-        , onNavigate = Navigate
-        }
-
-
-translateSearchMsg : Search.MsgTranslator Msg
-translateSearchMsg =
-    Search.translateMsg
-        { onInternalMsg = SearchMsg
         , onNavigate = Navigate
         }

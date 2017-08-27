@@ -30,9 +30,9 @@ type LocalizedRoute
     | AffirmationsRoute AffirmationsRoute
     | AuthenticatorRoute Authenticator.Routes.Route
     | CardsRoute CardsRoute
+    | HomeRoute
     | NotFoundRoute (List String)
     | PropertiesRoute PropertiesRoute
-    | SearchRoute
     | UserProfileRoute
     | ValuesRoute ValuesRoute
 
@@ -95,7 +95,7 @@ idParser =
 localizedRouteParser : Parser (LocalizedRoute -> a) a
 localizedRouteParser =
     oneOf
-        [ map SearchRoute top
+        [ map HomeRoute top
         , map AboutRoute (s "about")
         , map AffirmationsRoute (s "affirmations" </> affirmationsRouteParser)
         , map CardsRoute (s "cards" </> cardsRouteParser)

@@ -14,7 +14,6 @@ import I18n
 import Properties.Item.View
 import Root.Types exposing (..)
 import Routes exposing (..)
-import Search
 import Values.Index.View
 import Values.Item.View
 import Values.New.View
@@ -250,15 +249,8 @@ view model =
                                         Nothing ->
                                             text "This should not occur: propertyModel == Nothing!"
 
-                        SearchRoute ->
-                            div []
-                                [ Html.map translateSearchMsg
-                                    (Search.view model.authentication language model.searchModel)
-
-                                -- , Html.map
-                                --     translateStatementsMsg
-                                --     (Statements.viewIndex model.authentication model.statementsModel)
-                                ]
+                        HomeRoute ->
+                            text "Home page is currently a redirection."
 
                         UserProfileRoute ->
                             viewNotFound language

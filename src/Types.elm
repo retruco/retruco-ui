@@ -170,14 +170,6 @@ type alias Property =
     }
 
 
-type alias SearchCriteria =
-    { kinds : List String
-    , languageCodeMaybe : Maybe String
-    , sort : String
-    , termMaybe : Maybe String
-    }
-
-
 type alias Statement a =
     { a
         | argumentCount : Int

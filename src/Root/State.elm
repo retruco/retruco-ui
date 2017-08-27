@@ -18,7 +18,6 @@ import Ports
 import Properties.Item.State
 import Root.Types exposing (..)
 import Routes exposing (..)
-import Search
 import Task
 import Types exposing (Flags)
 import Urls
@@ -42,9 +41,6 @@ init flags location =
 
         language =
             navigatorLanguage |> Maybe.withDefault I18n.English
-
-        searchModel =
-            Search.init
     in
         { aboutModel = Nothing
         , affirmationModel = Nothing
@@ -62,8 +58,6 @@ init flags location =
         , newValueModel = Nothing
         , propertyModel = Nothing
         , route = Routes.I18nRouteWithoutLanguage ""
-        , searchCriteria = searchModel.searchCriteria
-        , searchModel = searchModel
         , signOutMsg = Nothing
         , valueModel = Nothing
         , valuesModel = Nothing
@@ -390,26 +384,6 @@ update msg model =
             RequireSignInForValue valueCompletionMsg ->
                 requireSignInOrUpdate <| ValueMsg valueCompletionMsg
 
-            SearchMsg childMsg ->
-                -- let
-                --     ( searchModel, childEffect ) =
-                --         Search.update childMsg model.authentication model.searchModel
-                --     searchCriteria =
-                --         searchModel.searchCriteria
-                --     ( statementsModel, statementsEffect ) =
-                --         if searchCriteria /= model.searchCriteria then
-                --             Statements.update Statements.Load model.authentication searchCriteria model.statementsModel
-                --         else
-                --             ( model.statementsModel, Cmd.none )
-                -- in
-                --     { model
-                --         | searchCriteria = searchCriteria
-                --         , searchModel = searchModel
-                --         , statementsModel = statementsModel
-                --     }
-                --         ! [ Cmd.map translateSearchMsg childEffect, Cmd.map translateStatementsMsg statementsEffect ]
-                ( model, Cmd.none )
-
             ValueMsg childMsg ->
                 case model.valueModel of
                     Just valueModel ->
@@ -467,9 +441,6 @@ urlUpdate location model =
                 { model
                     | clearModelOnUrlUpdate = True
                 }
-
-        searchQuery =
-            Urls.querySearchTerm location
 
         ( newModel, cmd ) =
             case parseLocation location of
@@ -633,6 +604,9 @@ urlUpdate location model =
                                                 , Cmd.map translateCardsMsg childCmd
                                                 )
 
+                                HomeRoute ->
+                                    ( cleanModel, navigate cleanModel <| Urls.languagePath language "/affirmations" )
+
                                 -- NewCardRoute ->
                                 --     case model.authentication of
                                 --         Just _ ->
@@ -695,11 +669,6 @@ urlUpdate location model =
                                                   }
                                                 , Cmd.map translatePropertyMsg updatedPropertyCmd
                                                 )
-
-                                SearchRoute ->
-                                    -- ( cleanModel, Cmd.map translateStatementsMsg (Statements.load) )
-                                    -- ( cleanModel, Cmd.none )
-                                    ( cleanModel, navigate cleanModel <| Urls.languagePath language "/affirmations" )
 
                                 UserProfileRoute ->
                                     ( cleanModel, Cmd.none )

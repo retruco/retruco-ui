@@ -179,7 +179,7 @@ viewAutocomplete language parentId controlLabelI18n controlPlaceholderI18n error
                                             []
                                         , span
                                             [ class "sr-only" ]
-                                            [ text "Select a person or type more characters" ]
+                                            [ text "Select a card or type more characters" ]
                                         ]
 
                                 _ ->
