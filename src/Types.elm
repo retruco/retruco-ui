@@ -122,9 +122,9 @@ type Field
     | ImageField String
     | InputEmailField String
     | InputNumberField Float
-    | InputTextField String
+    | InputTextField (Maybe String) String
     | InputUrlField String
-    | TextareaField String
+    | TextareaField (Maybe String) String
     | ValueIdField String
 
 

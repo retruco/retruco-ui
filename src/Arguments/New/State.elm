@@ -2,6 +2,7 @@ module Arguments.New.State exposing (..)
 
 import Arguments.New.Types exposing (..)
 import Authenticator.Types exposing (Authentication)
+import Constants exposing (debateKeyIds)
 import Dict exposing (Dict)
 import Http
 import I18n
@@ -33,18 +34,12 @@ convertControls : Model -> Model
 convertControls model =
     let
         keyIdError =
-            case model.keyId of
-                "" ->
-                    Just I18n.MissingValue
-
-                "cons" ->
-                    Nothing
-
-                "pros" ->
-                    Nothing
-
-                _ ->
-                    Just I18n.UnknownValue
+            if List.member model.keyId debateKeyIds then
+                Nothing
+            else if model.keyId == "" then
+                Just I18n.MissingValue
+            else
+                Just I18n.UnknownValue
     in
         { model
             | errors =

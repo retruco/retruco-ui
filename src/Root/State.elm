@@ -523,7 +523,6 @@ urlUpdate location model =
                                                             Affirmations.New.State.init
                                                                 model.authentication
                                                                 language
-                                                                []
 
                                                 ( updatedNewAffirmationModel, updatedNewAffirmationCmd ) =
                                                     Affirmations.New.State.urlUpdate location newAffirmationModel

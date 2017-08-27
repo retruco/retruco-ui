@@ -126,29 +126,35 @@ convertControls model =
 
                         Nothing ->
                             let
-                                ( languageLanguageId, languageError ) =
-                                    if String.isEmpty model.languageLanguageId then
-                                        ( Just "", Nothing )
+                                ( languageId, languageError ) =
+                                    if String.isEmpty model.languageId then
+                                        ( Nothing, Nothing )
                                     else
-                                        case I18n.languageFromLanguageId model.languageLanguageId of
+                                        case I18n.languageFromLanguageId model.languageId of
                                             Just _ ->
-                                                ( Just model.languageLanguageId, Nothing )
+                                                ( Just model.languageId, Nothing )
 
                                             Nothing ->
-                                                ( Nothing, Just I18n.UnknownLanguage )
+                                                ( Nothing, Just ( "language", Just I18n.UnknownLanguage ) )
 
-                                -- ( value, valueError ) =
-                                --     if String.isEmpty model.value then
-                                --         ( Nothing, Just I18n.MissingValue )
-                                --     else
-                                --         ( Just model.value, Nothing )
-                                value =
-                                    model.valuesAutocompleteModel.autocomplete
+                                trimmedText =
+                                    String.trim model.valuesAutocompleteModel.autocomplete
+
+                                ( text, textError ) =
+                                    if String.isEmpty trimmedText then
+                                        ( Nothing, Just ( "value", Just I18n.MissingValue ) )
+                                    else
+                                        ( Just trimmedText, Nothing )
                             in
-                                if String.contains "\n" value || String.contains "\x0D" value then
-                                    ( Just (TextareaField value), [] )
-                                else
-                                    ( Just (InputTextField value), [] )
+                                case ( languageError, text, textError ) of
+                                    ( Nothing, Just text, Nothing ) ->
+                                        if String.contains "\n" text || String.contains "\x0D" text then
+                                            ( Just (TextareaField languageId text), [] )
+                                        else
+                                            ( Just (InputTextField languageId text), [] )
+
+                                    _ ->
+                                        ( Nothing, List.filterMap identity [ languageError, textError ] )
 
                 _ ->
                     ( Nothing
@@ -164,8 +170,8 @@ convertControls model =
                     Nothing ->
                         (Dict.fromList <|
                             List.filterMap
-                                (\( key, errorMaybe ) ->
-                                    case errorMaybe of
+                                (\( key, error ) ->
+                                    case error of
                                         Just error ->
                                             Just ( key, error )
 
@@ -192,11 +198,11 @@ init authentication language validFieldTypes =
                 Nothing ->
                     "TextField"
 
-        languageLanguageId =
+        languageId =
             I18n.languageIdFromLanguage language
 
         ( schemaIds, widgetIds ) =
-            schemaIdsAndWidgetIds fieldType languageLanguageId
+            schemaIdsAndWidgetIds fieldType languageId
     in
         { authentication = authentication
         , booleanValue = False
@@ -207,7 +213,7 @@ init authentication language validFieldTypes =
         , httpError = Nothing
         , imageUploadStatus = ImageNotUploadedStatus
         , language = language
-        , languageLanguageId = languageLanguageId
+        , languageId = languageId
         , validFieldTypes = validFieldTypes
         , value = ""
         , valuesAutocompleteModel = Values.Autocomplete.State.init schemaIds widgetIds
@@ -220,7 +226,7 @@ mergeModelData data model =
 
 
 schemaIdsAndWidgetIds : String -> String -> ( List String, List String )
-schemaIdsAndWidgetIds fieldType languageLanguageId =
+schemaIdsAndWidgetIds fieldType languageId =
     case fieldType of
         "BooleanField" ->
             ( [ "schema:boolean" ], [] )
@@ -283,7 +289,7 @@ update msg model =
         FieldTypeChanged fieldType ->
             let
                 ( schemaIds, widgetIds ) =
-                    schemaIdsAndWidgetIds fieldType model.languageLanguageId
+                    schemaIdsAndWidgetIds fieldType model.languageId
             in
                 ( convertControls
                     { model
@@ -338,14 +344,14 @@ update msg model =
             , Cmd.none
             )
 
-        LanguageChanged languageLanguageId ->
+        LanguageChanged languageId ->
             let
                 ( schemaIds, widgetIds ) =
-                    schemaIdsAndWidgetIds model.fieldType languageLanguageId
+                    schemaIdsAndWidgetIds model.fieldType languageId
             in
                 ( convertControls
                     { model
-                        | languageLanguageId = languageLanguageId
+                        | languageId = languageId
                         , valuesAutocompleteModel =
                             Values.Autocomplete.State.setSchemaIdsAndWidgetIds
                                 schemaIds
@@ -354,6 +360,12 @@ update msg model =
                     }
                 , Cmd.none
                 )
+
+        LocalizationPropertyUpserted (Err httpError) ->
+            ( { model | httpError = Just httpError }, Cmd.none )
+
+        LocalizationPropertyUpserted (Ok body) ->
+            ( model, Cmd.none )
 
         Submit ->
             let
@@ -386,9 +398,34 @@ update msg model =
             -- Reset fields.
             let
                 ( schemaIds, widgetIds ) =
-                    schemaIdsAndWidgetIds model.fieldType model.languageLanguageId
+                    schemaIdsAndWidgetIds model.fieldType model.languageId
+
+                postLocalizationPropertyCmds =
+                    case model.field of
+                        Just (InputTextField (Just languageId) _) ->
+                            -- Add property stating that the text is its own localization in given language.
+                            let
+                                textId =
+                                    body.data.id
+                            in
+                                [ Requests.postProperty model.authentication textId languageId textId (Just 1)
+                                    |> Http.send (ForSelf << LocalizationPropertyUpserted)
+                                ]
+
+                        Just (TextareaField (Just languageId) _) ->
+                            -- Add property stating that the text is its own localization in given language.
+                            let
+                                textId =
+                                    body.data.id
+                            in
+                                [ Requests.postProperty model.authentication textId languageId textId (Just 1)
+                                    |> Http.send (ForSelf << LocalizationPropertyUpserted)
+                                ]
+
+                        _ ->
+                            []
             in
-                ( { model
+                { model
                     | booleanValue = False
                     , cardsAutocompleteModel = Cards.Autocomplete.State.init []
                     , errors = Dict.empty
@@ -397,9 +434,10 @@ update msg model =
                     , imageUploadStatus = ImageNotUploadedStatus
                     , value = ""
                     , valuesAutocompleteModel = Values.Autocomplete.State.init schemaIds widgetIds
-                  }
-                , Task.perform (\_ -> ForParent <| ValueUpserted body.data) (Task.succeed ())
-                )
+                }
+                    ! (postLocalizationPropertyCmds
+                        ++ [ Task.perform (\_ -> ForParent <| ValueUpserted body.data) (Task.succeed ()) ]
+                      )
 
         ValueChanged value ->
             ( convertControls { model | value = value }
@@ -418,7 +456,7 @@ update msg model =
                         childMsg
                         model.authentication
                         model.language
-                        "valueId"
+                        "value"
                         model.valuesAutocompleteModel
             in
                 ( convertControls { model | valuesAutocompleteModel = valuesAutocompleteModel }

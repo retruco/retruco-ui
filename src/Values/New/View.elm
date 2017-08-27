@@ -162,13 +162,13 @@ viewFormControls model =
                                     , I18n.translate language (I18n.Language languageI18n)
                                     )
                                 )
-                            |> List.sortBy (\( languageLanguageId, languageLabel ) -> languageLabel)
+                            |> List.sortBy (\( languageId, languageLabel ) -> languageLabel)
                             |> (::) ( "", I18n.translate language I18n.EveryLanguage )
                             |> List.map
-                                (\( languageLanguageId, languageLabel ) ->
+                                (\( languageId, languageLabel ) ->
                                     option
-                                        [ selected (languageLanguageId == model.languageLanguageId)
-                                        , value languageLanguageId
+                                        [ selected (languageId == model.languageId)
+                                        , value languageId
                                         ]
                                         [ text languageLabel ]
                                 )
@@ -330,7 +330,7 @@ viewFormControls model =
           else if model.fieldType == "TextField" then
             let
                 controlId =
-                    "valueId"
+                    "value"
             in
                 Values.Autocomplete.View.viewAutocomplete
                     language

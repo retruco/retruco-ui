@@ -5,7 +5,7 @@ module Constants exposing (..)
 
 debateKeyIds : List String
 debateKeyIds =
-    [ "cons", "pros" ]
+    [ "cons", "options", "pros", "sources" ]
 
 
 nameKeyIds : List String

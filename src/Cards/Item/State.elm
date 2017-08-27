@@ -151,7 +151,7 @@ update msg model =
                     ( model
                     , Requests.postValue
                         authentication
-                        (InputTextField keyName)
+                        (InputTextField Nothing keyName)
                         |> Http.send (ForSelf << KeyUpserted)
                     )
 

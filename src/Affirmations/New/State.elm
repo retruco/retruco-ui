@@ -15,14 +15,13 @@ import Values.New.State
 import Values.New.Types
 
 
-init : Maybe Authentication -> I18n.Language -> List String -> Model
-init authentication language validFieldTypes =
+init : Maybe Authentication -> I18n.Language -> Model
+init authentication language =
     { authentication = authentication
     , data = initDataId
     , httpError = Nothing
     , language = language
-    , newValueModel = Values.New.State.init authentication language validFieldTypes
-    , validFieldTypes = validFieldTypes
+    , newValueModel = Values.New.State.init authentication language [ "TextField" ]
     }
 
 

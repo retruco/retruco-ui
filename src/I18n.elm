@@ -71,10 +71,10 @@ type TranslationId
     | CreateAccountNow
     | CreateYourAccount
     | Debate
-    | DebateArgumentAgainst
-    | DebateArgumentFor
     | DebateConsLabel
+    | DebateOptionsLabel
     | DebateProsLabel
+    | DebateSourcesLabel
     | Disagree
     | Edit
     | Email
@@ -736,20 +736,6 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
-        DebateArgumentAgainst ->
-            { emptyTranslationSet
-                | english = s "Argument Against"
-                , french = s "Argument contre"
-                , spanish = todo
-            }
-
-        DebateArgumentFor ->
-            { emptyTranslationSet
-                | english = s "Argument For"
-                , french = s "Argument pour"
-                , spanish = todo
-            }
-
         DebateConsLabel ->
             { emptyTranslationSet
                 | english = s "- Argument Against"
@@ -757,10 +743,24 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        DebateOptionsLabel ->
+            { emptyTranslationSet
+                | english = s "= Answer to Question"
+                , french = s "= Réponse à la question"
+                , spanish = todo
+            }
+
         DebateProsLabel ->
             { emptyTranslationSet
                 | english = s "+ Argument For"
                 , french = s "+ Argument pour"
+                , spanish = todo
+            }
+
+        DebateSourcesLabel ->
+            { emptyTranslationSet
+                | english = s "= Source"
+                , french = s "= Source"
                 , spanish = todo
             }
 

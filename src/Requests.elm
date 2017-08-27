@@ -586,13 +586,13 @@ postValue authentication field =
                 InputNumberField float ->
                     ( "schema:number", "widget:input-number", Encode.float float )
 
-                InputTextField string ->
+                InputTextField _ string ->
                     ( "schema:string", "widget:input-text", Encode.string string )
 
                 InputUrlField string ->
                     ( "schema:uri", "widget:input-url", Encode.string string )
 
-                TextareaField string ->
+                TextareaField _ string ->
                     ( "schema:string", "widget:textarea", Encode.string string )
 
                 ValueIdField string ->

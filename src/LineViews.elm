@@ -13,8 +13,10 @@ import Urls
 
 keyIdLabelCouples : List ( String, I18n.TranslationId )
 keyIdLabelCouples =
-    [ ( "pros", I18n.DebateArgumentFor )
-    , ( "cons", I18n.DebateArgumentAgainst )
+    [ ( "pros", I18n.DebateProsLabel )
+    , ( "cons", I18n.DebateConsLabel )
+    , ( "options", I18n.DebateOptionsLabel )
+    , ( "sources", I18n.DebateSourcesLabel )
     ]
 
 

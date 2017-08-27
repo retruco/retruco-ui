@@ -27,6 +27,7 @@ type InternalMsg
     | ImageSelected
     | ImageUploaded (Result Http.Error String)
     | LanguageChanged String
+    | LocalizationPropertyUpserted (Result Http.Error DataIdBody)
     | Submit
     | Upserted (Result Http.Error DataIdBody)
     | ValueChanged String
@@ -44,7 +45,7 @@ type alias Model =
     , httpError : Maybe Http.Error
     , imageUploadStatus : ImageUploadStatus
     , language : I18n.Language
-    , languageLanguageId : String
+    , languageId : String
     , validFieldTypes : List String
     , value : String
     , valuesAutocompleteModel : Values.Autocomplete.Types.Model

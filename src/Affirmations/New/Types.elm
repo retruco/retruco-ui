@@ -30,7 +30,6 @@ type alias Model =
     , httpError : Maybe Http.Error
     , language : I18n.Language
     , newValueModel : Values.New.Types.Model
-    , validFieldTypes : List String
     }
 
 
