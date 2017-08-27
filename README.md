@@ -4,7 +4,7 @@ Web user interface to bring out shared positions from argumented statements
 
 ## Install dependencies
 
-    yarn install
+    npm install
 
 This will install JavaScript dependencies in `node_modules` and Elm dependencies in `elm-stuff`.
 
@@ -12,7 +12,7 @@ This will install JavaScript dependencies in `node_modules` and Elm dependencies
 
 Start the hot-reloading webpack dev server:
 
-    yarn start
+    npm start
 
 Navigate to <http://localhost:3001>.
 
@@ -23,7 +23,7 @@ a hot reload.
 
 When you're ready to deploy:
 
-    yarn run build
+    npm run build
 
 This will create a `dist` folder (after removing the old one if present):
 
@@ -35,7 +35,7 @@ This will create a `dist` folder (after removing the old one if present):
 
 To test the production build locally:
 
-    yarn run serve
+    npm run serve
     > retruco-ui@0.0.1 serve /path/to/retruco-ui
     > static --spa dist
 
