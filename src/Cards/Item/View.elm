@@ -40,11 +40,7 @@ view model =
                     ( Just card, Just debatePropertyIds ) ->
                         let
                             cardName =
-                                LocalizedStrings.getLocalizedCardName
-                                    (LocalizedStrings.getPreferredLanguages language)
-                                    data
-                                    card
-                                    |> Maybe.withDefault (I18n.translate language <| I18n.UntitledCard card.id)
+                                LocalizedStrings.cardNameToString language data card
 
                             values =
                                 data.values

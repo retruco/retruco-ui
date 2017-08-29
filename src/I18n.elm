@@ -204,6 +204,7 @@ type TranslationId
     | UnknownUser
     | UnknownValue
     | UntitledCard String
+    | UntitledTypedValue String
     | UploadImage
     | UploadingImage String
     | Url
@@ -1659,9 +1660,9 @@ getTranslationSet translationId =
 
         TweetMessage name url ->
             { emptyTranslationSet
-                | english = s ("Discover " ++ name ++ " on Retruco.org: " ++ url)
-                , french = s ("Découvrez " ++ name ++ " dans Retruco.org : " ++ url)
-                , spanish = todo
+                | english = s (name ++ " " ++ url)
+                , french = s (name ++ " " ++ url)
+                , spanish = s (name ++ " " ++ url)
             }
 
         Type ->
@@ -1706,11 +1707,18 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
-        UntitledCard cardId ->
+        UntitledCard id ->
             { emptyTranslationSet
-                | english = s <| "Untitled Card <" ++ cardId ++ ">"
-                , french = s <| "Fiche sans titre <" ++ cardId ++ ">"
-                , spanish = s <| "Tipo <" ++ cardId ++ ">"
+                | english = s <| "Untitled Card <" ++ id ++ ">"
+                , french = s <| "Fiche sans titre <" ++ id ++ ">"
+                , spanish = s <| "Tipo <" ++ id ++ ">"
+            }
+
+        UntitledTypedValue id ->
+            { emptyTranslationSet
+                | english = s <| "Untitled Value <" ++ id ++ ">"
+                , french = s <| "Valeur sans titre <" ++ id ++ ">"
+                , spanish = todo
             }
 
         UploadImage ->

@@ -3,6 +3,7 @@ module Statements.Toolbar.State exposing (..)
 import Authenticator.Types exposing (Authentication)
 import Http
 import I18n
+import Ports
 import Requests
 import Statements.Toolbar.Types exposing (..)
 import Task
@@ -59,6 +60,18 @@ update msg model =
             ( model
             , Task.perform (\_ -> ForParent <| DataUpdated <| mergeData data initData) (Task.succeed ())
             )
+
+        ShareOnFacebook url ->
+            ( model, Ports.shareOnFacebook url )
+
+        ShareOnGooglePlus url ->
+            ( model, Ports.shareOnGooglePlus url )
+
+        ShareOnLinkedIn url ->
+            ( model, Ports.shareOnLinkedIn url )
+
+        ShareOnTwitter url ->
+            ( model, Ports.shareOnTwitter url )
 
         Trash ->
             ( model

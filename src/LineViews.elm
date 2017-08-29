@@ -63,8 +63,7 @@ viewCardLine : I18n.Language -> Maybe (String -> msg) -> DataProxy a -> Card -> 
 viewCardLine language navigateMsg data card =
     let
         cardName =
-            LocalizedStrings.getLocalizedCardName (LocalizedStrings.getPreferredLanguages language) data card
-                |> Maybe.withDefault (I18n.translate language <| I18n.UntitledCard card.id)
+            LocalizedStrings.cardNameToString language data card
     in
         case navigateMsg of
             Just navigateMsg ->
@@ -155,7 +154,7 @@ viewStatementIdLine language navigateMsg independent showDetails data statementI
                             viewValueTypeLine language navigateMsg showDetails data typedValue.value
 
                         Nothing ->
-                            i [ class "text-warning" ] [ text ("Missing statement with ID: " ++ statementId) ]
+                            i [ class "text-warning" ] [ text (I18n.translate language <| I18n.UnknownId statementId) ]
 
 
 viewValueIdLine : I18n.Language -> Maybe (String -> msg) -> Bool -> DataProxy a -> String -> Html msg

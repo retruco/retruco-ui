@@ -15,6 +15,10 @@ type ExternalMsg
 type InternalMsg
     = Rate (Maybe Int)
     | RatingPosted (Result Http.Error DataIdBody)
+    | ShareOnFacebook String
+    | ShareOnGooglePlus String
+    | ShareOnLinkedIn String
+    | ShareOnTwitter String
     | Trash
     | TrashPosted (Result Http.Error DataIdBody)
 

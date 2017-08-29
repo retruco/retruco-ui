@@ -1,20 +1,20 @@
 module Statements.ViewsHelpers exposing (..)
 
+import Constants exposing (imagePathKeyIds)
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, onWithOptions)
 import Html.Helpers exposing (aForPath)
+import Http
 import I18n
+import Json.Decode
 import LineViews exposing (viewPropertyIdLine)
+import LocalizedStrings
 import Set exposing (Set)
 import Types exposing (Argument, DataProxy)
-
-
-debatePropertyKeyIds : Set String
-debatePropertyKeyIds =
-    Set.fromList [ "cons", "pro" ]
+import Urls
 
 
 viewDebatePropertiesBlock :
@@ -59,7 +59,7 @@ viewStatementIdRatingPanel language navigateMsg data statementId =
                             viewStatementRatingPanel language navigateMsg (Just "affirmations") typedValue
 
                         Nothing ->
-                            i [ class "text-warning" ] [ text ("Missing statement with ID: " ++ statementId) ]
+                            i [ class "text-warning" ] [ text (I18n.translate language <| I18n.UnknownId statementId) ]
 
 
 viewStatementRatingPanel :
@@ -239,4 +239,119 @@ viewStatementRatingToolbar language rateMsg trashMsg data { ballotId } =
                     language
                     I18n.Trash
             ]
+        ]
+
+
+viewStatementSocialToolbar :
+    I18n.Language
+    -> (String -> msg)
+    -> (String -> msg)
+    -> (String -> msg)
+    -> (String -> msg)
+    -> DataProxy a
+    -> { b | id : String }
+    -> Html msg
+viewStatementSocialToolbar language shareOnFacebookMsg shareOnGooglePlusMsg shareOnLinkedInMsg shareOnTwitterMsg data { id } =
+    div
+        [ class "toolbar"
+        , role "toolbar"
+        ]
+        [ let
+            statementString =
+                LocalizedStrings.idToString language data id
+
+            imageUrl =
+                case Dict.get id data.cards of
+                    Just card ->
+                        LocalizedStrings.statementPropertiesToString imagePathKeyIds language data card
+                            |> Maybe.withDefault Urls.appLogoFullUrl
+
+                    Nothing ->
+                        case Dict.get id data.properties of
+                            Just property ->
+                                LocalizedStrings.statementPropertiesToString imagePathKeyIds language data property
+                                    |> Maybe.withDefault Urls.appLogoFullUrl
+
+                            Nothing ->
+                                case Dict.get id data.values of
+                                    Just typedValue ->
+                                        LocalizedStrings.statementPropertiesToString imagePathKeyIds
+                                            language
+                                            data
+                                            typedValue
+                                            |> Maybe.withDefault Urls.appLogoFullUrl
+
+                                    Nothing ->
+                                        Urls.appLogoFullUrl
+
+            url =
+                Urls.statementIdPath data id
+                    |> Urls.languagePath language
+                    |> Urls.fullUrl
+
+            facebookUrl =
+                "http://www.facebook.com/sharer.php?s=100&p[title]="
+                    ++ Http.encodeUri statementString
+                    ++ "&p[summary]="
+                    ++ Http.encodeUri (I18n.translate language (I18n.TweetMessage statementString url))
+                    ++ "&p[url]="
+                    ++ Http.encodeUri url
+                    ++ "&p[images][0]="
+                    ++ Http.encodeUri imageUrl
+
+            googlePlusUrl =
+                "https://plus.google.com/share?url=" ++ Http.encodeUri url
+
+            linkedInUrl =
+                "https://www.linkedin.com/shareArticle?mini=true&url="
+                    ++ Http.encodeUri url
+                    ++ "&title="
+                    ++ Http.encodeUri statementString
+                    ++ "&summary="
+                    ++ Http.encodeUri (I18n.translate language (I18n.TweetMessage statementString url))
+                    ++ "&source="
+                    ++ Http.encodeUri "OGP Toolbox"
+
+            twitterUrl =
+                "https://twitter.com/intent/tweet?text="
+                    ++ Http.encodeUri (I18n.translate language (I18n.TweetMessage statementString url))
+          in
+            div []
+                [ a
+                    [ class "btn btn-light"
+                    , href facebookUrl
+                    , onWithOptions
+                        "click"
+                        { stopPropagation = True, preventDefault = True }
+                        (Json.Decode.succeed (shareOnFacebookMsg facebookUrl))
+                    ]
+                    [ i [ attribute "aria-hidden" "true", class "fa fa-facebook" ] [] ]
+                , a
+                    [ class "btn btn-light"
+                    , href googlePlusUrl
+                    , onWithOptions
+                        "click"
+                        { stopPropagation = True, preventDefault = True }
+                        (Json.Decode.succeed (shareOnGooglePlusMsg googlePlusUrl))
+                    ]
+                    [ i [ attribute "aria-hidden" "true", class "fa fa-google-plus" ] [] ]
+                , a
+                    [ class "btn btn-light"
+                    , href linkedInUrl
+                    , onWithOptions
+                        "click"
+                        { stopPropagation = True, preventDefault = True }
+                        (Json.Decode.succeed (shareOnLinkedInMsg linkedInUrl))
+                    ]
+                    [ i [ attribute "aria-hidden" "true", class "fa fa-linkedin" ] [] ]
+                , a
+                    [ class "btn btn-light"
+                    , href twitterUrl
+                    , onWithOptions
+                        "click"
+                        { stopPropagation = True, preventDefault = True }
+                        (Json.Decode.succeed (shareOnTwitterMsg twitterUrl))
+                    ]
+                    [ i [ attribute "aria-hidden" "true", class "fa fa-twitter" ] [] ]
+                ]
         ]
