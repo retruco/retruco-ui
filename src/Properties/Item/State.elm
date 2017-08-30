@@ -197,18 +197,11 @@ update msg model =
 
         ValueRetrieved (Ok { data }) ->
             let
-                language =
-                    model.language
-
                 mergedModel =
                     mergeModelData data model
             in
                 mergedModel
-                    ! ([ Ports.setDocumentMetadata
-                            { description = I18n.translate language I18n.ValuesDescription
-                            , imageUrl = Urls.appLogoFullUrl
-                            , title = I18n.translate language I18n.Values
-                            }
+                    ! ([ Ports.setDocumentMetadataForStatementId mergedModel.language mergedModel.data mergedModel.id
                        , Requests.getObjectProperties model.authentication model.showTrashed model.id debateKeyIds []
                             |> Http.send (ForSelf << DebatePropertiesRetrieved)
                        ]

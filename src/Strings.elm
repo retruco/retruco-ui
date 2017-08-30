@@ -1,4 +1,4 @@
-module LocalizedStrings exposing (..)
+module Strings exposing (..)
 
 import Constants exposing (nameKeyIds)
 import Dict exposing (Dict)
@@ -180,6 +180,14 @@ statementPropertiesToStringForLanguages keyIds languages data statement =
 
         [] ->
             Nothing
+
+
+stringToHtmlTitle : String -> String
+stringToHtmlTitle string =
+    if String.length string <= 80 then
+        string
+    else
+        (String.left 79 string) ++ "…"
 
 
 typedStringValueToStringForLanguage :

@@ -82,18 +82,15 @@ main.ports.setDocumentMetatags.subscribe(function (metatags) {
     }
 
     if (metatags.hasOwnProperty('title')) {
-        var genericTitle = "OGP Toolbox";
-        var title = metatags.title + " – " + genericTitle;
-
         var element = document.head.querySelector('meta[property="og:title"]');
         if (element) {
-            element.setAttribute('content', title);
+            element.setAttribute('content', metatags.title);
         }
 
         var elements = document.head.getElementsByTagName('title');
         if (elements.length) {
             var element = elements[0];
-            element.innerText = title;
+            element.innerText = metatags.title;
         }
     }
 

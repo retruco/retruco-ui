@@ -1,7 +1,10 @@
 port module Ports exposing (..)
 
 import Configuration
-import Types exposing (DocumentMetadata, PopularTag, User)
+import I18n
+import Images
+import Strings
+import Types exposing (..)
 import Urls
 
 
@@ -52,9 +55,22 @@ setDocumentMetadata metadata =
     setDocumentMetatags
         { description = metadata.description
         , imageUrl = Urls.fullApiUrl metadata.imageUrl ++ "?dim=500"
-        , title = metadata.title
+        , title = metadata.title ++ " – " ++ Configuration.appTitle
         , twitterName = Configuration.twitterName
         }
+
+
+setDocumentMetadataForStatementId : I18n.Language -> DataProxy a -> String -> Cmd msg
+setDocumentMetadataForStatementId language data statementId =
+    let
+        statementText =
+            Strings.idToString language data statementId
+    in
+        setDocumentMetadata
+            { description = statementText
+            , imageUrl = Images.idToImageUrl language data statementId
+            , title = Strings.stringToHtmlTitle statementText
+            }
 
 
 port setDocumentMetatags : DocumentMetatags -> Cmd msg

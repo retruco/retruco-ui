@@ -14,8 +14,6 @@ type TranslationId
     | AboutCreditsContent
     | AboutDescription
     | AboutLead
-    | AboutLegal
-    | AboutLegalContent
     | Abstain
     | AccountCreationFailed
     | ActivationDescription
@@ -108,7 +106,6 @@ type TranslationId
     | Help
     | Home
     | HomeDescription
-    | HomeTitle
     | Id
     | IdsArray
     | Image
@@ -265,22 +262,8 @@ getTranslationSet translationId =
 
         AboutLead ->
             { emptyTranslationSet
-                | english = s "About the OGP Toolbox"
-                , french = s "À propos de la boite à outils OGP"
-                , spanish = todo
-            }
-
-        AboutLegal ->
-            { emptyTranslationSet
-                | english = s "Legal notices"
-                , french = s "Mentions légales"
-                , spanish = s "Nota legal"
-            }
-
-        AboutLegalContent ->
-            { emptyTranslationSet
-                | english = s "OGPtoolobox.org is edited by the Etalab taskforce, a Prime Minister service, 39 quai André Citroën 75015 PARIS."
-                , french = s "OGPtoolobox.org est édité par la mission Etalab, service du Premier Ministre, 39 quai André Citroën 75015 PARIS."
+                | english = s "About Retruco"
+                , french = s "À propos de Retruco"
                 , spanish = todo
             }
 
@@ -1003,13 +986,6 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Digital solutions to improve democracy"
                 , french = s "Solutions numériques pour la démocratie"
-                , spanish = todo
-            }
-
-        HomeTitle ->
-            { emptyTranslationSet
-                | english = s "OGP Toolbox"
-                , french = s "OGP Toolbox"
                 , spanish = todo
             }
 

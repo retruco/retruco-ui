@@ -8,6 +8,8 @@ import Constants exposing (debateKeyIds)
 import Dict exposing (Dict)
 import Http
 import I18n
+import Images
+import Strings
 import Navigation
 import Ports
 import Requests
@@ -177,17 +179,17 @@ update msg model =
 
         ValueRetrieved (Ok { data }) ->
             let
-                language =
-                    model.language
+                mergedModel =
+                    mergeModelData data model
             in
-                mergeModelData data model
-                    ! [ -- TODO
-                        Ports.setDocumentMetadata
-                            { description = I18n.translate language I18n.ValuesDescription
-                            , imageUrl = Urls.appLogoFullUrl
-                            , title = I18n.translate language I18n.Values
-                            }
-                      , Requests.getObjectProperties model.authentication model.showTrashed model.id debateKeyIds []
+                mergedModel
+                    ! [ Ports.setDocumentMetadataForStatementId mergedModel.language mergedModel.data mergedModel.id
+                      , Requests.getObjectProperties
+                            mergedModel.authentication
+                            mergedModel.showTrashed
+                            mergedModel.id
+                            debateKeyIds
+                            []
                             |> Http.send (ForSelf << DebatePropertiesRetrieved)
                       ]
 

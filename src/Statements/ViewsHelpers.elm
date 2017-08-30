@@ -1,6 +1,6 @@
 module Statements.ViewsHelpers exposing (..)
 
-import Constants exposing (imagePathKeyIds)
+import Configuration
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -9,10 +9,10 @@ import Html.Events exposing (onClick, onWithOptions)
 import Html.Helpers exposing (aForPath)
 import Http
 import I18n
+import Images
 import Json.Decode
 import LineViews exposing (viewPropertyIdLine)
-import LocalizedStrings
-import Set exposing (Set)
+import Strings
 import Types exposing (Argument, DataProxy)
 import Urls
 
@@ -258,31 +258,10 @@ viewStatementSocialToolbar language shareOnFacebookMsg shareOnGooglePlusMsg shar
         ]
         [ let
             statementString =
-                LocalizedStrings.idToString language data id
+                Strings.idToString language data id
 
             imageUrl =
-                case Dict.get id data.cards of
-                    Just card ->
-                        LocalizedStrings.statementPropertiesToString imagePathKeyIds language data card
-                            |> Maybe.withDefault Urls.appLogoFullUrl
-
-                    Nothing ->
-                        case Dict.get id data.properties of
-                            Just property ->
-                                LocalizedStrings.statementPropertiesToString imagePathKeyIds language data property
-                                    |> Maybe.withDefault Urls.appLogoFullUrl
-
-                            Nothing ->
-                                case Dict.get id data.values of
-                                    Just typedValue ->
-                                        LocalizedStrings.statementPropertiesToString imagePathKeyIds
-                                            language
-                                            data
-                                            typedValue
-                                            |> Maybe.withDefault Urls.appLogoFullUrl
-
-                                    Nothing ->
-                                        Urls.appLogoFullUrl
+                Images.idToImageUrl language data id
 
             url =
                 Urls.statementIdPath data id
@@ -310,7 +289,7 @@ viewStatementSocialToolbar language shareOnFacebookMsg shareOnGooglePlusMsg shar
                     ++ "&summary="
                     ++ Http.encodeUri (I18n.translate language (I18n.TweetMessage statementString url))
                     ++ "&source="
-                    ++ Http.encodeUri "OGP Toolbox"
+                    ++ Http.encodeUri Configuration.appTitle
 
             twitterUrl =
                 "https://twitter.com/intent/tweet?text="

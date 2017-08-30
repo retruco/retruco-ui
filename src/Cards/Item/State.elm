@@ -132,18 +132,19 @@ update msg model =
 
         CardRetrieved (Ok { data }) ->
             let
-                mergedModel =
-                    mergeModelData data model
-
                 card =
                     getCard data.cards data.id
+
+                mergedModel =
+                    mergeModelData data model
             in
-                ( { mergedModel
+                { mergedModel
                     | keysAutocompleteModel = Properties.KeysAutocomplete.State.init card.subTypeIds True
-                  }
-                , Requests.getObjectProperties model.authentication model.showTrashed model.id debateKeyIds []
-                    |> Http.send (ForSelf << DebatePropertiesRetrieved)
-                )
+                }
+                    ! [ Ports.setDocumentMetadataForStatementId mergedModel.language mergedModel.data mergedModel.id
+                      , Requests.getObjectProperties model.authentication model.showTrashed model.id debateKeyIds []
+                            |> Http.send (ForSelf << DebatePropertiesRetrieved)
+                      ]
 
         CreateKey keyName ->
             case model.authentication of
@@ -171,22 +172,13 @@ update msg model =
 
         DebatePropertiesRetrieved (Ok { data }) ->
             let
-                mergedModel =
-                    mergeModelData data model
-
                 language =
                     model.language
+
+                mergedModel =
+                    mergeModelData data model
             in
-                ( { mergedModel
-                    | debatePropertyIds = Just data.ids
-                  }
-                , -- TODO
-                  Ports.setDocumentMetadata
-                    { description = I18n.translate language I18n.CardsDescription
-                    , imageUrl = Urls.appLogoFullUrl
-                    , title = I18n.translate language I18n.Cards
-                    }
-                )
+                ( { mergedModel | debatePropertyIds = Just data.ids }, Cmd.none )
 
         KeysAutocompleteMsg childMsg ->
             let

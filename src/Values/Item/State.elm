@@ -116,22 +116,13 @@ update msg model =
 
         DebatePropertiesRetrieved (Ok { data }) ->
             let
-                mergedModel =
-                    mergeModelData data model
-
                 language =
                     model.language
+
+                mergedModel =
+                    mergeModelData data model
             in
-                ( { mergedModel
-                    | debatePropertyIds = Just data.ids
-                  }
-                , -- TODO
-                  Ports.setDocumentMetadata
-                    { description = I18n.translate model.language I18n.ValuesDescription
-                    , imageUrl = Urls.appLogoFullUrl
-                    , title = I18n.translate model.language I18n.Values
-                    }
-                )
+                ( { mergedModel | debatePropertyIds = Just data.ids }, Cmd.none )
 
         Retrieve ->
             ( { model | httpError = Nothing }
@@ -156,10 +147,11 @@ update msg model =
                 -- ( { mergedModel
                 --     | keysAutocompleteModel = Properties.KeysAutocomplete.State.init card.subTypeIds True
                 --   }
-                ( mergedModel
-                , Requests.getObjectProperties model.authentication model.showTrashed model.id debateKeyIds []
-                    |> Http.send (ForSelf << DebatePropertiesRetrieved)
-                )
+                mergedModel
+                    ! [ Ports.setDocumentMetadataForStatementId mergedModel.language mergedModel.data mergedModel.id
+                      , Requests.getObjectProperties model.authentication model.showTrashed model.id debateKeyIds []
+                            |> Http.send (ForSelf << DebatePropertiesRetrieved)
+                      ]
 
 
 urlUpdate : Navigation.Location -> Route -> Model -> ( Model, Cmd Msg )

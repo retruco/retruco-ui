@@ -6,7 +6,7 @@ import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Html.Helpers exposing (aForPath, aIfIsUrl)
 import I18n
-import LocalizedStrings
+import Strings
 import Types exposing (..)
 import Urls
 
@@ -63,7 +63,7 @@ viewCardLine : I18n.Language -> Maybe (String -> msg) -> DataProxy a -> Card -> 
 viewCardLine language navigateMsg data card =
     let
         cardName =
-            LocalizedStrings.cardNameToString language data card
+            Strings.cardNameToString language data card
     in
         case navigateMsg of
             Just navigateMsg ->
