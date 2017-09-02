@@ -1,7 +1,7 @@
 module Cards.Item.Types exposing (..)
 
 import Authenticator.Types exposing (Authentication)
-import DebateProperties.Index.Types
+import DebateProperties.SameObject.Types
 import Http
 import I18n
 import Properties.KeysAutocomplete.Types
@@ -20,7 +20,7 @@ type InternalMsg
     | CardRetrieved (Result Http.Error DataIdBody)
     | CreateKey String
     | DataUpdated (DataProxy {})
-    | DebatePropertiesMsg DebateProperties.Index.Types.InternalMsg
+    | DebatePropertiesMsg DebateProperties.SameObject.Types.InternalMsg
     | KeyUpserted (Result Http.Error DataIdBody)
     | KeysAutocompleteMsg Properties.KeysAutocomplete.Types.InternalMsg
     | Retrieve
@@ -60,13 +60,13 @@ type alias MsgTranslator parentMsg =
 
 
 type Tab
-    = DebatePropertiesTab DebateProperties.Index.Types.Model
+    = DebatePropertiesTab DebateProperties.SameObject.Types.Model
     | PropertiesTab
 
 
-translateDebatePropertiesMsg : DebateProperties.Index.Types.MsgTranslator Msg
+translateDebatePropertiesMsg : DebateProperties.SameObject.Types.MsgTranslator Msg
 translateDebatePropertiesMsg =
-    DebateProperties.Index.Types.translateMsg
+    DebateProperties.SameObject.Types.translateMsg
         { onInternalMsg = ForSelf << DebatePropertiesMsg
         , onNavigate = ForParent << Navigate
         , onRequireSignIn = ForParent << RequireSignIn << DebatePropertiesMsg

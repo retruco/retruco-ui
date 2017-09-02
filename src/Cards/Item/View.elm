@@ -1,7 +1,7 @@
 module Cards.Item.View exposing (..)
 
 import Cards.Item.Types exposing (..)
-import DebateProperties.Index.View
+import DebateProperties.SameObject.View
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
@@ -88,7 +88,7 @@ view model =
                                 ]
                             , case model.activeTab of
                                 DebatePropertiesTab debatePropertiesModel ->
-                                    DebateProperties.Index.View.view debatePropertiesModel
+                                    DebateProperties.SameObject.View.view debatePropertiesModel
                                         |> Html.map translateDebatePropertiesMsg
 
                                 PropertiesTab ->

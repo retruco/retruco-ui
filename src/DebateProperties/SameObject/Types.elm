@@ -1,4 +1,4 @@
-module DebateProperties.Index.Types exposing (..)
+module DebateProperties.SameObject.Types exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import DebateProperties.New.Types

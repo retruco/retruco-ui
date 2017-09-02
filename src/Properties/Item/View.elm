@@ -1,6 +1,6 @@
 module Properties.Item.View exposing (..)
 
-import DebateProperties.Index.View
+import DebateProperties.SameObject.View
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -190,7 +190,7 @@ view model =
                                         ]
                                    , case model.activeTab of
                                         DebatePropertiesTab debatePropertiesModel ->
-                                            DebateProperties.Index.View.view debatePropertiesModel
+                                            DebateProperties.SameObject.View.view debatePropertiesModel
                                                 |> Html.map translateDebatePropertiesMsg
 
                                         PropertiesTab ->

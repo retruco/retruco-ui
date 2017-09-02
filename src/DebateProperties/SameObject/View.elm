@@ -1,7 +1,7 @@
-module DebateProperties.Index.View exposing (..)
+module DebateProperties.SameObject.View exposing (..)
 
-import DebateProperties.Index.Types exposing (..)
 import DebateProperties.New.View
+import DebateProperties.SameObject.Types exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)

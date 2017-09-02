@@ -1,9 +1,9 @@
-module DebateProperties.Index.State exposing (..)
+module DebateProperties.SameObject.State exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import Constants exposing (debateKeyIds)
-import DebateProperties.Index.Types exposing (..)
 import DebateProperties.New.State
+import DebateProperties.SameObject.Types exposing (..)
 import Http
 import I18n
 import Navigation
