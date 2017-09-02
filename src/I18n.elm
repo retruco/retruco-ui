@@ -163,7 +163,7 @@ type TranslationId
     | ResetPasswordLink
     | ResetPasswordTitle
     | RetrucoLogo
-    | SameKeyPropertiesRetrievalFailed
+    | SameObjectAndKeyPropertiesRetrievalFailed
     | Save
     | Score
     | Search
@@ -1391,7 +1391,7 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
-        SameKeyPropertiesRetrievalFailed ->
+        SameObjectAndKeyPropertiesRetrievalFailed ->
             { emptyTranslationSet
                 | english = s "Retrieval of properties having both the samek object and the same key failed"
                 , french = s "Échec de la récupération des propriétés ayant le même objet et la même clé"

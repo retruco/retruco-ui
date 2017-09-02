@@ -63,7 +63,7 @@ cardRouteParser =
     oneOf
         [ map Cards.Item.Routes.PropertiesRoute top
         , map Cards.Item.Routes.DebatePropertiesRoute (s "arguments")
-        , map Cards.Item.Routes.SameKeyPropertiesRoute (s "properties" </> idParser)
+        , map Cards.Item.Routes.SameObjectAndKeyPropertiesRoute (s "properties" </> idParser)
         ]
 
 
@@ -116,7 +116,7 @@ propertyRouteParser =
     oneOf
         [ map Properties.Item.Routes.DebatePropertiesRoute top
         , map Properties.Item.Routes.PropertiesRoute (s "properties")
-        , map Properties.Item.Routes.SameKeyPropertiesRoute (s "properties" </> idParser)
+        , map Properties.Item.Routes.SameObjectAndKeyPropertiesRoute (s "properties" </> idParser)
         ]
 
 
@@ -147,7 +147,7 @@ valueRouteParser =
         [ map Values.Item.Routes.DebatePropertiesRoute top
         , map Values.Item.Routes.DetailsRoute (s "details")
         , map Values.Item.Routes.PropertiesRoute (s "properties")
-        , map Values.Item.Routes.SameKeyPropertiesRoute (s "properties" </> idParser)
+        , map Values.Item.Routes.SameObjectAndKeyPropertiesRoute (s "properties" </> idParser)
         ]
 
 

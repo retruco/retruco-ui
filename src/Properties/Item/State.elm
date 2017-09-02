@@ -10,8 +10,8 @@ import Navigation
 import Ports
 import Properties.Item.Routes exposing (..)
 import Properties.Item.Types exposing (..)
+import Properties.SameObjectAndKey.State
 import Requests
-import SameKeyProperties.State
 import Statements.Toolbar.State
 import Types exposing (..)
 import Urls
@@ -26,7 +26,7 @@ init authentication language id =
     , id = id
     , language = language
     , property = Nothing
-    , sameKeyPropertiesModel = Nothing
+    , sameObjectAndKeyPropertiesModel = Nothing
     , showTrashed = False
     , similarDebatePropertyIds = Nothing
     , toolbarModel = Nothing
@@ -52,10 +52,10 @@ mergeModelData data model =
                         model.activeTab
             , data = mergedData
             , property = property
-            , sameKeyPropertiesModel =
-                case model.sameKeyPropertiesModel of
-                    Just sameKeyPropertiesModel ->
-                        Just <| SameKeyProperties.State.mergeModelData mergedData sameKeyPropertiesModel
+            , sameObjectAndKeyPropertiesModel =
+                case model.sameObjectAndKeyPropertiesModel of
+                    Just sameObjectAndKeyPropertiesModel ->
+                        Just <| Properties.SameObjectAndKey.State.mergeModelData mergedData sameObjectAndKeyPropertiesModel
 
                     Nothing ->
                         Nothing
@@ -91,10 +91,10 @@ setContext authentication language model =
                     model.activeTab
         , authentication = authentication
         , language = language
-        , sameKeyPropertiesModel =
-            case model.sameKeyPropertiesModel of
-                Just sameKeyPropertiesModel ->
-                    Just <| SameKeyProperties.State.setContext authentication language sameKeyPropertiesModel
+        , sameObjectAndKeyPropertiesModel =
+            case model.sameObjectAndKeyPropertiesModel of
+                Just sameObjectAndKeyPropertiesModel ->
+                    Just <| Properties.SameObjectAndKey.State.setContext authentication language sameObjectAndKeyPropertiesModel
 
                 Nothing ->
                     Nothing
@@ -117,9 +117,9 @@ subscriptions model =
 
             _ ->
                 Nothing
-        , case model.sameKeyPropertiesModel of
-            Just sameKeyPropertiesModel ->
-                Just <| Sub.map SameKeyPropertiesMsg (SameKeyProperties.State.subscriptions sameKeyPropertiesModel)
+        , case model.sameObjectAndKeyPropertiesModel of
+            Just sameObjectAndKeyPropertiesModel ->
+                Just <| Sub.map SameObjectAndKeyPropertiesMsg (Properties.SameObjectAndKey.State.subscriptions sameObjectAndKeyPropertiesModel)
 
             Nothing ->
                 Nothing
@@ -158,15 +158,15 @@ update msg model =
                 |> Http.send (ForSelf << ValueRetrieved)
             )
 
-        SameKeyPropertiesMsg childMsg ->
-            case model.sameKeyPropertiesModel of
-                Just sameKeyPropertiesModel ->
+        SameObjectAndKeyPropertiesMsg childMsg ->
+            case model.sameObjectAndKeyPropertiesModel of
+                Just sameObjectAndKeyPropertiesModel ->
                     let
-                        ( updatedSameKeyPropertiesModel, childCmd ) =
-                            SameKeyProperties.State.update childMsg sameKeyPropertiesModel
+                        ( updatedSameObjectAndKeyPropertiesModel, childCmd ) =
+                            Properties.SameObjectAndKey.State.update childMsg sameObjectAndKeyPropertiesModel
                     in
-                        ( { model | sameKeyPropertiesModel = Just updatedSameKeyPropertiesModel }
-                        , Cmd.map translateSameKeyPropertiesMsg childCmd
+                        ( { model | sameObjectAndKeyPropertiesModel = Just updatedSameObjectAndKeyPropertiesModel }
+                        , Cmd.map translateSameObjectAndKeyPropertiesMsg childCmd
                         )
 
                 Nothing ->
@@ -257,7 +257,7 @@ urlUpdate location route model =
 
         unroutedModel =
             { model
-                | sameKeyPropertiesModel = Nothing
+                | sameObjectAndKeyPropertiesModel = Nothing
                 , showTrashed = showTrashed
             }
 
@@ -283,15 +283,15 @@ urlUpdate location route model =
             PropertiesRoute ->
                 ( { updatedModel | activeTab = PropertiesTab }, updatedCmd )
 
-            SameKeyPropertiesRoute keyId ->
+            SameObjectAndKeyPropertiesRoute keyId ->
                 let
-                    sameKeyPropertiesModel =
-                        SameKeyProperties.State.init authentication language id keyId
+                    sameObjectAndKeyPropertiesModel =
+                        Properties.SameObjectAndKey.State.init authentication language id keyId
 
-                    ( updatedSameKeyPropertiesModel, updatedSameKeyPropertiesCmd ) =
-                        SameKeyProperties.State.urlUpdate location sameKeyPropertiesModel
+                    ( updatedSameObjectAndKeyPropertiesModel, updatedSameObjectAndKeyPropertiesCmd ) =
+                        Properties.SameObjectAndKey.State.urlUpdate location sameObjectAndKeyPropertiesModel
                 in
-                    { updatedModel | sameKeyPropertiesModel = Just updatedSameKeyPropertiesModel }
+                    { updatedModel | sameObjectAndKeyPropertiesModel = Just updatedSameObjectAndKeyPropertiesModel }
                         ! [ updatedCmd
-                          , Cmd.map translateSameKeyPropertiesMsg updatedSameKeyPropertiesCmd
+                          , Cmd.map translateSameObjectAndKeyPropertiesMsg updatedSameObjectAndKeyPropertiesCmd
                           ]

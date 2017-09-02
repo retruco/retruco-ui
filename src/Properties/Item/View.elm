@@ -10,7 +10,7 @@ import Http.Error
 import I18n
 import LineViews exposing (keyIdLabelCouples, viewPropertyIdLine, viewStatementIdLine)
 import Properties.Item.Types exposing (..)
-import SameKeyProperties.View
+import Properties.SameObjectAndKey.View
 import Statements.Toolbar.View
 import Statements.ViewsHelpers
     exposing
@@ -25,10 +25,10 @@ import Views
 
 view : Model -> Html Msg
 view model =
-    case model.sameKeyPropertiesModel of
-        Just sameKeyPropertiesModel ->
-            SameKeyProperties.View.view sameKeyPropertiesModel
-                |> Html.map translateSameKeyPropertiesMsg
+    case model.sameObjectAndKeyPropertiesModel of
+        Just sameObjectAndKeyPropertiesModel ->
+            Properties.SameObjectAndKey.View.view sameObjectAndKeyPropertiesModel
+                |> Html.map translateSameObjectAndKeyPropertiesMsg
 
         Nothing ->
             let

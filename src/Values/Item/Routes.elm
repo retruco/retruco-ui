@@ -5,4 +5,4 @@ type Route
     = DebatePropertiesRoute
     | DetailsRoute
     | PropertiesRoute
-    | SameKeyPropertiesRoute String
+    | SameObjectAndKeyPropertiesRoute String

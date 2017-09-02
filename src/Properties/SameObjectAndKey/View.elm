@@ -1,4 +1,4 @@
-module SameKeyProperties.View exposing (..)
+module Properties.SameObjectAndKey.View exposing (..)
 
 import Dict exposing (Dict)
 import Html exposing (..)
@@ -7,7 +7,7 @@ import Html.Attributes.Aria exposing (..)
 import Http.Error
 import I18n
 import LineViews exposing (viewValueIdLine)
-import SameKeyProperties.Types exposing (..)
+import Properties.SameObjectAndKey.Types exposing (..)
 import Statements.ViewsHelpers exposing (viewStatementRatingPanel)
 import Values.New.View
 import Views
@@ -59,7 +59,7 @@ view model =
                             ]
                             [ strong []
                                 [ text <|
-                                    I18n.translate language I18n.SameKeyPropertiesRetrievalFailed
+                                    I18n.translate language I18n.SameObjectAndKeyPropertiesRetrievalFailed
                                         ++ I18n.translate language I18n.Colon
                                 ]
                             , text <| Http.Error.toString language httpError

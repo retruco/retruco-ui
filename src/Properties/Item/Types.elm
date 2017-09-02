@@ -4,7 +4,7 @@ import Arguments.Index.Types
 import Authenticator.Types exposing (Authentication)
 import Http
 import I18n
-import SameKeyProperties.Types
+import Properties.SameObjectAndKey.Types
 import Statements.Toolbar.Types
 import Types exposing (..)
 
@@ -18,7 +18,7 @@ type InternalMsg
     = DataUpdated (DataProxy {})
     | ArgumentsMsg Arguments.Index.Types.InternalMsg
     | Retrieve
-    | SameKeyPropertiesMsg SameKeyProperties.Types.InternalMsg
+    | SameObjectAndKeyPropertiesMsg Properties.SameObjectAndKey.Types.InternalMsg
     | SimilarDebatePropertiesRetrieved (Result Http.Error DataIdsBody)
     | ToolbarMsg Statements.Toolbar.Types.InternalMsg
     | ValueRetrieved (Result Http.Error DataIdBody)
@@ -32,7 +32,7 @@ type alias Model =
     , id : String
     , language : I18n.Language
     , property : Maybe Property
-    , sameKeyPropertiesModel : Maybe SameKeyProperties.Types.Model
+    , sameObjectAndKeyPropertiesModel : Maybe Properties.SameObjectAndKey.Types.Model
     , showTrashed : Bool
     , similarDebatePropertyIds : Maybe (List String)
     , toolbarModel : Maybe (Statements.Toolbar.Types.Model Property)
@@ -82,12 +82,12 @@ translateMsg { onInternalMsg, onNavigate, onRequireSignIn } msg =
             onInternalMsg internalMsg
 
 
-translateSameKeyPropertiesMsg : SameKeyProperties.Types.MsgTranslator Msg
-translateSameKeyPropertiesMsg =
-    SameKeyProperties.Types.translateMsg
-        { onInternalMsg = ForSelf << SameKeyPropertiesMsg
+translateSameObjectAndKeyPropertiesMsg : Properties.SameObjectAndKey.Types.MsgTranslator Msg
+translateSameObjectAndKeyPropertiesMsg =
+    Properties.SameObjectAndKey.Types.translateMsg
+        { onInternalMsg = ForSelf << SameObjectAndKeyPropertiesMsg
         , onNavigate = ForParent << Navigate
-        , onRequireSignIn = ForParent << RequireSignIn << SameKeyPropertiesMsg
+        , onRequireSignIn = ForParent << RequireSignIn << SameObjectAndKeyPropertiesMsg
         }
 
 

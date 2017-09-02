@@ -1,4 +1,4 @@
-module SameKeyProperties.Types exposing (..)
+module Properties.SameObjectAndKey.Types exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import Http

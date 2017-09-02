@@ -1,12 +1,12 @@
-module SameKeyProperties.State exposing (..)
+module Properties.SameObjectAndKey.State exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import Http
 import I18n
 import Navigation
 import Ports
+import Properties.SameObjectAndKey.Types exposing (..)
 import Requests
-import SameKeyProperties.Types exposing (..)
 import Types exposing (..)
 import Urls
 import Values.New.State

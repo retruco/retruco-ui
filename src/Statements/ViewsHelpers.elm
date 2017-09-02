@@ -106,7 +106,7 @@ viewStatementPropertiesBlock language navigateMsg data statement =
                                 , aForPath
                                     navigateMsg
                                     language
-                                    (Urls.idToSameKeyPropertiesPath data statement.id keyId)
+                                    (Urls.idToSameObjectAndKeyPropertiesPath data statement.id keyId)
                                     [ class "btn btn-secondary" ]
                                     [ text (I18n.translate language (I18n.Edit)) ]
                                 ]
