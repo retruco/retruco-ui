@@ -1,9 +1,9 @@
-module Arguments.Index.State exposing (..)
+module DebateProperties.Index.State exposing (..)
 
-import Arguments.Index.Types exposing (..)
-import Arguments.New.State
 import Authenticator.Types exposing (Authentication)
 import Constants exposing (debateKeyIds)
+import DebateProperties.Index.Types exposing (..)
+import DebateProperties.New.State
 import Http
 import I18n
 import Navigation
@@ -20,7 +20,7 @@ init authentication language objectId =
     , debatePropertyIds = Nothing
     , httpError = Nothing
     , language = language
-    , newArgumentModel = Arguments.New.State.init authentication language objectId []
+    , newDebatePropertyModel = DebateProperties.New.State.init authentication language objectId []
     , objectId = objectId
     , showTrashed = False
     }
@@ -34,7 +34,7 @@ mergeModelData data model =
     in
         { model
             | data = mergedData
-            , newArgumentModel = Arguments.New.State.mergeModelData mergedData model.newArgumentModel
+            , newDebatePropertyModel = DebateProperties.New.State.mergeModelData mergedData model.newDebatePropertyModel
         }
 
 
@@ -43,14 +43,18 @@ setContext authentication language model =
     { model
         | authentication = authentication
         , language = language
-        , newArgumentModel = Arguments.New.State.setContext authentication language model.newArgumentModel
+        , newDebatePropertyModel =
+            DebateProperties.New.State.setContext
+                authentication
+                language
+                model.newDebatePropertyModel
     }
 
 
 subscriptions : Model -> Sub InternalMsg
 subscriptions model =
     Sub.batch
-        [ Sub.map NewArgumentMsg (Arguments.New.State.subscriptions model.newArgumentModel)
+        [ Sub.map NewArgumentMsg (DebateProperties.New.State.subscriptions model.newDebatePropertyModel)
         ]
 
 
@@ -59,10 +63,10 @@ update msg model =
     case msg of
         NewArgumentMsg childMsg ->
             let
-                ( updatedNewArgumentModel, childCmd ) =
-                    Arguments.New.State.update childMsg model.newArgumentModel
+                ( updatedNewDebatePropertyModel, childCmd ) =
+                    DebateProperties.New.State.update childMsg model.newDebatePropertyModel
             in
-                ( { model | newArgumentModel = updatedNewArgumentModel }
+                ( { model | newDebatePropertyModel = updatedNewDebatePropertyModel }
                 , Cmd.map translateNewArgumentMsg childCmd
                 )
 

@@ -1,4 +1,4 @@
-module Arguments.New.Types exposing (..)
+module DebateProperties.New.Types exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import Dict exposing (Dict)

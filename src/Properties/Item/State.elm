@@ -1,8 +1,8 @@
 module Properties.Item.State exposing (..)
 
-import Arguments.Index.State
 import Authenticator.Types exposing (Authentication)
 import Constants exposing (debateKeyIds)
+import DebateProperties.Index.State
 import Dict exposing (Dict)
 import Http
 import I18n
@@ -45,8 +45,8 @@ mergeModelData data model =
         { model
             | activeTab =
                 case model.activeTab of
-                    DebatePropertiesTab argumentsModel ->
-                        DebatePropertiesTab <| Arguments.Index.State.mergeModelData mergedData argumentsModel
+                    DebatePropertiesTab debatePropertiesModel ->
+                        DebatePropertiesTab <| DebateProperties.Index.State.mergeModelData mergedData debatePropertiesModel
 
                     _ ->
                         model.activeTab
@@ -84,8 +84,8 @@ setContext authentication language model =
     { model
         | activeTab =
             case model.activeTab of
-                DebatePropertiesTab argumentsModel ->
-                    DebatePropertiesTab <| Arguments.Index.State.setContext authentication language argumentsModel
+                DebatePropertiesTab debatePropertiesModel ->
+                    DebatePropertiesTab <| DebateProperties.Index.State.setContext authentication language debatePropertiesModel
 
                 _ ->
                     model.activeTab
@@ -112,14 +112,17 @@ subscriptions : Model -> Sub InternalMsg
 subscriptions model =
     List.filterMap identity
         [ case model.activeTab of
-            DebatePropertiesTab argumentsModel ->
-                Just <| Sub.map ArgumentsMsg (Arguments.Index.State.subscriptions argumentsModel)
+            DebatePropertiesTab debatePropertiesModel ->
+                Just <| Sub.map DebatePropertiesMsg (DebateProperties.Index.State.subscriptions debatePropertiesModel)
 
             _ ->
                 Nothing
         , case model.sameObjectAndKeyPropertiesModel of
             Just sameObjectAndKeyPropertiesModel ->
-                Just <| Sub.map SameObjectAndKeyPropertiesMsg (Properties.SameObjectAndKey.State.subscriptions sameObjectAndKeyPropertiesModel)
+                Just <|
+                    Sub.map
+                        SameObjectAndKeyPropertiesMsg
+                        (Properties.SameObjectAndKey.State.subscriptions sameObjectAndKeyPropertiesModel)
 
             Nothing ->
                 Nothing
@@ -133,15 +136,15 @@ update msg model =
         DataUpdated data ->
             ( mergeModelData data model, Cmd.none )
 
-        ArgumentsMsg childMsg ->
+        DebatePropertiesMsg childMsg ->
             case model.activeTab of
-                DebatePropertiesTab argumentsModel ->
+                DebatePropertiesTab debatePropertiesModel ->
                     let
                         ( updatedArgumentsModel, childCmd ) =
-                            Arguments.Index.State.update childMsg argumentsModel
+                            DebateProperties.Index.State.update childMsg debatePropertiesModel
                     in
                         ( { model | activeTab = DebatePropertiesTab updatedArgumentsModel }
-                        , Cmd.map translateArgumentsMsg childCmd
+                        , Cmd.map translateDebatePropertiesMsg childCmd
                         )
 
                 _ ->
@@ -267,17 +270,17 @@ urlUpdate location route model =
         case route of
             DebatePropertiesRoute ->
                 let
-                    argumentsModel =
-                        Arguments.Index.State.init authentication language id
+                    debatePropertiesModel =
+                        DebateProperties.Index.State.init authentication language id
 
                     ( updatedArgumentsModel, updatedArgumentsCmd ) =
-                        Arguments.Index.State.urlUpdate location argumentsModel
+                        DebateProperties.Index.State.urlUpdate location debatePropertiesModel
                 in
                     { updatedModel
                         | activeTab = DebatePropertiesTab updatedArgumentsModel
                     }
                         ! [ updatedCmd
-                          , Cmd.map translateArgumentsMsg updatedArgumentsCmd
+                          , Cmd.map translateDebatePropertiesMsg updatedArgumentsCmd
                           ]
 
             PropertiesRoute ->

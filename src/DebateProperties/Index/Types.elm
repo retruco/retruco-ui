@@ -1,7 +1,7 @@
-module Arguments.Index.Types exposing (..)
+module DebateProperties.Index.Types exposing (..)
 
-import Arguments.New.Types
 import Authenticator.Types exposing (Authentication)
+import DebateProperties.New.Types
 import Http
 import I18n
 import Types exposing (..)
@@ -13,7 +13,7 @@ type ExternalMsg
 
 
 type InternalMsg
-    = NewArgumentMsg Arguments.New.Types.InternalMsg
+    = NewArgumentMsg DebateProperties.New.Types.InternalMsg
     | Retrieve
     | Retrieved (Result Http.Error DataIdsBody)
     | Upserted Types.DataId
@@ -25,7 +25,7 @@ type alias Model =
     , debatePropertyIds : Maybe (List String)
     , httpError : Maybe Http.Error
     , language : I18n.Language
-    , newArgumentModel : Arguments.New.Types.Model
+    , newDebatePropertyModel : DebateProperties.New.Types.Model
     , objectId : String
     , showTrashed : Bool
     }
@@ -60,9 +60,9 @@ translateMsg { onInternalMsg, onNavigate, onRequireSignIn } msg =
             onInternalMsg internalMsg
 
 
-translateNewArgumentMsg : Arguments.New.Types.MsgTranslator Msg
+translateNewArgumentMsg : DebateProperties.New.Types.MsgTranslator Msg
 translateNewArgumentMsg =
-    Arguments.New.Types.translateMsg
+    DebateProperties.New.Types.translateMsg
         { onInternalMsg = ForSelf << NewArgumentMsg
         , onPropertyUpserted = ForSelf << Upserted
         , onRequireSignIn = ForParent << RequireSignIn << NewArgumentMsg

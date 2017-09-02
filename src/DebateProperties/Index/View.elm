@@ -1,7 +1,7 @@
-module Arguments.Index.View exposing (..)
+module DebateProperties.Index.View exposing (..)
 
-import Arguments.Index.Types exposing (..)
-import Arguments.New.View
+import DebateProperties.Index.Types exposing (..)
+import DebateProperties.New.View
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
@@ -28,7 +28,7 @@ view model =
                 div []
                     [ viewDebatePropertiesBlock language (ForParent << Navigate) data debatePropertyIds
                     , hr [] []
-                    , Arguments.New.View.view model.newArgumentModel
+                    , DebateProperties.New.View.view model.newDebatePropertyModel
                         |> Html.map translateNewArgumentMsg
                     ]
 

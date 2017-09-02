@@ -1,8 +1,8 @@
-module Arguments.New.State exposing (..)
+module DebateProperties.New.State exposing (..)
 
-import Arguments.New.Types exposing (..)
 import Authenticator.Types exposing (Authentication)
 import Constants exposing (debateKeyIds)
+import DebateProperties.New.Types exposing (..)
 import Dict exposing (Dict)
 import Http
 import I18n

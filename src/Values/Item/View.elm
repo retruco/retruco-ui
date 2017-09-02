@@ -1,6 +1,6 @@
 module Values.Item.View exposing (..)
 
-import Arguments.Index.View
+import DebateProperties.Index.View
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
@@ -99,9 +99,9 @@ view model =
                                     ]
                                 ]
                             , case model.activeTab of
-                                DebatePropertiesTab argumentsModel ->
-                                    Arguments.Index.View.view argumentsModel
-                                        |> Html.map translateArgumentsMsg
+                                DebatePropertiesTab debatePropertiesModel ->
+                                    DebateProperties.Index.View.view debatePropertiesModel
+                                        |> Html.map translateDebatePropertiesMsg
 
                                 DetailsTab ->
                                     viewValueTypeLine

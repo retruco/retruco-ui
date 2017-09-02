@@ -1,6 +1,6 @@
 module Properties.Item.View exposing (..)
 
-import Arguments.Index.View
+import DebateProperties.Index.View
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -189,9 +189,9 @@ view model =
                                             ]
                                         ]
                                    , case model.activeTab of
-                                        DebatePropertiesTab argumentsModel ->
-                                            Arguments.Index.View.view argumentsModel
-                                                |> Html.map translateArgumentsMsg
+                                        DebatePropertiesTab debatePropertiesModel ->
+                                            DebateProperties.Index.View.view debatePropertiesModel
+                                                |> Html.map translateDebatePropertiesMsg
 
                                         PropertiesTab ->
                                             viewStatementPropertiesBlock language (ForParent << Navigate) data property

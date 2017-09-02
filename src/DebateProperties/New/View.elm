@@ -1,6 +1,6 @@
-module Arguments.New.View exposing (..)
+module DebateProperties.New.View exposing (..)
 
-import Arguments.New.Types exposing (..)
+import DebateProperties.New.Types exposing (..)
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)

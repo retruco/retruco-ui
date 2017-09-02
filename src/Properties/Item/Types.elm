@@ -1,7 +1,7 @@
 module Properties.Item.Types exposing (..)
 
-import Arguments.Index.Types
 import Authenticator.Types exposing (Authentication)
+import DebateProperties.Index.Types
 import Http
 import I18n
 import Properties.SameObjectAndKey.Types
@@ -16,7 +16,7 @@ type ExternalMsg
 
 type InternalMsg
     = DataUpdated (DataProxy {})
-    | ArgumentsMsg Arguments.Index.Types.InternalMsg
+    | DebatePropertiesMsg DebateProperties.Index.Types.InternalMsg
     | Retrieve
     | SameObjectAndKeyPropertiesMsg Properties.SameObjectAndKey.Types.InternalMsg
     | SimilarDebatePropertiesRetrieved (Result Http.Error DataIdsBody)
@@ -56,16 +56,16 @@ type alias MsgTranslator parentMsg =
 
 
 type Tab
-    = DebatePropertiesTab Arguments.Index.Types.Model
+    = DebatePropertiesTab DebateProperties.Index.Types.Model
     | PropertiesTab
 
 
-translateArgumentsMsg : Arguments.Index.Types.MsgTranslator Msg
-translateArgumentsMsg =
-    Arguments.Index.Types.translateMsg
-        { onInternalMsg = ForSelf << ArgumentsMsg
+translateDebatePropertiesMsg : DebateProperties.Index.Types.MsgTranslator Msg
+translateDebatePropertiesMsg =
+    DebateProperties.Index.Types.translateMsg
+        { onInternalMsg = ForSelf << DebatePropertiesMsg
         , onNavigate = ForParent << Navigate
-        , onRequireSignIn = ForParent << RequireSignIn << ArgumentsMsg
+        , onRequireSignIn = ForParent << RequireSignIn << DebatePropertiesMsg
         }
 
 
