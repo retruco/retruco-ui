@@ -46,7 +46,7 @@ viewForm submitButtonI18n model =
         Html.form
             [ onSubmit (ForSelf <| Submit) ]
             (alert
-                ++ (viewFormControls model)
+                ++ viewFormControls model
                 ++ [ button
                         [ class "btn btn-primary"
                         , disabled (model.newValueModel.field == Nothing)

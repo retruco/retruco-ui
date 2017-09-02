@@ -23,7 +23,7 @@ update msg model =
 
 
 urlUpdate : Navigation.Location -> Model -> ( Model, Cmd Msg )
-urlUpdate location model =
+urlUpdate _ model =
     let
         language =
             model.language

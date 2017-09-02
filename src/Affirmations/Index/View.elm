@@ -1,7 +1,7 @@
 module Affirmations.Index.View exposing (..)
 
 import Affirmations.Index.Types exposing (..)
-import Dict exposing (Dict)
+import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)

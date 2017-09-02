@@ -14,7 +14,7 @@ init =
 
 
 update : InternalMsg -> Model -> I18n.Language -> ( Model, Cmd Msg )
-update msg model language =
+update msg model _ =
     case msg of
         ActivateUser userId authorization ->
             let

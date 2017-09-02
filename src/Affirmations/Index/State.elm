@@ -2,7 +2,7 @@ module Affirmations.Index.State exposing (..)
 
 import Affirmations.Index.Types exposing (..)
 import Authenticator.Types exposing (Authentication)
-import Dict exposing (Dict)
+import Dict
 import Http
 import I18n
 import Navigation
@@ -34,7 +34,7 @@ convertControlsToSearchCriteria : Model -> Result FormErrors SearchCriteria
 convertControlsToSearchCriteria model =
     let
         errorsList =
-            (List.filterMap
+            List.filterMap
                 (\( name, errorMaybe ) ->
                     case errorMaybe of
                         Just error ->
@@ -53,7 +53,6 @@ convertControlsToSearchCriteria model =
                   , Nothing
                   )
                 ]
-            )
     in
         if List.isEmpty errorsList then
             Ok
@@ -126,7 +125,7 @@ update msg model =
             ( { model | searchTerm = searchTerm }, Cmd.none )
 
         Submit ->
-            case (convertControlsToSearchCriteria model) of
+            case convertControlsToSearchCriteria model of
                 Err errors ->
                     ( { model | errors = errors }, Cmd.none )
 

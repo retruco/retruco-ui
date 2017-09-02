@@ -3,7 +3,7 @@ module Authenticator.SignIn.State exposing (..)
 import Authenticator.SignIn.Types exposing (..)
 import Configuration exposing (apiUrl)
 import Decoders
-import Dict exposing (Dict)
+import Dict
 import Http
 import Json.Encode
 import Task
@@ -43,7 +43,7 @@ update msg model =
         Submit ->
             let
                 errorsList =
-                    (List.filterMap
+                    List.filterMap
                         (\( name, errorMaybe ) ->
                             case errorMaybe of
                                 Just error ->
@@ -65,7 +65,6 @@ update msg model =
                                 Nothing
                           )
                         ]
-                    )
 
                 cmd =
                     if List.isEmpty errorsList then

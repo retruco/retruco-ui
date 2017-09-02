@@ -3,7 +3,7 @@ module Authenticator.ResetPassword.State exposing (..)
 import Authenticator.ResetPassword.Types exposing (..)
 import Configuration exposing (apiUrl)
 import Decoders
-import Dict exposing (Dict)
+import Dict
 import Http
 import Json.Encode
 import Task
@@ -31,7 +31,7 @@ update msg model =
         PasswordReset (Err httpError) ->
             ( { model | httpError = Just httpError }, Cmd.none )
 
-        PasswordReset (Ok message) ->
+        PasswordReset (Ok _) ->
             ( { model | httpError = Nothing }
             , Task.perform (\_ -> ForParent (Terminated (Ok Nothing))) (Task.succeed ())
             )
@@ -39,7 +39,7 @@ update msg model =
         Submit ->
             let
                 errorsList =
-                    (List.filterMap
+                    List.filterMap
                         (\( name, errorMaybe ) ->
                             case errorMaybe of
                                 Just error ->
@@ -55,7 +55,6 @@ update msg model =
                                 Nothing
                           )
                         ]
-                    )
 
                 cmd =
                     if List.isEmpty errorsList then

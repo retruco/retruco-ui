@@ -3,7 +3,7 @@ module Views exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
-import Html.Events exposing (on, onClick, onInput, onWithOptions, targetValue)
+import Html.Events exposing (on, onInput, targetValue)
 import Http exposing (Error(..))
 import Http.Error
 import I18n
@@ -22,7 +22,7 @@ searchSortLabelCouples =
 
 searchSorts : List String
 searchSorts =
-    List.map (\( item, label ) -> item) searchSortLabelCouples
+    List.map (\( item, _ ) -> item) searchSortLabelCouples
 
 
 decodeSearchSort : String -> Json.Decode.Decoder String
@@ -157,7 +157,7 @@ viewInlineSearchTerm language searchTerm errorMaybe searchTermChanged =
 
 
 viewLoading : I18n.Language -> Html msg
-viewLoading language =
+viewLoading _ =
     div [ style [ ( "height", "100em" ) ] ]
         [ img [ class "loader", src "/img/loader.gif" ] [] ]
 
@@ -173,7 +173,7 @@ viewOption : a -> ( a, String ) -> Html msg
 viewOption selectedItem ( item, label ) =
     let
         itemString =
-            (toString item)
+            toString item
 
         itemString_ =
             if String.left 1 itemString == "\"" && String.right 1 itemString == "\"" then
@@ -202,7 +202,7 @@ viewWebData language viewSuccess webData =
 
                 title =
                     case err of
-                        BadPayload message response ->
+                        BadPayload _ _ ->
                             genericTitle
 
                         BadStatus response ->
@@ -212,7 +212,7 @@ viewWebData language viewSuccess webData =
                                 -- TODO Add I18n.BadStatusExplanation prefix
                                 genericTitle
 
-                        BadUrl message ->
+                        BadUrl _ ->
                             genericTitle
 
                         NetworkError ->

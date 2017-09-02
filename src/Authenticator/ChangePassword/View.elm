@@ -2,7 +2,7 @@ module Authenticator.ChangePassword.View exposing (..)
 
 import Authenticator.ChangePassword.Types exposing (..)
 import Authenticator.ViewsHelpers exposing (..)
-import Dict exposing (Dict)
+import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)

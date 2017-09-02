@@ -1,7 +1,7 @@
 module Authenticator.ChangePassword.State exposing (..)
 
 import Authenticator.ChangePassword.Types exposing (..)
-import Dict exposing (Dict)
+import Dict
 import Http
 import I18n
 import Requests
@@ -19,7 +19,7 @@ init userId authorization =
 
 
 update : InternalMsg -> Model -> I18n.Language -> ( Model, Cmd Msg )
-update msg model language =
+update msg model _ =
     case msg of
         Cancel ->
             ( { model | httpError = Nothing }
@@ -40,7 +40,7 @@ update msg model language =
         Submit ->
             let
                 errorsList =
-                    (List.filterMap
+                    List.filterMap
                         (\( name, errorMaybe ) ->
                             case errorMaybe of
                                 Just error ->
@@ -56,7 +56,6 @@ update msg model language =
                                 Nothing
                           )
                         ]
-                    )
 
                 cmd =
                     if List.isEmpty errorsList then

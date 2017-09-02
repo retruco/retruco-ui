@@ -117,7 +117,7 @@ update msg model =
             ( { model | searchTerm = searchTerm }, Cmd.none )
 
         Submit ->
-            case (convertControlsToSearchCriteria model) of
+            case convertControlsToSearchCriteria model of
                 Err errors ->
                     ( { model | errors = errors }, Cmd.none )
 
