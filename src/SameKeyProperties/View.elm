@@ -36,7 +36,7 @@ view model =
                                                 , viewStatementRatingPanel
                                                     language
                                                     (ForParent << Navigate)
-                                                    False
+                                                    True
                                                     data
                                                     property
                                                 ]
