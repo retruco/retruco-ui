@@ -1,9 +1,10 @@
 module Properties.Item.Types exposing (..)
 
-import Arguments.New.Types
+import Arguments.Index.Types
 import Authenticator.Types exposing (Authentication)
 import Http
 import I18n
+import SameKeyProperties.Types
 import Statements.Toolbar.Types
 import Types exposing (..)
 
@@ -15,24 +16,23 @@ type ExternalMsg
 
 type InternalMsg
     = DataUpdated (DataProxy {})
-    | DebatePropertiesRetrieved (Result Http.Error DataIdsBody)
-    | DebatePropertyUpserted Types.DataId
-    | NewArgumentMsg Arguments.New.Types.InternalMsg
+    | ArgumentsMsg Arguments.Index.Types.InternalMsg
     | Retrieve
+    | SameKeyPropertiesMsg SameKeyProperties.Types.InternalMsg
     | SimilarDebatePropertiesRetrieved (Result Http.Error DataIdsBody)
     | ToolbarMsg Statements.Toolbar.Types.InternalMsg
     | ValueRetrieved (Result Http.Error DataIdBody)
 
 
 type alias Model =
-    { authentication : Maybe Authentication
+    { activeTab : Tab
+    , authentication : Maybe Authentication
     , data : DataProxy {}
-    , debatePropertyIds : Maybe (List String)
     , httpError : Maybe Http.Error
     , id : String
     , language : I18n.Language
-    , newArgumentModel : Arguments.New.Types.Model
     , property : Maybe Property
+    , sameKeyPropertiesModel : Maybe SameKeyProperties.Types.Model
     , showTrashed : Bool
     , similarDebatePropertyIds : Maybe (List String)
     , toolbarModel : Maybe (Statements.Toolbar.Types.Model Property)
@@ -55,6 +55,20 @@ type alias MsgTranslator parentMsg =
     Msg -> parentMsg
 
 
+type Tab
+    = DebatePropertiesTab Arguments.Index.Types.Model
+    | PropertiesTab
+
+
+translateArgumentsMsg : Arguments.Index.Types.MsgTranslator Msg
+translateArgumentsMsg =
+    Arguments.Index.Types.translateMsg
+        { onInternalMsg = ForSelf << ArgumentsMsg
+        , onNavigate = ForParent << Navigate
+        , onRequireSignIn = ForParent << RequireSignIn << ArgumentsMsg
+        }
+
+
 translateMsg : MsgTranslation parentMsg -> MsgTranslator parentMsg
 translateMsg { onInternalMsg, onNavigate, onRequireSignIn } msg =
     case msg of
@@ -68,12 +82,12 @@ translateMsg { onInternalMsg, onNavigate, onRequireSignIn } msg =
             onInternalMsg internalMsg
 
 
-translateNewArgumentMsg : Arguments.New.Types.MsgTranslator Msg
-translateNewArgumentMsg =
-    Arguments.New.Types.translateMsg
-        { onInternalMsg = ForSelf << NewArgumentMsg
-        , onPropertyUpserted = ForSelf << DebatePropertyUpserted
-        , onRequireSignIn = ForParent << RequireSignIn << NewArgumentMsg
+translateSameKeyPropertiesMsg : SameKeyProperties.Types.MsgTranslator Msg
+translateSameKeyPropertiesMsg =
+    SameKeyProperties.Types.translateMsg
+        { onInternalMsg = ForSelf << SameKeyPropertiesMsg
+        , onNavigate = ForParent << Navigate
+        , onRequireSignIn = ForParent << RequireSignIn << SameKeyPropertiesMsg
         }
 
 

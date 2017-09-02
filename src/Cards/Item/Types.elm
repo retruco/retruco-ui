@@ -6,6 +6,7 @@ import Http
 import I18n
 import Properties.KeysAutocomplete.Types
 import SameKeyProperties.Types
+import Statements.Toolbar.Types
 import Types exposing (..)
 
 
@@ -16,27 +17,29 @@ type ExternalMsg
 
 type InternalMsg
     = AddKey TypedValue
-    | ArgumentsMsg Arguments.Index.Types.InternalMsg
     | CardRetrieved (Result Http.Error DataIdBody)
     | CreateKey String
-    | DebatePropertiesRetrieved (Result Http.Error DataIdsBody)
+    | DataUpdated (DataProxy {})
+    | ArgumentsMsg Arguments.Index.Types.InternalMsg
     | KeyUpserted (Result Http.Error DataIdBody)
     | KeysAutocompleteMsg Properties.KeysAutocomplete.Types.InternalMsg
     | Retrieve
     | SameKeyPropertiesMsg SameKeyProperties.Types.InternalMsg
+    | ToolbarMsg Statements.Toolbar.Types.InternalMsg
 
 
 type alias Model =
-    { argumentsModel : Maybe Arguments.Index.Types.Model
+    { activeTab : Tab
     , authentication : Maybe Authentication
+    , card : Maybe Card
     , data : DataProxy {}
-    , debatePropertyIds : Maybe (List String)
     , id : String
     , keysAutocompleteModel : Properties.KeysAutocomplete.Types.Model
     , httpError : Maybe Http.Error
     , language : I18n.Language
     , sameKeyPropertiesModel : Maybe SameKeyProperties.Types.Model
     , showTrashed : Bool
+    , toolbarModel : Maybe (Statements.Toolbar.Types.Model Card)
     }
 
 
@@ -54,6 +57,11 @@ type alias MsgTranslation parentMsg =
 
 type alias MsgTranslator parentMsg =
     Msg -> parentMsg
+
+
+type Tab
+    = DebatePropertiesTab Arguments.Index.Types.Model
+    | PropertiesTab
 
 
 translateArgumentsMsg : Arguments.Index.Types.MsgTranslator Msg
@@ -93,4 +101,14 @@ translateSameKeyPropertiesMsg =
         { onInternalMsg = ForSelf << SameKeyPropertiesMsg
         , onNavigate = ForParent << Navigate
         , onRequireSignIn = ForParent << RequireSignIn << SameKeyPropertiesMsg
+        }
+
+
+translateToolbarMsg : Statements.Toolbar.Types.MsgTranslator Msg
+translateToolbarMsg =
+    Statements.Toolbar.Types.translateMsg
+        { onDataUpdated = ForSelf << DataUpdated
+        , onInternalMsg = ForSelf << ToolbarMsg
+        , onNavigate = ForParent << Navigate
+        , onRequireSignIn = ForParent << RequireSignIn << ToolbarMsg
         }

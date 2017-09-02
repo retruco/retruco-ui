@@ -14,8 +14,6 @@ type ExternalMsg
 
 type InternalMsg
     = NewArgumentMsg Arguments.New.Types.InternalMsg
-    | Rate String (Maybe Int)
-    | RatingPosted (Result Http.Error DataIdBody)
     | Retrieve
     | Retrieved (Result Http.Error DataIdsBody)
     | Upserted Types.DataId

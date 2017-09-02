@@ -2,17 +2,15 @@ module Affirmations.Item.State exposing (..)
 
 import Affirmations.Item.Routes exposing (..)
 import Affirmations.Item.Types exposing (..)
-import Arguments.New.State
+import Arguments.Index.State
 import Authenticator.Types exposing (Authentication)
-import Constants exposing (debateKeyIds)
 import Dict exposing (Dict)
 import Http
 import I18n
-import Images
-import Strings
 import Navigation
 import Ports
 import Requests
+import SameKeyProperties.State
 import Statements.Toolbar.State
 import Types exposing (..)
 import Urls
@@ -20,14 +18,14 @@ import Urls
 
 init : Maybe Authentication -> I18n.Language -> String -> Model
 init authentication language id =
-    { affirmation = Nothing
+    { activeTab = PropertiesTab
+    , affirmation = Nothing
     , authentication = authentication
     , data = initData
-    , debatePropertyIds = Nothing
     , httpError = Nothing
     , id = id
     , language = language
-    , newArgumentModel = Arguments.New.State.init authentication language id []
+    , sameKeyPropertiesModel = Nothing
     , showTrashed = False
     , toolbarModel = Nothing
     }
@@ -43,9 +41,22 @@ mergeModelData data model =
             Dict.get model.id mergedData.values
     in
         { model
-            | affirmation = affirmation
+            | activeTab =
+                case model.activeTab of
+                    DebatePropertiesTab argumentsModel ->
+                        DebatePropertiesTab <| Arguments.Index.State.mergeModelData mergedData argumentsModel
+
+                    _ ->
+                        model.activeTab
+            , affirmation = affirmation
             , data = mergedData
-            , newArgumentModel = Arguments.New.State.mergeModelData mergedData model.newArgumentModel
+            , sameKeyPropertiesModel =
+                case model.sameKeyPropertiesModel of
+                    Just sameKeyPropertiesModel ->
+                        Just <| SameKeyProperties.State.mergeModelData mergedData sameKeyPropertiesModel
+
+                    Nothing ->
+                        Nothing
             , toolbarModel =
                 case affirmation of
                     Just affirmation ->
@@ -69,9 +80,22 @@ mergeModelData data model =
 setContext : Maybe Authentication -> I18n.Language -> Model -> Model
 setContext authentication language model =
     { model
-        | authentication = authentication
+        | activeTab =
+            case model.activeTab of
+                DebatePropertiesTab argumentsModel ->
+                    DebatePropertiesTab <| Arguments.Index.State.setContext authentication language argumentsModel
+
+                _ ->
+                    model.activeTab
+        , authentication = authentication
         , language = language
-        , newArgumentModel = Arguments.New.State.setContext authentication language model.newArgumentModel
+        , sameKeyPropertiesModel =
+            case model.sameKeyPropertiesModel of
+                Just sameKeyPropertiesModel ->
+                    Just <| SameKeyProperties.State.setContext authentication language sameKeyPropertiesModel
+
+                Nothing ->
+                    Nothing
         , toolbarModel =
             case model.toolbarModel of
                 Just toolbarModel ->
@@ -84,9 +108,21 @@ setContext authentication language model =
 
 subscriptions : Model -> Sub InternalMsg
 subscriptions model =
-    Sub.batch
-        [ Sub.map NewArgumentMsg (Arguments.New.State.subscriptions model.newArgumentModel)
+    List.filterMap identity
+        [ case model.activeTab of
+            DebatePropertiesTab argumentsModel ->
+                Just <| Sub.map ArgumentsMsg (Arguments.Index.State.subscriptions argumentsModel)
+
+            _ ->
+                Nothing
+        , case model.sameKeyPropertiesModel of
+            Just sameKeyPropertiesModel ->
+                Just <| Sub.map SameKeyPropertiesMsg (SameKeyProperties.State.subscriptions sameKeyPropertiesModel)
+
+            Nothing ->
+                Nothing
         ]
+        |> Sub.batch
 
 
 update : InternalMsg -> Model -> ( Model, Cmd Msg )
@@ -95,66 +131,43 @@ update msg model =
         DataUpdated data ->
             ( mergeModelData data model, Cmd.none )
 
-        DebatePropertiesRetrieved (Err httpError) ->
-            ( { model
-                | httpError = Just httpError
-              }
-            , Cmd.none
-            )
+        ArgumentsMsg childMsg ->
+            case model.activeTab of
+                DebatePropertiesTab argumentsModel ->
+                    let
+                        ( updatedArgumentsModel, childCmd ) =
+                            Arguments.Index.State.update childMsg argumentsModel
+                    in
+                        ( { model | activeTab = DebatePropertiesTab updatedArgumentsModel }
+                        , Cmd.map translateArgumentsMsg childCmd
+                        )
 
-        DebatePropertiesRetrieved (Ok { data }) ->
-            let
-                mergedModel =
-                    mergeModelData data model
-            in
-                ( { mergedModel
-                    | debatePropertyIds = Just data.ids
-                  }
-                , Cmd.none
-                )
-
-        DebatePropertyUpserted data ->
-            let
-                mergedModel =
-                    mergeModelData data model
-
-                language =
-                    model.language
-            in
-                ( { mergedModel
-                    | debatePropertyIds =
-                        case model.debatePropertyIds of
-                            Just debatePropertyIds ->
-                                if List.member data.id debatePropertyIds then
-                                    Just debatePropertyIds
-                                else
-                                    Just (data.id :: debatePropertyIds)
-
-                            Nothing ->
-                                Just [ data.id ]
-                  }
-                , Cmd.none
-                )
-
-        NewArgumentMsg childMsg ->
-            let
-                ( updatedNewArgumentModel, childCmd ) =
-                    Arguments.New.State.update childMsg model.newArgumentModel
-            in
-                ( { model | newArgumentModel = updatedNewArgumentModel }
-                , Cmd.map translateNewArgumentMsg childCmd
-                )
+                _ ->
+                    ( model, Cmd.none )
 
         Retrieve ->
             ( { model
                 | affirmation = Nothing
-                , debatePropertyIds = Nothing
                 , httpError = Nothing
                 , toolbarModel = Nothing
               }
             , Requests.getValue model.authentication model.id
                 |> Http.send (ForSelf << ValueRetrieved)
             )
+
+        SameKeyPropertiesMsg childMsg ->
+            case model.sameKeyPropertiesModel of
+                Just sameKeyPropertiesModel ->
+                    let
+                        ( updatedSameKeyPropertiesModel, childCmd ) =
+                            SameKeyProperties.State.update childMsg sameKeyPropertiesModel
+                    in
+                        ( { model | sameKeyPropertiesModel = Just updatedSameKeyPropertiesModel }
+                        , Cmd.map translateSameKeyPropertiesMsg childCmd
+                        )
+
+                Nothing ->
+                    ( model, Cmd.none )
 
         ToolbarMsg childMsg ->
             case model.toolbarModel of
@@ -182,16 +195,9 @@ update msg model =
                 mergedModel =
                     mergeModelData data model
             in
-                mergedModel
-                    ! [ Ports.setDocumentMetadataForStatementId mergedModel.language mergedModel.data mergedModel.id
-                      , Requests.getObjectProperties
-                            mergedModel.authentication
-                            mergedModel.showTrashed
-                            mergedModel.id
-                            debateKeyIds
-                            []
-                            |> Http.send (ForSelf << DebatePropertiesRetrieved)
-                      ]
+                ( mergedModel
+                , Ports.setDocumentMetadataForStatementId mergedModel.language mergedModel.data mergedModel.id
+                )
 
 
 urlUpdate : Navigation.Location -> Route -> Model -> ( Model, Cmd Msg )
@@ -206,16 +212,49 @@ urlUpdate location route model =
         language =
             model.language
 
+        showTrashed =
+            Urls.queryToggle "trashed" location
+
         unroutedModel =
             { model
-              -- | argumentsModel = Nothing
-              -- , sameKeyPropertiesModel = Nothing
-                | showTrashed = Urls.queryToggle "trashed" location
+                | sameKeyPropertiesModel = Nothing
+                , showTrashed = showTrashed
             }
 
         ( updatedModel, updatedCmd ) =
             update Retrieve unroutedModel
     in
         case route of
-            IndexRoute ->
-                ( updatedModel, updatedCmd )
+            DebatePropertiesRoute ->
+                let
+                    argumentsModel =
+                        Arguments.Index.State.init authentication language id
+
+                    ( updatedArgumentsModel, updatedArgumentsCmd ) =
+                        Arguments.Index.State.urlUpdate location argumentsModel
+                in
+                    { updatedModel
+                        | activeTab = DebatePropertiesTab updatedArgumentsModel
+                    }
+                        ! [ updatedCmd
+                          , Cmd.map translateArgumentsMsg updatedArgumentsCmd
+                          ]
+
+            DetailsRoute ->
+                ( { updatedModel | activeTab = DetailsTab }, updatedCmd )
+
+            PropertiesRoute ->
+                ( { updatedModel | activeTab = PropertiesTab }, updatedCmd )
+
+            SameKeyPropertiesRoute keyId ->
+                let
+                    sameKeyPropertiesModel =
+                        SameKeyProperties.State.init authentication language id keyId
+
+                    ( updatedSameKeyPropertiesModel, updatedSameKeyPropertiesCmd ) =
+                        SameKeyProperties.State.urlUpdate location sameKeyPropertiesModel
+                in
+                    { updatedModel | sameKeyPropertiesModel = Just updatedSameKeyPropertiesModel }
+                        ! [ updatedCmd
+                          , Cmd.map translateSameKeyPropertiesMsg updatedSameKeyPropertiesCmd
+                          ]

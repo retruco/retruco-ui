@@ -85,6 +85,11 @@ update msg model =
         TrashPosted (Ok body) ->
             ( model
             , Task.perform
-                (\_ -> ForParent <| Navigate <| Urls.languagePath model.language ("/properties/" ++ body.data.id))
+                (\_ ->
+                    ForParent <|
+                        Navigate <|
+                            Urls.languagePath model.language <|
+                                Urls.idToPropertiesPath body.data body.data.id
+                )
                 (Task.succeed ())
             )

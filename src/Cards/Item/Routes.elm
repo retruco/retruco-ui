@@ -2,6 +2,6 @@ module Cards.Item.Routes exposing (..)
 
 
 type Route
-    = ArgumentsRoute
-    | IndexRoute
+    = DebatePropertiesRoute
+    | PropertiesRoute
     | SameKeyPropertiesRoute String

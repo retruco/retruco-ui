@@ -61,6 +61,54 @@ fullUrl url =
             url
 
 
+idToDebatePropertiesPath : DataProxy a -> String -> String
+idToDebatePropertiesPath data id =
+    (idToPath data id)
+        ++ case Dict.get id data.cards of
+            Just _ ->
+                "/arguments"
+
+            Nothing ->
+                ""
+
+
+idToPath : DataProxy a -> String -> String
+idToPath data id =
+    case Dict.get id data.cards of
+        Just _ ->
+            "/cards/" ++ id
+
+        Nothing ->
+            case Dict.get id data.properties of
+                Just _ ->
+                    "/properties/" ++ id
+
+                Nothing ->
+                    case Dict.get id data.values of
+                        Just _ ->
+                            "/affirmations/" ++ id
+
+                        Nothing ->
+                            -- This path doesn't exist, but function needs to return a path.
+                            "/statements/" ++ id
+
+
+idToPropertiesPath : DataProxy a -> String -> String
+idToPropertiesPath data id =
+    (idToPath data id)
+        ++ case Dict.get id data.cards of
+            Just _ ->
+                ""
+
+            Nothing ->
+                "/properties"
+
+
+idToSameKeyPropertiesPath : DataProxy a -> String -> String -> String
+idToSameKeyPropertiesPath data id keyId =
+    (idToPath data id) ++ "/properties/" ++ keyId
+
+
 languagePath : I18n.Language -> String -> String
 languagePath language path =
     "/" ++ (I18n.languageIdFromLanguage language) ++ path
@@ -174,27 +222,6 @@ replaceLanguageInLocation language location =
             { url | path = path }
     in
         Erl.toString newUrl
-
-
-statementIdPath : DataProxy a -> String -> String
-statementIdPath data id =
-    case Dict.get id data.cards of
-        Just _ ->
-            "/cards/" ++ id
-
-        Nothing ->
-            case Dict.get id data.properties of
-                Just _ ->
-                    "/properties/" ++ id
-
-                Nothing ->
-                    case Dict.get id data.values of
-                        Just _ ->
-                            "/affirmations/" ++ id
-
-                        Nothing ->
-                            -- This path doesn't exist, but function needs to return a path.
-                            "/statements/" ++ id
 
 
 urlToId : String -> Maybe String

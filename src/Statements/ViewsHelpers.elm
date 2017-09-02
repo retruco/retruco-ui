@@ -11,22 +11,16 @@ import Http
 import I18n
 import Images
 import Json.Decode
-import LineViews exposing (viewPropertyIdLine)
+import LineViews exposing (viewPropertyIdLine, viewStatementIdLine)
 import Strings
-import Types exposing (Argument, DataProxy)
+import Types exposing (Argument, DataProxy, Statement)
 import Urls
 
 
-viewDebatePropertiesBlock :
-    I18n.Language
-    -> (String -> msg)
-    -> DataProxy a
-    -> List String
-    -> Html msg
+viewDebatePropertiesBlock : I18n.Language -> (String -> msg) -> DataProxy a -> List String -> Html msg
 viewDebatePropertiesBlock language navigateMsg data debatePropertyIds =
     div []
-        [ h2 [] [ text <| I18n.translate language I18n.Arguments ]
-        , if List.isEmpty debatePropertyIds then
+        [ if List.isEmpty debatePropertyIds then
             p [] [ text <| I18n.translate language I18n.MissingArguments ]
           else
             ul [ class "list-group" ]
@@ -60,6 +54,66 @@ viewStatementIdRatingPanel language navigateMsg data statementId =
 
                         Nothing ->
                             i [ class "text-warning" ] [ text (I18n.translate language <| I18n.UnknownId statementId) ]
+
+
+viewStatementPropertiesBlock : I18n.Language -> (String -> msg) -> DataProxy a -> Statement b -> Html msg
+viewStatementPropertiesBlock language navigateMsg data statement =
+    div []
+        [ if Dict.isEmpty statement.properties then
+            p [] [ text <| I18n.translate language I18n.MissingProperties ]
+          else
+            ul [ class "list-group" ]
+                (statement.properties
+                    |> Dict.map
+                        (\keyId valueIds ->
+                            li [ class "list-group-item justify-content-between" ]
+                                [ div [ class "d-inline-flex" ]
+                                    [ viewStatementIdLine
+                                        language
+                                        (Just navigateMsg)
+                                        True
+                                        False
+                                        data
+                                        keyId
+                                    , span [ class "mr-1" ] [ text <| I18n.translate language I18n.Colon ]
+                                    , case valueIds of
+                                        [ valueId ] ->
+                                            viewStatementIdLine
+                                                language
+                                                (Just navigateMsg)
+                                                True
+                                                False
+                                                data
+                                                valueId
+
+                                        valueIds ->
+                                            ul []
+                                                (List.map
+                                                    (\valueId ->
+                                                        li []
+                                                            [ viewStatementIdLine
+                                                                language
+                                                                (Just navigateMsg)
+                                                                True
+                                                                False
+                                                                data
+                                                                valueId
+                                                            ]
+                                                    )
+                                                    valueIds
+                                                )
+                                    ]
+                                , aForPath
+                                    navigateMsg
+                                    language
+                                    (Urls.idToSameKeyPropertiesPath data statement.id keyId)
+                                    [ class "btn btn-secondary" ]
+                                    [ text (I18n.translate language (I18n.Edit)) ]
+                                ]
+                        )
+                    |> Dict.values
+                )
+        ]
 
 
 viewStatementRatingPanel :
@@ -264,7 +318,7 @@ viewStatementSocialToolbar language shareOnFacebookMsg shareOnGooglePlusMsg shar
                 Images.idToImageUrl language data id
 
             url =
-                Urls.statementIdPath data id
+                Urls.idToPath data id
                     |> Urls.languagePath language
                     |> Urls.fullUrl
 

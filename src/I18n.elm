@@ -27,6 +27,7 @@ type TranslationId
     | AddNew
     | AddNewItemBox
     | AddPropertyKey
+    | AffirmationRetrievalFailed
     | Affirmations
     | AffirmationsDescription
     | AffirmationsRetrievalFailed
@@ -73,6 +74,7 @@ type TranslationId
     | DebateOptionsLabel
     | DebateProsLabel
     | DebateSourcesLabel
+    | Details
     | Disagree
     | Edit
     | Email
@@ -123,6 +125,7 @@ type TranslationId
     | LoadingMenu
     | MissingArguments
     | MissingDescription
+    | MissingProperties
     | MissingValue
     | NetworkError
     | NetworkErrorExplanation
@@ -373,6 +376,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Add property"
                 , french = s "Ajouter une propriété"
+                , spanish = todo
+            }
+
+        AffirmationRetrievalFailed ->
+            { emptyTranslationSet
+                | english = s "Retrieval of affirmation failed"
+                , french = s "Échec de la récupération de l'affirmation"
                 , spanish = todo
             }
 
@@ -748,6 +758,13 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        Details ->
+            { emptyTranslationSet
+                | english = s "Details"
+                , french = s "Details"
+                , spanish = todo
+            }
+
         Disagree ->
             { emptyTranslationSet
                 | english = s "Disagree"
@@ -1105,6 +1122,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Missing description"
                 , french = s "Description manquante"
+                , spanish = todo
+            }
+
+        MissingProperties ->
+            { emptyTranslationSet
+                | english = s "No properties. Let's be the first to add one!"
+                , french = s "Aucune propriété. Soyez le premier à en ajouter une !"
                 , spanish = todo
             }
 

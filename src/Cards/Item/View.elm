@@ -1,34 +1,35 @@
 module Cards.Item.View exposing (..)
 
-import Arguments.Index.View
 import Cards.Item.Types exposing (..)
-import Dict exposing (Dict)
+import Arguments.Index.View
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Html.Helpers exposing (aForPath)
 import Http.Error
 import I18n
-import LineViews exposing (viewStatementIdLine)
-import Strings
+import LineViews exposing (viewCardLine)
 import Properties.KeysAutocomplete.View
 import SameKeyProperties.View
-import Statements.ViewsHelpers exposing (viewDebatePropertiesBlock)
+import Statements.Toolbar.View
+import Statements.ViewsHelpers
+    exposing
+        ( viewDebatePropertiesBlock
+        , viewStatementPropertiesBlock
+        , viewStatementRatingPanel
+        )
+import Urls
 import Views
 
 
 view : Model -> Html Msg
 view model =
-    case ( model.argumentsModel, model.sameKeyPropertiesModel ) of
-        ( Just argumentsModel, _ ) ->
-            Arguments.Index.View.view argumentsModel
-                |> Html.map translateArgumentsMsg
-
-        ( _, Just sameKeyPropertiesModel ) ->
+    case model.sameKeyPropertiesModel of
+        Just sameKeyPropertiesModel ->
             SameKeyProperties.View.view sameKeyPropertiesModel
                 |> Html.map translateSameKeyPropertiesMsg
 
-        ( Nothing, Nothing ) ->
+        Nothing ->
             let
                 data =
                     model.data
@@ -36,84 +37,77 @@ view model =
                 language =
                     model.language
             in
-                case ( Dict.get model.id data.cards, model.debatePropertyIds ) of
-                    ( Just card, Just debatePropertyIds ) ->
-                        let
-                            cardName =
-                                Strings.cardNameToString language data card
-
-                            values =
-                                data.values
-
-                            viewCardPropertiesItem keyId valueIds =
-                                li [ class "list-group-item justify-content-between" ]
-                                    [ div [ class "d-inline-flex" ]
-                                        [ viewStatementIdLine
-                                            language
-                                            (Just (ForParent << Navigate))
-                                            True
-                                            False
-                                            data
-                                            keyId
-                                        , span [ class "mr-1" ] [ text <| I18n.translate language I18n.Colon ]
-                                        , case valueIds of
-                                            [ valueId ] ->
-                                                viewStatementIdLine
-                                                    language
-                                                    (Just (ForParent << Navigate))
-                                                    True
-                                                    False
-                                                    data
-                                                    valueId
-
-                                            valueIds ->
-                                                ul []
-                                                    (List.map
-                                                        (\valueId ->
-                                                            li []
-                                                                [ viewStatementIdLine
-                                                                    language
-                                                                    (Just (ForParent << Navigate))
-                                                                    True
-                                                                    False
-                                                                    data
-                                                                    valueId
-                                                                ]
-                                                        )
-                                                        valueIds
-                                                    )
-                                        ]
-                                    , aForPath
+                case ( model.card, model.toolbarModel ) of
+                    ( Just card, Just toolbarModel ) ->
+                        div []
+                            [ div [ class "align-items-center d-flex flex-nowrap justify-content-between mb-3" ]
+                                [ h1 []
+                                    [ viewCardLine
+                                        language
+                                        (Just (ForParent << Navigate))
+                                        data
+                                        card
+                                    ]
+                                , viewStatementRatingPanel language (ForParent << Navigate) Nothing card
+                                ]
+                            , Statements.Toolbar.View.view toolbarModel
+                                |> Html.map translateToolbarMsg
+                            , hr [] []
+                            , ul [ class "nav nav-tabs" ]
+                                [ li [ class "nav-item" ]
+                                    [ aForPath
                                         (ForParent << Navigate)
                                         language
-                                        ("/cards/" ++ model.id ++ "/properties/" ++ keyId)
-                                        [ class "btn btn-secondary" ]
-                                        [ text (I18n.translate language (I18n.Edit)) ]
+                                        (Urls.idToDebatePropertiesPath data card.id)
+                                        [ classList
+                                            [ ( "active"
+                                              , case model.activeTab of
+                                                    DebatePropertiesTab _ ->
+                                                        True
+
+                                                    _ ->
+                                                        False
+                                              )
+                                            , ( "nav-link", True )
+                                            ]
+                                        ]
+                                        [ text <| I18n.translate language I18n.Arguments ]
                                     ]
-                        in
-                            div []
-                                [ h1 [] [ text cardName ]
-                                , h2 [] [ text <| I18n.translate language I18n.Properties ]
-                                , ul [ class "list-group" ]
-                                    (card.properties
-                                        |> Dict.map viewCardPropertiesItem
-                                        |> Dict.values
-                                    )
-                                , let
-                                    controlId =
-                                        "keysAutocomplete"
-                                  in
-                                    Properties.KeysAutocomplete.View.viewAutocomplete
+                                , li [ class "nav-item" ]
+                                    [ aForPath
+                                        (ForParent << Navigate)
                                         language
-                                        controlId
-                                        I18n.AddPropertyKey
-                                        I18n.PropertyKeyPlaceholder
-                                        Nothing
-                                        model.keysAutocompleteModel
-                                        |> Html.map translateKeysAutocompleteMsg
-                                , hr [] []
-                                , viewDebatePropertiesBlock language (ForParent << Navigate) data debatePropertyIds
+                                        (Urls.idToPropertiesPath data card.id)
+                                        [ classList
+                                            [ ( "active", model.activeTab == PropertiesTab )
+                                            , ( "nav-link", True )
+                                            ]
+                                        ]
+                                        [ text <| I18n.translate language I18n.Properties ]
+                                    ]
                                 ]
+                            , case model.activeTab of
+                                DebatePropertiesTab argumentsModel ->
+                                    Arguments.Index.View.view argumentsModel
+                                        |> Html.map translateArgumentsMsg
+
+                                PropertiesTab ->
+                                    div []
+                                        [ viewStatementPropertiesBlock language (ForParent << Navigate) data card
+                                        , let
+                                            controlId =
+                                                "keysAutocomplete"
+                                          in
+                                            Properties.KeysAutocomplete.View.viewAutocomplete
+                                                language
+                                                controlId
+                                                I18n.AddPropertyKey
+                                                I18n.PropertyKeyPlaceholder
+                                                Nothing
+                                                model.keysAutocompleteModel
+                                                |> Html.map translateKeysAutocompleteMsg
+                                        ]
+                            ]
 
                     ( _, _ ) ->
                         case model.httpError of

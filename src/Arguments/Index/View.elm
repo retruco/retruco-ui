@@ -26,25 +26,7 @@ view model =
         case model.debatePropertyIds of
             Just debatePropertyIds ->
                 div []
-                    [ h1 [ class "d-flex" ]
-                        [ span [ class "mr-3" ] [ text <| I18n.translate language I18n.ArgumentsAbout ]
-                        , em []
-                            [ aForPath
-                                (ForParent << Navigate)
-                                language
-                                (Urls.objectIdPath model.objectId data)
-                                []
-                                [ viewValueIdLine
-                                    language
-                                    Nothing
-                                    False
-                                    data
-                                    model.objectId
-                                ]
-                            ]
-                        ]
-                    , hr [] []
-                    , viewDebatePropertiesBlock language (ForParent << Navigate) data debatePropertyIds
+                    [ viewDebatePropertiesBlock language (ForParent << Navigate) data debatePropertyIds
                     , hr [] []
                     , Arguments.New.View.view model.newArgumentModel
                         |> Html.map translateNewArgumentMsg

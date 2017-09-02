@@ -66,24 +66,6 @@ update msg model =
                 , Cmd.map translateNewArgumentMsg childCmd
                 )
 
-        Rate statementId rating ->
-            ( model
-            , case rating of
-                Just rating ->
-                    Requests.rateStatement model.authentication statementId rating
-                        |> Http.send (ForSelf << RatingPosted)
-
-                Nothing ->
-                    Requests.unrateStatement model.authentication statementId
-                        |> Http.send (ForSelf << RatingPosted)
-            )
-
-        RatingPosted (Err httpError) ->
-            ( { model | httpError = Just httpError }, Cmd.none )
-
-        RatingPosted (Ok body) ->
-            ( mergeModelData body.data model, Cmd.none )
-
         Retrieve ->
             ( { model
                 | debatePropertyIds = Nothing

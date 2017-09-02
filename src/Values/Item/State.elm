@@ -166,12 +166,15 @@ urlUpdate location route model =
         language =
             model.language
 
+        showTrashed =
+            Urls.queryToggle "trashed" location
+
         unroutedModel =
             { model
                 | argumentsModel = Nothing
 
                 -- , sameKeyPropertiesModel = Nothing
-                , showTrashed = Urls.queryToggle "trashed" location
+                , showTrashed = showTrashed
             }
 
         ( updatedModel, updatedCmd ) =

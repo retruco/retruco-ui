@@ -4,7 +4,7 @@ import Arguments.Index.State
 import Authenticator.Types exposing (Authentication)
 import Cards.Item.Routes exposing (..)
 import Cards.Item.Types exposing (..)
-import Constants exposing (debateKeyIds)
+import Dict exposing (Dict)
 import Http
 import I18n
 import Navigation
@@ -12,6 +12,7 @@ import Ports
 import Properties.KeysAutocomplete.State
 import Requests
 import SameKeyProperties.State
+import Statements.Toolbar.State
 import Task
 import Types exposing (..)
 import Urls
@@ -19,16 +20,17 @@ import Urls
 
 init : Maybe Authentication -> I18n.Language -> String -> Model
 init authentication language id =
-    { argumentsModel = Nothing
+    { activeTab = PropertiesTab
     , authentication = authentication
+    , card = Nothing
     , data = initData
-    , debatePropertyIds = Nothing
     , httpError = Nothing
     , id = id
     , keysAutocompleteModel = Properties.KeysAutocomplete.State.init [] True
     , language = language
     , sameKeyPropertiesModel = Nothing
     , showTrashed = False
+    , toolbarModel = Nothing
     }
 
 
@@ -37,20 +39,41 @@ mergeModelData data model =
     let
         mergedData =
             mergeData data model.data
+
+        card =
+            Dict.get model.id mergedData.cards
     in
         { model
-            | argumentsModel =
-                case model.argumentsModel of
-                    Just argumentsModel ->
-                        Just <| Arguments.Index.State.mergeModelData mergedData argumentsModel
+            | activeTab =
+                case model.activeTab of
+                    DebatePropertiesTab argumentsModel ->
+                        DebatePropertiesTab <| Arguments.Index.State.mergeModelData mergedData argumentsModel
 
-                    Nothing ->
-                        Nothing
+                    _ ->
+                        model.activeTab
+            , card = card
             , data = mergedData
             , sameKeyPropertiesModel =
                 case model.sameKeyPropertiesModel of
                     Just sameKeyPropertiesModel ->
                         Just <| SameKeyProperties.State.mergeModelData mergedData sameKeyPropertiesModel
+
+                    Nothing ->
+                        Nothing
+            , toolbarModel =
+                case card of
+                    Just card ->
+                        case model.toolbarModel of
+                            Just toolbarModel ->
+                                Just <| Statements.Toolbar.State.setData mergedData card toolbarModel
+
+                            Nothing ->
+                                Just <|
+                                    Statements.Toolbar.State.init
+                                        model.authentication
+                                        model.language
+                                        mergedData
+                                        card
 
                     Nothing ->
                         Nothing
@@ -60,13 +83,13 @@ mergeModelData data model =
 setContext : Maybe Authentication -> I18n.Language -> Model -> Model
 setContext authentication language model =
     { model
-        | argumentsModel =
-            case model.argumentsModel of
-                Just argumentsModel ->
-                    Just <| Arguments.Index.State.setContext authentication language argumentsModel
+        | activeTab =
+            case model.activeTab of
+                DebatePropertiesTab argumentsModel ->
+                    DebatePropertiesTab <| Arguments.Index.State.setContext authentication language argumentsModel
 
-                Nothing ->
-                    Nothing
+                _ ->
+                    model.activeTab
         , authentication = authentication
         , language = language
         , sameKeyPropertiesModel =
@@ -76,17 +99,24 @@ setContext authentication language model =
 
                 Nothing ->
                     Nothing
+        , toolbarModel =
+            case model.toolbarModel of
+                Just toolbarModel ->
+                    Just <| Statements.Toolbar.State.setContext authentication language toolbarModel
+
+                Nothing ->
+                    Nothing
     }
 
 
 subscriptions : Model -> Sub InternalMsg
 subscriptions model =
     List.filterMap identity
-        [ case model.argumentsModel of
-            Just argumentsModel ->
+        [ case model.activeTab of
+            DebatePropertiesTab argumentsModel ->
                 Just <| Sub.map ArgumentsMsg (Arguments.Index.State.subscriptions argumentsModel)
 
-            Nothing ->
+            _ ->
                 Nothing
         , Just <|
             Sub.map KeysAutocompleteMsg (Properties.KeysAutocomplete.State.subscriptions model.keysAutocompleteModel)
@@ -108,20 +138,6 @@ update msg model =
             -- update (LoadProperties typedValue.id) model
             ( model, Cmd.none )
 
-        ArgumentsMsg childMsg ->
-            case model.argumentsModel of
-                Just argumentsModel ->
-                    let
-                        ( updatedArgumentsModel, childCmd ) =
-                            Arguments.Index.State.update childMsg argumentsModel
-                    in
-                        ( { model | argumentsModel = Just updatedArgumentsModel }
-                        , Cmd.map translateArgumentsMsg childCmd
-                        )
-
-                Nothing ->
-                    ( model, Cmd.none )
-
         CardRetrieved (Err httpError) ->
             ( { model
                 | httpError = Just httpError
@@ -138,13 +154,11 @@ update msg model =
                 mergedModel =
                     mergeModelData data model
             in
-                { mergedModel
+                ( { mergedModel
                     | keysAutocompleteModel = Properties.KeysAutocomplete.State.init card.subTypeIds True
-                }
-                    ! [ Ports.setDocumentMetadataForStatementId mergedModel.language mergedModel.data mergedModel.id
-                      , Requests.getObjectProperties model.authentication model.showTrashed model.id debateKeyIds []
-                            |> Http.send (ForSelf << DebatePropertiesRetrieved)
-                      ]
+                  }
+                , Ports.setDocumentMetadataForStatementId mergedModel.language mergedModel.data mergedModel.id
+                )
 
         CreateKey keyName ->
             case model.authentication of
@@ -163,22 +177,22 @@ update msg model =
                         (Task.succeed ())
                     )
 
-        DebatePropertiesRetrieved (Err httpError) ->
-            ( { model
-                | httpError = Just httpError
-              }
-            , Cmd.none
-            )
+        DataUpdated data ->
+            ( mergeModelData data model, Cmd.none )
 
-        DebatePropertiesRetrieved (Ok { data }) ->
-            let
-                language =
-                    model.language
+        ArgumentsMsg childMsg ->
+            case model.activeTab of
+                DebatePropertiesTab argumentsModel ->
+                    let
+                        ( updatedArgumentsModel, childCmd ) =
+                            Arguments.Index.State.update childMsg argumentsModel
+                    in
+                        ( { model | activeTab = DebatePropertiesTab updatedArgumentsModel }
+                        , Cmd.map translateArgumentsMsg childCmd
+                        )
 
-                mergedModel =
-                    mergeModelData data model
-            in
-                ( { mergedModel | debatePropertyIds = Just data.ids }, Cmd.none )
+                _ ->
+                    ( model, Cmd.none )
 
         KeysAutocompleteMsg childMsg ->
             let
@@ -207,8 +221,9 @@ update msg model =
 
         Retrieve ->
             ( { model
-                | debatePropertyIds = Nothing
+                | card = Nothing
                 , httpError = Nothing
+                , toolbarModel = Nothing
               }
             , Requests.getCard model.authentication model.id
                 |> Http.send (ForSelf << CardRetrieved)
@@ -228,6 +243,20 @@ update msg model =
                 Nothing ->
                     ( model, Cmd.none )
 
+        ToolbarMsg childMsg ->
+            case model.toolbarModel of
+                Just toolbarModel ->
+                    let
+                        ( updatedToolbarModel, childCmd ) =
+                            Statements.Toolbar.State.update childMsg toolbarModel
+                    in
+                        ( { model | toolbarModel = Just updatedToolbarModel }
+                        , Cmd.map translateToolbarMsg childCmd
+                        )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
 
 urlUpdate : Navigation.Location -> Route -> Model -> ( Model, Cmd Msg )
 urlUpdate location route model =
@@ -241,18 +270,20 @@ urlUpdate location route model =
         language =
             model.language
 
+        showTrashed =
+            Urls.queryToggle "trashed" location
+
         unroutedModel =
             { model
-                | argumentsModel = Nothing
-                , sameKeyPropertiesModel = Nothing
-                , showTrashed = Urls.queryToggle "trashed" location
+                | sameKeyPropertiesModel = Nothing
+                , showTrashed = showTrashed
             }
 
         ( updatedModel, updatedCmd ) =
             update Retrieve unroutedModel
     in
         case route of
-            ArgumentsRoute ->
+            DebatePropertiesRoute ->
                 let
                     argumentsModel =
                         Arguments.Index.State.init authentication language id
@@ -260,13 +291,15 @@ urlUpdate location route model =
                     ( updatedArgumentsModel, updatedArgumentsCmd ) =
                         Arguments.Index.State.urlUpdate location argumentsModel
                 in
-                    { updatedModel | argumentsModel = Just updatedArgumentsModel }
+                    { updatedModel
+                        | activeTab = DebatePropertiesTab updatedArgumentsModel
+                    }
                         ! [ updatedCmd
                           , Cmd.map translateArgumentsMsg updatedArgumentsCmd
                           ]
 
-            IndexRoute ->
-                ( updatedModel, updatedCmd )
+            PropertiesRoute ->
+                ( { updatedModel | activeTab = PropertiesTab }, updatedCmd )
 
             SameKeyPropertiesRoute keyId ->
                 let

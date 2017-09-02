@@ -55,7 +55,10 @@ type ValuesRoute
 affirmationRouteParser : Parser (Affirmations.Item.Routes.Route -> a) a
 affirmationRouteParser =
     oneOf
-        [ map Affirmations.Item.Routes.IndexRoute top
+        [ map Affirmations.Item.Routes.DebatePropertiesRoute top
+        , map Affirmations.Item.Routes.DetailsRoute (s "details")
+        , map Affirmations.Item.Routes.PropertiesRoute (s "properties")
+        , map Affirmations.Item.Routes.SameKeyPropertiesRoute (s "properties" </> idParser)
         ]
 
 
@@ -71,8 +74,8 @@ affirmationsRouteParser =
 cardRouteParser : Parser (Cards.Item.Routes.Route -> a) a
 cardRouteParser =
     oneOf
-        [ map Cards.Item.Routes.IndexRoute top
-        , map Cards.Item.Routes.ArgumentsRoute (s "arguments")
+        [ map Cards.Item.Routes.PropertiesRoute top
+        , map Cards.Item.Routes.DebatePropertiesRoute (s "arguments")
         , map Cards.Item.Routes.SameKeyPropertiesRoute (s "properties" </> idParser)
         ]
 
@@ -124,7 +127,9 @@ parseLocation location =
 propertyRouteParser : Parser (Properties.Item.Routes.Route -> a) a
 propertyRouteParser =
     oneOf
-        [ map Properties.Item.Routes.IndexRoute top
+        [ map Properties.Item.Routes.DebatePropertiesRoute top
+        , map Properties.Item.Routes.PropertiesRoute (s "properties")
+        , map Properties.Item.Routes.SameKeyPropertiesRoute (s "properties" </> idParser)
         ]
 
 

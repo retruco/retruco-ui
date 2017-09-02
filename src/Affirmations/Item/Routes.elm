@@ -2,4 +2,7 @@ module Affirmations.Item.Routes exposing (..)
 
 
 type Route
-    = IndexRoute
+    = DebatePropertiesRoute
+    | DetailsRoute
+    | PropertiesRoute
+    | SameKeyPropertiesRoute String
