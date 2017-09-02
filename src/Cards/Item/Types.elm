@@ -4,7 +4,7 @@ import Authenticator.Types exposing (Authentication)
 import DebateProperties.SameObject.Types
 import Http
 import I18n
-import Properties.KeysAutocomplete.Types
+import Properties.SameObject.Types
 import Properties.SameObjectAndKey.Types
 import Statements.Toolbar.Types
 import Types exposing (..)
@@ -16,15 +16,12 @@ type ExternalMsg
 
 
 type InternalMsg
-    = AddKey TypedValue
-    | CardRetrieved (Result Http.Error DataIdBody)
-    | CreateKey String
+    = CardRetrieved (Result Http.Error DataIdBody)
     | DataUpdated (DataProxy {})
     | DebatePropertiesMsg DebateProperties.SameObject.Types.InternalMsg
-    | KeyUpserted (Result Http.Error DataIdBody)
-    | KeysAutocompleteMsg Properties.KeysAutocomplete.Types.InternalMsg
+    | PropertiesMsg Properties.SameObject.Types.InternalMsg
     | Retrieve
-    | SameObjectAndKeyPropertiesMsg Properties.SameObjectAndKey.Types.InternalMsg
+    | SameKeyPropertiesMsg Properties.SameObjectAndKey.Types.InternalMsg
     | ToolbarMsg Statements.Toolbar.Types.InternalMsg
 
 
@@ -34,10 +31,9 @@ type alias Model =
     , card : Maybe Card
     , data : DataProxy {}
     , id : String
-    , keysAutocompleteModel : Properties.KeysAutocomplete.Types.Model
     , httpError : Maybe Http.Error
     , language : I18n.Language
-    , sameObjectAndKeyPropertiesModel : Maybe Properties.SameObjectAndKey.Types.Model
+    , sameKeyPropertiesModel : Maybe Properties.SameObjectAndKey.Types.Model
     , showTrashed : Bool
     , toolbarModel : Maybe (Statements.Toolbar.Types.Model Card)
     }
@@ -61,7 +57,8 @@ type alias MsgTranslator parentMsg =
 
 type Tab
     = DebatePropertiesTab DebateProperties.SameObject.Types.Model
-    | PropertiesTab
+    | NoTab
+    | PropertiesTab Properties.SameObject.Types.Model
 
 
 translateDebatePropertiesMsg : DebateProperties.SameObject.Types.MsgTranslator Msg
@@ -70,15 +67,6 @@ translateDebatePropertiesMsg =
         { onInternalMsg = ForSelf << DebatePropertiesMsg
         , onNavigate = ForParent << Navigate
         , onRequireSignIn = ForParent << RequireSignIn << DebatePropertiesMsg
-        }
-
-
-translateKeysAutocompleteMsg : Properties.KeysAutocomplete.Types.MsgTranslator Msg
-translateKeysAutocompleteMsg =
-    Properties.KeysAutocomplete.Types.translateMsg
-        { onAdd = ForSelf << AddKey
-        , onCreate = ForSelf << CreateKey
-        , onInternalMsg = ForSelf << KeysAutocompleteMsg
         }
 
 
@@ -95,12 +83,21 @@ translateMsg { onInternalMsg, onNavigate, onRequireSignIn } msg =
             onInternalMsg internalMsg
 
 
-translateSameObjectAndKeyPropertiesMsg : Properties.SameObjectAndKey.Types.MsgTranslator Msg
-translateSameObjectAndKeyPropertiesMsg =
-    Properties.SameObjectAndKey.Types.translateMsg
-        { onInternalMsg = ForSelf << SameObjectAndKeyPropertiesMsg
+translatePropertiesMsg : Properties.SameObject.Types.MsgTranslator Msg
+translatePropertiesMsg =
+    Properties.SameObject.Types.translateMsg
+        { onInternalMsg = ForSelf << PropertiesMsg
         , onNavigate = ForParent << Navigate
-        , onRequireSignIn = ForParent << RequireSignIn << SameObjectAndKeyPropertiesMsg
+        , onRequireSignIn = ForParent << RequireSignIn << PropertiesMsg
+        }
+
+
+translateSameKeyPropertiesMsg : Properties.SameObjectAndKey.Types.MsgTranslator Msg
+translateSameKeyPropertiesMsg =
+    Properties.SameObjectAndKey.Types.translateMsg
+        { onInternalMsg = ForSelf << SameKeyPropertiesMsg
+        , onNavigate = ForParent << Navigate
+        , onRequireSignIn = ForParent << RequireSignIn << SameKeyPropertiesMsg
         }
 
 

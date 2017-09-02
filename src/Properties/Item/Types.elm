@@ -4,6 +4,7 @@ import Authenticator.Types exposing (Authentication)
 import DebateProperties.SameObject.Types
 import Http
 import I18n
+import Properties.SameObject.Types
 import Properties.SameObjectAndKey.Types
 import Statements.Toolbar.Types
 import Types exposing (..)
@@ -17,8 +18,9 @@ type ExternalMsg
 type InternalMsg
     = DataUpdated (DataProxy {})
     | DebatePropertiesMsg DebateProperties.SameObject.Types.InternalMsg
+    | PropertiesMsg Properties.SameObject.Types.InternalMsg
     | Retrieve
-    | SameObjectAndKeyPropertiesMsg Properties.SameObjectAndKey.Types.InternalMsg
+    | SameKeyPropertiesMsg Properties.SameObjectAndKey.Types.InternalMsg
     | SimilarDebatePropertiesRetrieved (Result Http.Error DataIdsBody)
     | ToolbarMsg Statements.Toolbar.Types.InternalMsg
     | ValueRetrieved (Result Http.Error DataIdBody)
@@ -32,7 +34,7 @@ type alias Model =
     , id : String
     , language : I18n.Language
     , property : Maybe Property
-    , sameObjectAndKeyPropertiesModel : Maybe Properties.SameObjectAndKey.Types.Model
+    , sameKeyPropertiesModel : Maybe Properties.SameObjectAndKey.Types.Model
     , showTrashed : Bool
     , similarDebatePropertyIds : Maybe (List String)
     , toolbarModel : Maybe (Statements.Toolbar.Types.Model Property)
@@ -57,7 +59,8 @@ type alias MsgTranslator parentMsg =
 
 type Tab
     = DebatePropertiesTab DebateProperties.SameObject.Types.Model
-    | PropertiesTab
+    | NoTab
+    | PropertiesTab Properties.SameObject.Types.Model
 
 
 translateDebatePropertiesMsg : DebateProperties.SameObject.Types.MsgTranslator Msg
@@ -82,12 +85,21 @@ translateMsg { onInternalMsg, onNavigate, onRequireSignIn } msg =
             onInternalMsg internalMsg
 
 
-translateSameObjectAndKeyPropertiesMsg : Properties.SameObjectAndKey.Types.MsgTranslator Msg
-translateSameObjectAndKeyPropertiesMsg =
-    Properties.SameObjectAndKey.Types.translateMsg
-        { onInternalMsg = ForSelf << SameObjectAndKeyPropertiesMsg
+translatePropertiesMsg : Properties.SameObject.Types.MsgTranslator Msg
+translatePropertiesMsg =
+    Properties.SameObject.Types.translateMsg
+        { onInternalMsg = ForSelf << PropertiesMsg
         , onNavigate = ForParent << Navigate
-        , onRequireSignIn = ForParent << RequireSignIn << SameObjectAndKeyPropertiesMsg
+        , onRequireSignIn = ForParent << RequireSignIn << PropertiesMsg
+        }
+
+
+translateSameKeyPropertiesMsg : Properties.SameObjectAndKey.Types.MsgTranslator Msg
+translateSameKeyPropertiesMsg =
+    Properties.SameObjectAndKey.Types.translateMsg
+        { onInternalMsg = ForSelf << SameKeyPropertiesMsg
+        , onNavigate = ForParent << Navigate
+        , onRequireSignIn = ForParent << RequireSignIn << SameKeyPropertiesMsg
         }
 
 

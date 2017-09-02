@@ -9,7 +9,6 @@ import Html.Events exposing (..)
 import Http.Error
 import I18n
 import Json.Decode
-import LineViews exposing (keyIdLabelCouples)
 import Values.New.View
 import Views exposing (errorInfos)
 
@@ -88,7 +87,7 @@ viewFormControls model =
                      ]
                         ++ errorAttributes
                     )
-                    (keyIdLabelCouples
+                    (I18n.keyIdLabelCouples
                         |> List.map
                             (\( symbol, labelI18n ) ->
                                 ( symbol

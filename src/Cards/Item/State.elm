@@ -9,26 +9,24 @@ import Http
 import I18n
 import Navigation
 import Ports
-import Properties.KeysAutocomplete.State
+import Properties.SameObject.State
 import Properties.SameObjectAndKey.State
 import Requests
 import Statements.Toolbar.State
-import Task
 import Types exposing (..)
 import Urls
 
 
 init : Maybe Authentication -> I18n.Language -> String -> Model
 init authentication language id =
-    { activeTab = PropertiesTab
+    { activeTab = NoTab
     , authentication = authentication
     , card = Nothing
     , data = initData
     , httpError = Nothing
     , id = id
-    , keysAutocompleteModel = Properties.KeysAutocomplete.State.init [] True
     , language = language
-    , sameObjectAndKeyPropertiesModel = Nothing
+    , sameKeyPropertiesModel = Nothing
     , showTrashed = False
     , toolbarModel = Nothing
     }
@@ -47,19 +45,23 @@ mergeModelData data model =
             | activeTab =
                 case model.activeTab of
                     DebatePropertiesTab debatePropertiesModel ->
-                        DebatePropertiesTab <| DebateProperties.SameObject.State.mergeModelData mergedData debatePropertiesModel
+                        DebatePropertiesTab <|
+                            DebateProperties.SameObject.State.mergeModelData mergedData debatePropertiesModel
+
+                    PropertiesTab propertiesModel ->
+                        PropertiesTab <| Properties.SameObject.State.mergeModelData mergedData propertiesModel
 
                     _ ->
                         model.activeTab
             , card = card
             , data = mergedData
-            , sameObjectAndKeyPropertiesModel =
-                case model.sameObjectAndKeyPropertiesModel of
-                    Just sameObjectAndKeyPropertiesModel ->
+            , sameKeyPropertiesModel =
+                case model.sameKeyPropertiesModel of
+                    Just sameKeyPropertiesModel ->
                         Just <|
                             Properties.SameObjectAndKey.State.mergeModelData
                                 mergedData
-                                sameObjectAndKeyPropertiesModel
+                                sameKeyPropertiesModel
 
                     Nothing ->
                         Nothing
@@ -89,20 +91,24 @@ setContext authentication language model =
         | activeTab =
             case model.activeTab of
                 DebatePropertiesTab debatePropertiesModel ->
-                    DebatePropertiesTab <| DebateProperties.SameObject.State.setContext authentication language debatePropertiesModel
+                    DebatePropertiesTab <|
+                        DebateProperties.SameObject.State.setContext authentication language debatePropertiesModel
+
+                PropertiesTab propertiesModel ->
+                    PropertiesTab <| Properties.SameObject.State.setContext authentication language propertiesModel
 
                 _ ->
                     model.activeTab
         , authentication = authentication
         , language = language
-        , sameObjectAndKeyPropertiesModel =
-            case model.sameObjectAndKeyPropertiesModel of
-                Just sameObjectAndKeyPropertiesModel ->
+        , sameKeyPropertiesModel =
+            case model.sameKeyPropertiesModel of
+                Just sameKeyPropertiesModel ->
                     Just <|
                         Properties.SameObjectAndKey.State.setContext
                             authentication
                             language
-                            sameObjectAndKeyPropertiesModel
+                            sameKeyPropertiesModel
 
                 Nothing ->
                     Nothing
@@ -121,18 +127,21 @@ subscriptions model =
     List.filterMap identity
         [ case model.activeTab of
             DebatePropertiesTab debatePropertiesModel ->
-                Just <| Sub.map DebatePropertiesMsg (DebateProperties.SameObject.State.subscriptions debatePropertiesModel)
+                Just <|
+                    Sub.map DebatePropertiesMsg
+                        (DebateProperties.SameObject.State.subscriptions debatePropertiesModel)
+
+            PropertiesTab propertiesModel ->
+                Just <| Sub.map PropertiesMsg (Properties.SameObject.State.subscriptions propertiesModel)
 
             _ ->
                 Nothing
-        , Just <|
-            Sub.map KeysAutocompleteMsg (Properties.KeysAutocomplete.State.subscriptions model.keysAutocompleteModel)
-        , case model.sameObjectAndKeyPropertiesModel of
-            Just sameObjectAndKeyPropertiesModel ->
+        , case model.sameKeyPropertiesModel of
+            Just sameKeyPropertiesModel ->
                 Just <|
                     Sub.map
-                        SameObjectAndKeyPropertiesMsg
-                        (Properties.SameObjectAndKey.State.subscriptions sameObjectAndKeyPropertiesModel)
+                        SameKeyPropertiesMsg
+                        (Properties.SameObjectAndKey.State.subscriptions sameKeyPropertiesModel)
 
             Nothing ->
                 Nothing
@@ -143,15 +152,9 @@ subscriptions model =
 update : InternalMsg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        AddKey typedValue ->
-            -- TODO
-            -- update (LoadProperties typedValue.id) model
-            ( model, Cmd.none )
-
         CardRetrieved (Err httpError) ->
             ( { model
                 | httpError = Just httpError
-                , keysAutocompleteModel = Properties.KeysAutocomplete.State.init [] True
               }
             , Cmd.none
             )
@@ -164,28 +167,9 @@ update msg model =
                 mergedModel =
                     mergeModelData data model
             in
-                ( { mergedModel
-                    | keysAutocompleteModel = Properties.KeysAutocomplete.State.init card.subTypeIds True
-                  }
+                ( mergedModel
                 , Ports.setDocumentMetadataForStatementId mergedModel.language mergedModel.data mergedModel.id
                 )
-
-        CreateKey keyName ->
-            case model.authentication of
-                Just authentication ->
-                    ( model
-                    , Requests.postValue
-                        authentication
-                        (InputTextField Nothing keyName)
-                        |> Http.send (ForSelf << KeyUpserted)
-                    )
-
-                Nothing ->
-                    ( model
-                    , Task.perform
-                        (\_ -> ForParent <| RequireSignIn <| CreateKey keyName)
-                        (Task.succeed ())
-                    )
 
         DataUpdated data ->
             ( mergeModelData data model, Cmd.none )
@@ -194,40 +178,29 @@ update msg model =
             case model.activeTab of
                 DebatePropertiesTab debatePropertiesModel ->
                     let
-                        ( updatedArgumentsModel, childCmd ) =
+                        ( updatedDebatePropertiesModel, childCmd ) =
                             DebateProperties.SameObject.State.update childMsg debatePropertiesModel
                     in
-                        ( { model | activeTab = DebatePropertiesTab updatedArgumentsModel }
+                        ( { model | activeTab = DebatePropertiesTab updatedDebatePropertiesModel }
                         , Cmd.map translateDebatePropertiesMsg childCmd
                         )
 
                 _ ->
                     ( model, Cmd.none )
 
-        KeysAutocompleteMsg childMsg ->
-            let
-                ( keysAutocompleteModel, childCmd ) =
-                    Properties.KeysAutocomplete.State.update
-                        childMsg
-                        model.authentication
-                        model.language
-                        "keyId"
-                        model.keysAutocompleteModel
-            in
-                ( { model | keysAutocompleteModel = keysAutocompleteModel }
-                , Cmd.map translateKeysAutocompleteMsg childCmd
-                )
+        PropertiesMsg childMsg ->
+            case model.activeTab of
+                PropertiesTab propertiesModel ->
+                    let
+                        ( updatedPropertiesModel, childCmd ) =
+                            Properties.SameObject.State.update childMsg propertiesModel
+                    in
+                        ( { model | activeTab = PropertiesTab updatedPropertiesModel }
+                        , Cmd.map translatePropertiesMsg childCmd
+                        )
 
-        KeyUpserted (Err httpError) ->
-            ( { model | httpError = Just httpError }, Cmd.none )
-
-        KeyUpserted (Ok { data }) ->
-            -- let
-            --     mergedModel =
-            --          mergeModelData data model
-            -- in
-            --     update (LoadProperties data.id) mergedModel
-            ( model, Cmd.none )
+                _ ->
+                    ( model, Cmd.none )
 
         Retrieve ->
             ( { model
@@ -239,15 +212,15 @@ update msg model =
                 |> Http.send (ForSelf << CardRetrieved)
             )
 
-        SameObjectAndKeyPropertiesMsg childMsg ->
-            case model.sameObjectAndKeyPropertiesModel of
-                Just sameObjectAndKeyPropertiesModel ->
+        SameKeyPropertiesMsg childMsg ->
+            case model.sameKeyPropertiesModel of
+                Just sameKeyPropertiesModel ->
                     let
                         ( updatedSameObjectAndKeyPropertiesModel, childCmd ) =
-                            Properties.SameObjectAndKey.State.update childMsg sameObjectAndKeyPropertiesModel
+                            Properties.SameObjectAndKey.State.update childMsg sameKeyPropertiesModel
                     in
-                        ( { model | sameObjectAndKeyPropertiesModel = Just updatedSameObjectAndKeyPropertiesModel }
-                        , Cmd.map translateSameObjectAndKeyPropertiesMsg childCmd
+                        ( { model | sameKeyPropertiesModel = Just updatedSameObjectAndKeyPropertiesModel }
+                        , Cmd.map translateSameKeyPropertiesMsg childCmd
                         )
 
                 Nothing ->
@@ -285,7 +258,7 @@ urlUpdate location route model =
 
         unroutedModel =
             { model
-                | sameObjectAndKeyPropertiesModel = Nothing
+                | sameKeyPropertiesModel = Nothing
                 , showTrashed = showTrashed
             }
 
@@ -298,28 +271,40 @@ urlUpdate location route model =
                     debatePropertiesModel =
                         DebateProperties.SameObject.State.init authentication language id
 
-                    ( updatedArgumentsModel, updatedArgumentsCmd ) =
+                    ( updatedDebatePropertiesModel, updatedArgumentsCmd ) =
                         DebateProperties.SameObject.State.urlUpdate location debatePropertiesModel
                 in
                     { updatedModel
-                        | activeTab = DebatePropertiesTab updatedArgumentsModel
+                        | activeTab = DebatePropertiesTab updatedDebatePropertiesModel
                     }
                         ! [ updatedCmd
                           , Cmd.map translateDebatePropertiesMsg updatedArgumentsCmd
                           ]
 
             PropertiesRoute ->
-                ( { updatedModel | activeTab = PropertiesTab }, updatedCmd )
+                let
+                    propertiesModel =
+                        Properties.SameObject.State.init authentication language id
+
+                    ( updatedPropertiesModel, updatedArgumentsCmd ) =
+                        Properties.SameObject.State.urlUpdate location propertiesModel
+                in
+                    { updatedModel
+                        | activeTab = PropertiesTab updatedPropertiesModel
+                    }
+                        ! [ updatedCmd
+                          , Cmd.map translatePropertiesMsg updatedArgumentsCmd
+                          ]
 
             SameObjectAndKeyPropertiesRoute keyId ->
                 let
-                    sameObjectAndKeyPropertiesModel =
+                    sameKeyPropertiesModel =
                         Properties.SameObjectAndKey.State.init authentication language id keyId
 
                     ( updatedSameObjectAndKeyPropertiesModel, updatedSameObjectAndKeyPropertiesCmd ) =
-                        Properties.SameObjectAndKey.State.urlUpdate location sameObjectAndKeyPropertiesModel
+                        Properties.SameObjectAndKey.State.urlUpdate location sameKeyPropertiesModel
                 in
-                    { updatedModel | sameObjectAndKeyPropertiesModel = Just updatedSameObjectAndKeyPropertiesModel }
+                    { updatedModel | sameKeyPropertiesModel = Just updatedSameObjectAndKeyPropertiesModel }
                         ! [ updatedCmd
-                          , Cmd.map translateSameObjectAndKeyPropertiesMsg updatedSameObjectAndKeyPropertiesCmd
+                          , Cmd.map translateSameKeyPropertiesMsg updatedSameObjectAndKeyPropertiesCmd
                           ]

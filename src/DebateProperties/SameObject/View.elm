@@ -5,12 +5,10 @@ import DebateProperties.SameObject.Types exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
-import Html.Helpers exposing (aForPath)
 import Http.Error
 import I18n
-import LineViews exposing (viewValueIdLine)
-import Statements.ViewsHelpers exposing (viewDebatePropertiesBlock)
-import Urls
+import LineViews exposing (viewPropertyIdLine)
+import Statements.ViewsHelpers exposing (viewStatementIdRatingPanel)
 import Views
 
 
@@ -26,7 +24,29 @@ view model =
         case model.debatePropertyIds of
             Just debatePropertyIds ->
                 div []
-                    [ viewDebatePropertiesBlock language (ForParent << Navigate) data debatePropertyIds
+                    [ div []
+                        [ if List.isEmpty debatePropertyIds then
+                            p [] [ text <| I18n.translate language I18n.MissingArguments ]
+                          else
+                            ul [ class "list-group" ]
+                                (List.map
+                                    (\debatePropertyId ->
+                                        li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
+                                            [ viewPropertyIdLine language
+                                                (Just (ForParent << Navigate))
+                                                False
+                                                data
+                                                debatePropertyId
+                                            , viewStatementIdRatingPanel
+                                                language
+                                                (ForParent << Navigate)
+                                                data
+                                                debatePropertyId
+                                            ]
+                                    )
+                                    debatePropertyIds
+                                )
+                        ]
                     , hr [] []
                     , DebateProperties.New.View.view model.newDebatePropertyModel
                         |> Html.map translateNewDebatePropertyMsg

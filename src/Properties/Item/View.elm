@@ -8,27 +8,22 @@ import Html.Attributes.Aria exposing (..)
 import Html.Helpers exposing (aForPath)
 import Http.Error
 import I18n
-import LineViews exposing (keyIdLabelCouples, viewPropertyIdLine, viewStatementIdLine)
+import LineViews exposing (viewPropertyIdLine, viewStatementIdLine)
 import Properties.Item.Types exposing (..)
+import Properties.SameObject.View
 import Properties.SameObjectAndKey.View
 import Statements.Toolbar.View
-import Statements.ViewsHelpers
-    exposing
-        ( viewDebatePropertiesBlock
-        , viewStatementIdRatingPanel
-        , viewStatementPropertiesBlock
-        , viewStatementRatingPanel
-        )
+import Statements.ViewsHelpers exposing (viewStatementIdRatingPanel, viewStatementRatingPanel)
 import Urls
 import Views
 
 
 view : Model -> Html Msg
 view model =
-    case model.sameObjectAndKeyPropertiesModel of
-        Just sameObjectAndKeyPropertiesModel ->
-            Properties.SameObjectAndKey.View.view sameObjectAndKeyPropertiesModel
-                |> Html.map translateSameObjectAndKeyPropertiesMsg
+    case model.sameKeyPropertiesModel of
+        Just sameKeyPropertiesModel ->
+            Properties.SameObjectAndKey.View.view sameKeyPropertiesModel
+                |> Html.map translateSameKeyPropertiesMsg
 
         Nothing ->
             let
@@ -61,7 +56,7 @@ view model =
                                         ]
                                     , let
                                         keyLabel =
-                                            Dict.get property.keyId (Dict.fromList keyIdLabelCouples)
+                                            Dict.get property.keyId I18n.keyLabelById
                                                 |> Maybe.map (I18n.translate language)
                                                 |> Maybe.withDefault property.keyId
                                       in
@@ -181,7 +176,14 @@ view model =
                                                 language
                                                 (Urls.idToPropertiesPath data property.id)
                                                 [ classList
-                                                    [ ( "active", model.activeTab == PropertiesTab )
+                                                    [ ( "active"
+                                                      , case model.activeTab of
+                                                            PropertiesTab _ ->
+                                                                True
+
+                                                            _ ->
+                                                                False
+                                                      )
                                                     , ( "nav-link", True )
                                                     ]
                                                 ]
@@ -193,8 +195,12 @@ view model =
                                             DebateProperties.SameObject.View.view debatePropertiesModel
                                                 |> Html.map translateDebatePropertiesMsg
 
-                                        PropertiesTab ->
-                                            viewStatementPropertiesBlock language (ForParent << Navigate) data property
+                                        NoTab ->
+                                            text ""
+
+                                        PropertiesTab propertiesModel ->
+                                            Properties.SameObject.View.view propertiesModel
+                                                |> Html.map translatePropertiesMsg
                                    ]
                             )
 

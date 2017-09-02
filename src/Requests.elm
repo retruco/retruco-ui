@@ -318,7 +318,7 @@ getObjectProperties authentication showTrashed objectId keyIds valueIds =
                 ++ objectId
                 ++ "/properties"
                 ++ Urls.paramsToQuery
-                    ([ ( "depth", Just "1" )
+                    ([ ( "depth", Just "3" )
                      , ( "show", Just "ballots" )
                      , ( "show"
                        , if showTrashed then

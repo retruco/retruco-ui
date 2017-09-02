@@ -11,15 +11,6 @@ import Types exposing (..)
 import Urls
 
 
-keyIdLabelCouples : List ( String, I18n.TranslationId )
-keyIdLabelCouples =
-    [ ( "pros", I18n.DebateProsLabel )
-    , ( "cons", I18n.DebateConsLabel )
-    , ( "options", I18n.DebateOptionsLabel )
-    , ( "sources", I18n.DebateSourcesLabel )
-    ]
-
-
 valueTypeToTypeLabel : I18n.Language -> ValueType -> String
 valueTypeToTypeLabel language valueType =
     I18n.translate language <|
@@ -88,9 +79,9 @@ viewPropertyLine language navigateMsg independent data property =
     -- The `independent` flag indicates whether to display the object of the property along with it key and value.
     let
         keyLabel =
-            Dict.get property.keyId (Dict.fromList keyIdLabelCouples)
+            Dict.get property.keyId I18n.keyLabelById
                 |> Maybe.map (I18n.translate language)
-                |> Maybe.withDefault property.keyId
+                |> Maybe.withDefault (Strings.idToString language data property.keyId)
     in
         div []
             [ if independent then

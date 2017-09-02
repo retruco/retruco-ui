@@ -8,14 +8,10 @@ import Html.Helpers exposing (aForPath)
 import Http.Error
 import I18n
 import LineViews exposing (viewValueTypeLine)
+import Properties.SameObject.View
 import Properties.SameObjectAndKey.View
 import Statements.Toolbar.View
-import Statements.ViewsHelpers
-    exposing
-        ( viewDebatePropertiesBlock
-        , viewStatementPropertiesBlock
-        , viewStatementRatingPanel
-        )
+import Statements.ViewsHelpers exposing (viewStatementRatingPanel)
 import Urls
 import Values.Item.Types exposing (..)
 import Views
@@ -23,10 +19,10 @@ import Views
 
 view : Model -> Html Msg
 view model =
-    case model.sameObjectAndKeyPropertiesModel of
-        Just sameObjectAndKeyPropertiesModel ->
-            Properties.SameObjectAndKey.View.view sameObjectAndKeyPropertiesModel
-                |> Html.map translateSameObjectAndKeyPropertiesMsg
+    case model.sameKeyPropertiesModel of
+        Just sameKeyPropertiesModel ->
+            Properties.SameObjectAndKey.View.view sameKeyPropertiesModel
+                |> Html.map translateSameKeyPropertiesMsg
 
         Nothing ->
             let
@@ -79,7 +75,14 @@ view model =
                                         language
                                         (Urls.idToPropertiesPath data typedValue.id)
                                         [ classList
-                                            [ ( "active", model.activeTab == PropertiesTab )
+                                            [ ( "active"
+                                              , case model.activeTab of
+                                                    PropertiesTab _ ->
+                                                        True
+
+                                                    _ ->
+                                                        False
+                                              )
                                             , ( "nav-link", True )
                                             ]
                                         ]
@@ -111,8 +114,12 @@ view model =
                                         data
                                         typedValue.value
 
-                                PropertiesTab ->
-                                    viewStatementPropertiesBlock language (ForParent << Navigate) data typedValue
+                                NoTab ->
+                                    text ""
+
+                                PropertiesTab propertiesModel ->
+                                    Properties.SameObject.View.view propertiesModel
+                                        |> Html.map translatePropertiesMsg
                             ]
 
                     ( _, _ ) ->

@@ -9,25 +9,20 @@ import Html.Helpers exposing (aForPath)
 import Http.Error
 import I18n
 import LineViews exposing (viewCardLine)
-import Properties.KeysAutocomplete.View
+import Properties.SameObject.View
 import Properties.SameObjectAndKey.View
 import Statements.Toolbar.View
-import Statements.ViewsHelpers
-    exposing
-        ( viewDebatePropertiesBlock
-        , viewStatementPropertiesBlock
-        , viewStatementRatingPanel
-        )
+import Statements.ViewsHelpers exposing (viewStatementRatingPanel)
 import Urls
 import Views
 
 
 view : Model -> Html Msg
 view model =
-    case model.sameObjectAndKeyPropertiesModel of
-        Just sameObjectAndKeyPropertiesModel ->
-            Properties.SameObjectAndKey.View.view sameObjectAndKeyPropertiesModel
-                |> Html.map translateSameObjectAndKeyPropertiesMsg
+    case model.sameKeyPropertiesModel of
+        Just sameKeyPropertiesModel ->
+            Properties.SameObjectAndKey.View.view sameKeyPropertiesModel
+                |> Html.map translateSameKeyPropertiesMsg
 
         Nothing ->
             let
@@ -79,7 +74,14 @@ view model =
                                         language
                                         (Urls.idToPropertiesPath data card.id)
                                         [ classList
-                                            [ ( "active", model.activeTab == PropertiesTab )
+                                            [ ( "active"
+                                              , case model.activeTab of
+                                                    PropertiesTab _ ->
+                                                        True
+
+                                                    _ ->
+                                                        False
+                                              )
                                             , ( "nav-link", True )
                                             ]
                                         ]
@@ -91,22 +93,12 @@ view model =
                                     DebateProperties.SameObject.View.view debatePropertiesModel
                                         |> Html.map translateDebatePropertiesMsg
 
-                                PropertiesTab ->
-                                    div []
-                                        [ viewStatementPropertiesBlock language (ForParent << Navigate) data card
-                                        , let
-                                            controlId =
-                                                "keysAutocomplete"
-                                          in
-                                            Properties.KeysAutocomplete.View.viewAutocomplete
-                                                language
-                                                controlId
-                                                I18n.AddPropertyKey
-                                                I18n.PropertyKeyPlaceholder
-                                                Nothing
-                                                model.keysAutocompleteModel
-                                                |> Html.map translateKeysAutocompleteMsg
-                                        ]
+                                NoTab ->
+                                    text ""
+
+                                PropertiesTab propertiesModel ->
+                                    Properties.SameObject.View.view propertiesModel
+                                        |> Html.map translatePropertiesMsg
                             ]
 
                     ( _, _ ) ->

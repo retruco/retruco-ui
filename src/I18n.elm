@@ -1913,6 +1913,23 @@ todo =
 
 
 
+-- CONSTANTS
+
+
+keyIdLabelCouples : List ( String, TranslationId )
+keyIdLabelCouples =
+    [ ( "pros", DebateProsLabel )
+    , ( "cons", DebateConsLabel )
+    , ( "options", DebateOptionsLabel )
+    , ( "sources", DebateSourcesLabel )
+    ]
+
+
+keyLabelById =
+    Dict.fromList keyIdLabelCouples
+
+
+
 -- FUNCTIONS
 
 
