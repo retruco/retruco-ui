@@ -54,20 +54,20 @@ setContext authentication language model =
 subscriptions : Model -> Sub InternalMsg
 subscriptions model =
     Sub.batch
-        [ Sub.map NewArgumentMsg (DebateProperties.New.State.subscriptions model.newDebatePropertyModel)
+        [ Sub.map NewDebatePropertyMsg (DebateProperties.New.State.subscriptions model.newDebatePropertyModel)
         ]
 
 
 update : InternalMsg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NewArgumentMsg childMsg ->
+        NewDebatePropertyMsg childMsg ->
             let
                 ( updatedNewDebatePropertyModel, childCmd ) =
                     DebateProperties.New.State.update childMsg model.newDebatePropertyModel
             in
                 ( { model | newDebatePropertyModel = updatedNewDebatePropertyModel }
-                , Cmd.map translateNewArgumentMsg childCmd
+                , Cmd.map translateNewDebatePropertyMsg childCmd
                 )
 
         Retrieve ->

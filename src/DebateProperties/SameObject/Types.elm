@@ -13,7 +13,7 @@ type ExternalMsg
 
 
 type InternalMsg
-    = NewArgumentMsg DebateProperties.New.Types.InternalMsg
+    = NewDebatePropertyMsg DebateProperties.New.Types.InternalMsg
     | Retrieve
     | Retrieved (Result Http.Error DataIdsBody)
     | Upserted Types.DataId
@@ -60,10 +60,10 @@ translateMsg { onInternalMsg, onNavigate, onRequireSignIn } msg =
             onInternalMsg internalMsg
 
 
-translateNewArgumentMsg : DebateProperties.New.Types.MsgTranslator Msg
-translateNewArgumentMsg =
+translateNewDebatePropertyMsg : DebateProperties.New.Types.MsgTranslator Msg
+translateNewDebatePropertyMsg =
     DebateProperties.New.Types.translateMsg
-        { onInternalMsg = ForSelf << NewArgumentMsg
+        { onInternalMsg = ForSelf << NewDebatePropertyMsg
         , onPropertyUpserted = ForSelf << Upserted
-        , onRequireSignIn = ForParent << RequireSignIn << NewArgumentMsg
+        , onRequireSignIn = ForParent << RequireSignIn << NewDebatePropertyMsg
         }

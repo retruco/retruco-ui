@@ -29,7 +29,7 @@ view model =
                     [ viewDebatePropertiesBlock language (ForParent << Navigate) data debatePropertyIds
                     , hr [] []
                     , DebateProperties.New.View.view model.newDebatePropertyModel
-                        |> Html.map translateNewArgumentMsg
+                        |> Html.map translateNewDebatePropertyMsg
                     ]
 
             Nothing ->
