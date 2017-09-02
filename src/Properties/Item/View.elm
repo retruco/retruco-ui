@@ -102,7 +102,7 @@ view model =
                                             property.valueId
                                         ]
                                     ]
-                                , viewStatementRatingPanel language (ForParent << Navigate) Nothing property
+                                , viewStatementRatingPanel language (ForParent << Navigate) False data property
                                 ]
                              ]
                                 ++ (case model.similarDebatePropertyIds of

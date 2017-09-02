@@ -40,17 +40,17 @@ viewStatementIdRatingPanel : I18n.Language -> (String -> msg) -> DataProxy a -> 
 viewStatementIdRatingPanel language navigateMsg data statementId =
     case Dict.get statementId data.cards of
         Just card ->
-            viewStatementRatingPanel language navigateMsg (Just "cards") card
+            viewStatementRatingPanel language navigateMsg True data card
 
         Nothing ->
             case Dict.get statementId data.properties of
                 Just property ->
-                    viewStatementRatingPanel language navigateMsg (Just "properties") property
+                    viewStatementRatingPanel language navigateMsg True data property
 
                 Nothing ->
                     case Dict.get statementId data.values of
                         Just typedValue ->
-                            viewStatementRatingPanel language navigateMsg (Just "affirmations") typedValue
+                            viewStatementRatingPanel language navigateMsg True data typedValue
 
                         Nothing ->
                             i [ class "text-warning" ] [ text (I18n.translate language <| I18n.UnknownId statementId) ]
@@ -119,10 +119,11 @@ viewStatementPropertiesBlock language navigateMsg data statement =
 viewStatementRatingPanel :
     I18n.Language
     -> (String -> msg)
-    -> Maybe String
-    -> { a | argumentCount : Int, id : String, ratingCount : Int, ratingSum : Int, trashed : Bool }
+    -> Bool
+    -> DataProxy a
+    -> { b | argumentCount : Int, id : String, ratingCount : Int, ratingSum : Int, trashed : Bool }
     -> Html msg
-viewStatementRatingPanel language navigateMsg objectsUrlName { argumentCount, id, ratingCount, ratingSum, trashed } =
+viewStatementRatingPanel language navigateMsg addLink data { argumentCount, id, ratingCount, ratingSum, trashed } =
     let
         buttonClass =
             classList
@@ -140,20 +141,18 @@ viewStatementRatingPanel language navigateMsg objectsUrlName { argumentCount, id
                 ]
 
         buttonWithAttributes =
-            case objectsUrlName of
-                Just objectsUrlName ->
-                    aForPath
-                        navigateMsg
-                        language
-                        ("/" ++ objectsUrlName ++ "/" ++ id)
-                        [ buttonClass ]
-
-                Nothing ->
-                    button
-                        [ buttonClass
-                        , disabled True
-                        , type_ "button"
-                        ]
+            if addLink then
+                aForPath
+                    navigateMsg
+                    language
+                    (Urls.idToPath data id)
+                    [ buttonClass ]
+            else
+                button
+                    [ buttonClass
+                    , disabled True
+                    , type_ "button"
+                    ]
     in
         buttonWithAttributes
             [ strong [] [ text <| toString ratingSum ]

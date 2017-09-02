@@ -2,7 +2,6 @@ module Root.Types exposing (..)
 
 import About.Types
 import Affirmations.Index.Types
-import Affirmations.Item.Types
 import Affirmations.New.Types
 import Authenticator.Routes
 import Authenticator.Types exposing (Authentication)
@@ -20,7 +19,6 @@ import Values.New.Types
 
 type alias Model =
     { aboutModel : Maybe About.Types.Model
-    , affirmationModel : Maybe Affirmations.Item.Types.Model
     , affirmationsModel : Maybe Affirmations.Index.Types.Model
     , authentication : Maybe Authentication
     , authenticatorCancelMsg : Maybe Msg
@@ -43,7 +41,6 @@ type alias Model =
 
 type Msg
     = AboutMsg About.Types.InternalMsg
-    | AffirmationMsg Affirmations.Item.Types.InternalMsg
     | AffirmationsMsg Affirmations.Index.Types.InternalMsg
     | AffirmationUpserted Types.DataId
     | AuthenticatorMsg Authenticator.Types.InternalMsg
@@ -58,7 +55,6 @@ type Msg
     | NewValueMsg Values.New.Types.InternalMsg
     | NoOp
     | PropertyMsg Properties.Item.Types.InternalMsg
-    | RequireSignInForAffirmation Affirmations.Item.Types.InternalMsg
     | RequireSignInForCard Cards.Item.Types.InternalMsg
     | RequireSignInForNewAffirmation Affirmations.New.Types.InternalMsg
     | RequireSignInForNewValue Values.New.Types.InternalMsg
@@ -74,15 +70,6 @@ translateAboutMsg =
     About.Types.translateMsg
         { onInternalMsg = AboutMsg
         , onNavigate = Navigate
-        }
-
-
-translateAffirmationMsg : Affirmations.Item.Types.MsgTranslator Msg
-translateAffirmationMsg =
-    Affirmations.Item.Types.translateMsg
-        { onInternalMsg = AffirmationMsg
-        , onNavigate = Navigate
-        , onRequireSignIn = RequireSignInForAffirmation
         }
 
 

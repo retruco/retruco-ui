@@ -1,6 +1,5 @@
 module Routes exposing (..)
 
-import Affirmations.Item.Routes
 import Authenticator.Routes
 import Cards.Item.Routes
 import I18n
@@ -11,8 +10,7 @@ import Values.Item.Routes
 
 
 type AffirmationsRoute
-    = AffirmationRoute String Affirmations.Item.Routes.Route
-    | AffirmationsIndexRoute
+    = AffirmationsIndexRoute
     | NewAffirmationRoute
 
 
@@ -52,22 +50,11 @@ type ValuesRoute
     | ValuesIndexRoute
 
 
-affirmationRouteParser : Parser (Affirmations.Item.Routes.Route -> a) a
-affirmationRouteParser =
-    oneOf
-        [ map Affirmations.Item.Routes.DebatePropertiesRoute top
-        , map Affirmations.Item.Routes.DetailsRoute (s "details")
-        , map Affirmations.Item.Routes.PropertiesRoute (s "properties")
-        , map Affirmations.Item.Routes.SameKeyPropertiesRoute (s "properties" </> idParser)
-        ]
-
-
 affirmationsRouteParser : Parser (AffirmationsRoute -> a) a
 affirmationsRouteParser =
     oneOf
         [ map AffirmationsIndexRoute top
         , map NewAffirmationRoute (s "new")
-        , map AffirmationRoute (idParser </> affirmationRouteParser)
         ]
 
 
@@ -157,10 +144,10 @@ routeParser =
 valueRouteParser : Parser (Values.Item.Routes.Route -> a) a
 valueRouteParser =
     oneOf
-        [ map Values.Item.Routes.IndexRoute top
-        , map Values.Item.Routes.ArgumentsRoute (s "arguments")
-
-        -- , map Values.Item.Routes.SameKeyPropertiesRoute (s "properties" </> idParser)
+        [ map Values.Item.Routes.DebatePropertiesRoute top
+        , map Values.Item.Routes.DetailsRoute (s "details")
+        , map Values.Item.Routes.PropertiesRoute (s "properties")
+        , map Values.Item.Routes.SameKeyPropertiesRoute (s "properties" </> idParser)
         ]
 
 

@@ -33,7 +33,12 @@ view model =
                                         Just <|
                                             li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
                                                 [ viewValueIdLine language Nothing False data property.valueId
-                                                , viewStatementRatingPanel language (ForParent << Navigate) Nothing property
+                                                , viewStatementRatingPanel
+                                                    language
+                                                    (ForParent << Navigate)
+                                                    False
+                                                    data
+                                                    property
                                                 ]
 
                                     Nothing ->

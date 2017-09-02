@@ -2,7 +2,6 @@ module Root.View exposing (..)
 
 import About.View
 import Affirmations.Index.View
-import Affirmations.Item.View
 import Affirmations.New.View
 import Authenticator.View
 import Cards.Index.View
@@ -228,15 +227,6 @@ view model =
 
                         AffirmationsRoute childRoute ->
                             case childRoute of
-                                AffirmationRoute _ _ ->
-                                    case model.affirmationModel of
-                                        Just affirmationModel ->
-                                            Affirmations.Item.View.view affirmationModel
-                                                |> Html.map translateAffirmationMsg
-
-                                        Nothing ->
-                                            text "This should not occur: affirmationModel == Nothing!"
-
                                 AffirmationsIndexRoute ->
                                     case model.affirmationsModel of
                                         Just affirmationsModel ->

@@ -48,7 +48,7 @@ view model =
                                         data
                                         card
                                     ]
-                                , viewStatementRatingPanel language (ForParent << Navigate) Nothing card
+                                , viewStatementRatingPanel language (ForParent << Navigate) False data card
                                 ]
                             , Statements.Toolbar.View.view toolbarModel
                                 |> Html.map translateToolbarMsg

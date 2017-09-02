@@ -78,7 +78,8 @@ view model =
                                                     , viewStatementRatingPanel
                                                         language
                                                         (ForParent << Navigate)
-                                                        (Just "affirmations")
+                                                        True
+                                                        data
                                                         typedValue
                                                     ]
 

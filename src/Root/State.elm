@@ -2,7 +2,6 @@ module Root.State exposing (..)
 
 import About.State
 import Affirmations.Index.State
-import Affirmations.Item.State
 import Affirmations.New.State
 import Authenticator.Routes exposing (..)
 import Authenticator.State
@@ -43,7 +42,6 @@ init flags location =
             navigatorLanguage |> Maybe.withDefault I18n.English
     in
         { aboutModel = Nothing
-        , affirmationModel = Nothing
         , affirmationsModel = Nothing
         , authentication = authentication
         , authenticatorCancelMsg = Nothing
@@ -97,13 +95,7 @@ subscriptions model =
     -- TODO Fix duplicate messages with port "fileContentRead", that was worked around by a "ImageSelectedStatus"
     -- constructor.
     List.filterMap identity
-        [ case model.affirmationModel of
-            Just affirmationModel ->
-                Just <| Sub.map AffirmationMsg (Affirmations.Item.State.subscriptions affirmationModel)
-
-            Nothing ->
-                Nothing
-        , case model.cardModel of
+        [ case model.cardModel of
             Just cardModel ->
                 Just <| Sub.map CardMsg (Cards.Item.State.subscriptions cardModel)
 
@@ -166,20 +158,6 @@ update msg model =
                         in
                             ( { model | aboutModel = Just updatedAboutModel }
                             , Cmd.map translateAboutMsg childCmd
-                            )
-
-                    Nothing ->
-                        ( model, Cmd.none )
-
-            AffirmationMsg childMsg ->
-                case model.affirmationModel of
-                    Just affirmationModel ->
-                        let
-                            ( updatedAffirmationModel, childCmd ) =
-                                Affirmations.Item.State.update childMsg affirmationModel
-                        in
-                            ( { model | affirmationModel = Just updatedAffirmationModel }
-                            , Cmd.map translateAffirmationMsg childCmd
                             )
 
                     Nothing ->
@@ -366,9 +344,6 @@ update msg model =
                     Nothing ->
                         ( model, Cmd.none )
 
-            RequireSignInForAffirmation affirmationCompletionMsg ->
-                requireSignInOrUpdate <| AffirmationMsg affirmationCompletionMsg
-
             RequireSignInForCard cardCompletionMsg ->
                 requireSignInOrUpdate <| CardMsg cardCompletionMsg
 
@@ -426,7 +401,6 @@ urlUpdate location model =
             if clearSubModels then
                 { model
                     | aboutModel = Nothing
-                    , affirmationModel = Nothing
                     , affirmationsModel = Nothing
                     , cardModel = Nothing
                     , cardsModel = Nothing
@@ -467,36 +441,6 @@ urlUpdate location model =
 
                                 AffirmationsRoute childRoute ->
                                     case childRoute of
-                                        AffirmationRoute affirmationId affirmationRoute ->
-                                            let
-                                                affirmationModel =
-                                                    case ( model.affirmationModel, clearSubModels ) of
-                                                        ( Just affirmationModel, False ) ->
-                                                            Affirmations.Item.State.setContext
-                                                                model.authentication
-                                                                language
-                                                                affirmationModel
-
-                                                        _ ->
-                                                            Affirmations.Item.State.init
-                                                                model.authentication
-                                                                language
-                                                                affirmationId
-
-                                                ( updatedAffirmationModel, updatedAffirmationCmd ) =
-                                                    Affirmations.Item.State.urlUpdate
-                                                        location
-                                                        affirmationRoute
-                                                        affirmationModel
-                                            in
-                                                ( { cleanModel
-                                                    | affirmationModel = Just updatedAffirmationModel
-                                                    , -- Stay at the current location after sign out.
-                                                      signOutMsg = Just (NavigateFromAuthenticator location.href)
-                                                  }
-                                                , Cmd.map translateAffirmationMsg updatedAffirmationCmd
-                                                )
-
                                         AffirmationsIndexRoute ->
                                             let
                                                 affirmationsModel =
@@ -700,12 +644,30 @@ urlUpdate location model =
                                         ValueRoute valueId valueRoute ->
                                             let
                                                 valueModel =
-                                                    Values.Item.State.init model.authentication language valueId
+                                                    case ( model.valueModel, clearSubModels ) of
+                                                        ( Just valueModel, False ) ->
+                                                            Values.Item.State.setContext
+                                                                model.authentication
+                                                                language
+                                                                valueModel
+
+                                                        _ ->
+                                                            Values.Item.State.init
+                                                                model.authentication
+                                                                language
+                                                                valueId
 
                                                 ( updatedValueModel, updatedValueCmd ) =
-                                                    Values.Item.State.urlUpdate location valueRoute valueModel
+                                                    Values.Item.State.urlUpdate
+                                                        location
+                                                        valueRoute
+                                                        valueModel
                                             in
-                                                ( { cleanModel | valueModel = Just updatedValueModel }
+                                                ( { cleanModel
+                                                    | valueModel = Just updatedValueModel
+                                                    , -- Stay at the current location after sign out.
+                                                      signOutMsg = Just (NavigateFromAuthenticator location.href)
+                                                  }
                                                 , Cmd.map translateValueMsg updatedValueCmd
                                                 )
 
