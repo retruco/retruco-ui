@@ -29,9 +29,9 @@ setContext authentication language model =
     }
 
 
-setData : DataProxy {} -> Statement b -> Model (Statement b) -> Model (Statement b)
-setData data statement model =
-    -- Note: setData is used when the content of a stetement changes. It must not be used when the statement (aka
+setModelData : DataProxy {} -> Statement b -> Model (Statement b) -> Model (Statement b)
+setModelData data statement model =
+    -- Note: setModelData is used when the content of a stetement changes. It must not be used when the statement (aka
     -- its id) changes.
     { model | data = data, statement = statement }
 

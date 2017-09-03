@@ -76,7 +76,7 @@ mergeModelData data model =
                     Just card ->
                         case model.toolbarModel of
                             Just toolbarModel ->
-                                Just <| Statements.Toolbar.State.setData mergedData card toolbarModel
+                                Just <| Statements.Toolbar.State.setModelData mergedData card toolbarModel
 
                             Nothing ->
                                 Just <|

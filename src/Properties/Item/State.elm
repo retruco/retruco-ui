@@ -75,7 +75,7 @@ mergeModelData data model =
                     Just property ->
                         case model.toolbarModel of
                             Just toolbarModel ->
-                                Just <| Statements.Toolbar.State.setData mergedData property toolbarModel
+                                Just <| Statements.Toolbar.State.setModelData mergedData property toolbarModel
 
                             Nothing ->
                                 Just <|

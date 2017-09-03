@@ -72,7 +72,7 @@ mergeModelData data model =
                     Just typedValue ->
                         case model.toolbarModel of
                             Just toolbarModel ->
-                                Just <| Statements.Toolbar.State.setData mergedData typedValue toolbarModel
+                                Just <| Statements.Toolbar.State.setModelData mergedData typedValue toolbarModel
 
                             Nothing ->
                                 Just <|
