@@ -18,11 +18,11 @@ init : Maybe Authentication -> I18n.Language -> String -> Model
 init authentication language objectId =
     { authentication = authentication
     , data = initData
-    , propertyIds = Nothing
     , httpError = Nothing
     , keysAutocompleteModel = Properties.KeysAutocomplete.State.init [] True
     , language = language
     , objectId = objectId
+    , propertyIds = Nothing
     , showTrashed = False
     }
 
@@ -108,7 +108,7 @@ update msg model =
                 | propertyIds = Nothing
                 , httpError = Nothing
               }
-            , Requests.getObjectProperties model.authentication model.showTrashed model.objectId [] []
+            , Requests.getProperties model.authentication model.showTrashed [ model.objectId ] [] []
                 |> Http.send (ForSelf << Retrieved)
             )
 
@@ -133,11 +133,10 @@ update msg model =
                     | keysAutocompleteModel = Properties.KeysAutocomplete.State.init [] True
                     , propertyIds = Just data.ids
                   }
-                , -- TODO
-                  Ports.setDocumentMetadata
-                    { description = I18n.translate language I18n.CardsDescription
+                , Ports.setDocumentMetadata
+                    { description = I18n.translate language I18n.PropertiesDescription
                     , imageUrl = Urls.appLogoFullUrl
-                    , title = I18n.translate language I18n.Cards
+                    , title = I18n.translate language I18n.Properties
                     }
                 )
 

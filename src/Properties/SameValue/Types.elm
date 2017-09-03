@@ -1,4 +1,4 @@
-module Properties.SameObject.Types exposing (..)
+module Properties.SameValue.Types exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import Http
@@ -13,24 +13,18 @@ type ExternalMsg
 
 
 type InternalMsg
-    = AddKey TypedValue
-    | CreateKey String
-    | KeyUpserted (Result Http.Error DataIdBody)
-    | KeysAutocompleteMsg Properties.KeysAutocomplete.Types.InternalMsg
-    | Retrieve
+    = Retrieve
     | Retrieved (Result Http.Error DataIdsBody)
-    | Upserted Types.DataId
 
 
 type alias Model =
     { authentication : Maybe Authentication
     , data : DataProxy {}
     , httpError : Maybe Http.Error
-    , keysAutocompleteModel : Properties.KeysAutocomplete.Types.Model
     , language : I18n.Language
-    , objectId : String
     , propertyIds : Maybe (List String)
     , showTrashed : Bool
+    , valueId : String
     }
 
 
@@ -48,15 +42,6 @@ type alias MsgTranslation parentMsg =
 
 type alias MsgTranslator parentMsg =
     Msg -> parentMsg
-
-
-translateKeysAutocompleteMsg : Properties.KeysAutocomplete.Types.MsgTranslator Msg
-translateKeysAutocompleteMsg =
-    Properties.KeysAutocomplete.Types.translateMsg
-        { onAdd = ForSelf << AddKey
-        , onCreate = ForSelf << CreateKey
-        , onInternalMsg = ForSelf << KeysAutocompleteMsg
-        }
 
 
 translateMsg : MsgTranslation parentMsg -> MsgTranslator parentMsg

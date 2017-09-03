@@ -70,7 +70,7 @@ update msg model =
                 | httpError = Nothing
                 , propertyIds = Nothing
               }
-            , Requests.getObjectProperties model.authentication False model.objectId [ model.keyId ] []
+            , Requests.getProperties model.authentication False [ model.objectId ] [ model.keyId ] []
                 |> Http.send (ForSelf << Retrieved)
             )
 
@@ -92,11 +92,10 @@ update msg model =
                 ( { mergedModel
                     | propertyIds = Just data.ids
                   }
-                , -- TODO
-                  Ports.setDocumentMetadata
-                    { description = I18n.translate language I18n.CardsDescription
+                , Ports.setDocumentMetadata
+                    { description = I18n.translate language I18n.PropertiesDescription
                     , imageUrl = Urls.appLogoFullUrl
-                    , title = I18n.translate language I18n.Cards
+                    , title = I18n.translate language I18n.Properties
                     }
                 )
 

@@ -307,16 +307,14 @@ getCollectionsForAuthor authentication =
         }
 
 
-getObjectProperties : Maybe Authentication -> Bool -> String -> List String -> List String -> Http.Request DataIdsBody
-getObjectProperties authentication showTrashed objectId keyIds valueIds =
+getProperties : Maybe Authentication -> Bool -> List String -> List String -> List String -> Http.Request DataIdsBody
+getProperties authentication showTrashed objectIds keyIds valueIds =
     Http.request
         { method = "GET"
         , headers = authenticationHeaders authentication
         , url =
             apiUrl
-                ++ "objects/"
-                ++ objectId
-                ++ "/properties"
+                ++ "properties"
                 ++ Urls.paramsToQuery
                     ([ ( "depth", Just "3" )
                      , ( "show", Just "ballots" )
@@ -329,6 +327,7 @@ getObjectProperties authentication showTrashed objectId keyIds valueIds =
                      , ( "show", Just "values" )
                      ]
                         ++ (List.map (\keyId -> ( "keyId", Just keyId )) keyIds)
+                        ++ (List.map (\objectId -> ( "objectId", Just objectId )) objectIds)
                         ++ (List.map (\valueId -> ( "valueId", Just valueId )) valueIds)
                     )
         , body = Http.emptyBody

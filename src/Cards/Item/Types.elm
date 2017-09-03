@@ -6,6 +6,7 @@ import Http
 import I18n
 import Properties.SameObject.Types
 import Properties.SameObjectAndKey.Types
+import Properties.SameValue.Types
 import Statements.Toolbar.Types
 import Types exposing (..)
 
@@ -19,6 +20,7 @@ type InternalMsg
     = CardRetrieved (Result Http.Error DataIdBody)
     | DataUpdated (DataProxy {})
     | DebatePropertiesMsg DebateProperties.SameObject.Types.InternalMsg
+    | PropertiesAsValueMsg Properties.SameValue.Types.InternalMsg
     | PropertiesMsg Properties.SameObject.Types.InternalMsg
     | Retrieve
     | SameKeyPropertiesMsg Properties.SameObjectAndKey.Types.InternalMsg
@@ -58,6 +60,7 @@ type alias MsgTranslator parentMsg =
 type Tab
     = DebatePropertiesTab DebateProperties.SameObject.Types.Model
     | NoTab
+    | PropertiesAsValueTab Properties.SameValue.Types.Model
     | PropertiesTab Properties.SameObject.Types.Model
 
 
@@ -81,6 +84,15 @@ translateMsg { onInternalMsg, onNavigate, onRequireSignIn } msg =
 
         ForSelf internalMsg ->
             onInternalMsg internalMsg
+
+
+translatePropertiesAsValueMsg : Properties.SameValue.Types.MsgTranslator Msg
+translatePropertiesAsValueMsg =
+    Properties.SameValue.Types.translateMsg
+        { onInternalMsg = ForSelf << PropertiesAsValueMsg
+        , onNavigate = ForParent << Navigate
+        , onRequireSignIn = ForParent << RequireSignIn << PropertiesAsValueMsg
+        }
 
 
 translatePropertiesMsg : Properties.SameObject.Types.MsgTranslator Msg

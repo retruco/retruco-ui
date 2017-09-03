@@ -93,6 +93,11 @@ idToPath data id =
                             "/statements/" ++ id
 
 
+idToPropertiesAsValuePath : DataProxy a -> String -> String
+idToPropertiesAsValuePath data id =
+    (idToPath data id) ++ "/uses"
+
+
 idToPropertiesPath : DataProxy a -> String -> String
 idToPropertiesPath data id =
     (idToPath data id)

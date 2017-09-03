@@ -64,6 +64,7 @@ cardRouteParser =
         [ map Cards.Item.Routes.PropertiesRoute top
         , map Cards.Item.Routes.DebatePropertiesRoute (s "arguments")
         , map Cards.Item.Routes.SameObjectAndKeyPropertiesRoute (s "properties" </> idParser)
+        , map Cards.Item.Routes.PropertiesAsValueRoute (s "uses")
         ]
 
 
@@ -117,6 +118,7 @@ propertyRouteParser =
         [ map Properties.Item.Routes.DebatePropertiesRoute top
         , map Properties.Item.Routes.PropertiesRoute (s "properties")
         , map Properties.Item.Routes.SameObjectAndKeyPropertiesRoute (s "properties" </> idParser)
+        , map Properties.Item.Routes.PropertiesAsValueRoute (s "uses")
         ]
 
 
@@ -148,6 +150,7 @@ valueRouteParser =
         , map Values.Item.Routes.DetailsRoute (s "details")
         , map Values.Item.Routes.PropertiesRoute (s "properties")
         , map Values.Item.Routes.SameObjectAndKeyPropertiesRoute (s "properties" </> idParser)
+        , map Values.Item.Routes.PropertiesAsValueRoute (s "uses")
         ]
 
 

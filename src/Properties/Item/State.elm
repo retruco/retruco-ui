@@ -12,6 +12,7 @@ import Properties.Item.Routes exposing (..)
 import Properties.Item.Types exposing (..)
 import Properties.SameObject.State
 import Properties.SameObjectAndKey.State
+import Properties.SameValue.State
 import Requests
 import Statements.Toolbar.State
 import Types exposing (..)
@@ -49,6 +50,11 @@ mergeModelData data model =
                     DebatePropertiesTab debatePropertiesModel ->
                         DebatePropertiesTab <|
                             DebateProperties.SameObject.State.mergeModelData mergedData debatePropertiesModel
+
+                    PropertiesAsValueTab propertiesAsValueModel ->
+                        PropertiesAsValueTab <|
+                            Properties.SameValue.State.mergeModelData mergedData
+                                propertiesAsValueModel
 
                     PropertiesTab propertiesModel ->
                         PropertiesTab <| Properties.SameObject.State.mergeModelData mergedData propertiesModel
@@ -92,6 +98,12 @@ setContext authentication language model =
                 DebatePropertiesTab debatePropertiesModel ->
                     DebatePropertiesTab <|
                         DebateProperties.SameObject.State.setContext authentication language debatePropertiesModel
+
+                PropertiesAsValueTab propertiesAsValueModel ->
+                    PropertiesAsValueTab <|
+                        Properties.SameValue.State.setContext authentication
+                            language
+                            propertiesAsValueModel
 
                 PropertiesTab propertiesModel ->
                     PropertiesTab <| Properties.SameObject.State.setContext authentication language propertiesModel
@@ -159,6 +171,20 @@ update msg model =
                     in
                         ( { model | activeTab = DebatePropertiesTab updatedDebatePropertiesModel }
                         , Cmd.map translateDebatePropertiesMsg childCmd
+                        )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        PropertiesAsValueMsg childMsg ->
+            case model.activeTab of
+                PropertiesAsValueTab propertiesAsValueModel ->
+                    let
+                        ( updatedPropertiesAsValueModel, childCmd ) =
+                            Properties.SameValue.State.update childMsg propertiesAsValueModel
+                    in
+                        ( { model | activeTab = PropertiesAsValueTab updatedPropertiesAsValueModel }
+                        , Cmd.map translatePropertiesAsValueMsg childCmd
                         )
 
                 _ ->
@@ -252,10 +278,10 @@ update msg model =
                         ++ case mergedModel.property of
                             Just property ->
                                 if List.member property.keyId debateKeyIds then
-                                    [ Requests.getObjectProperties
+                                    [ Requests.getProperties
                                         model.authentication
                                         model.showTrashed
-                                        property.objectId
+                                        [ property.objectId ]
                                         (List.filter
                                             (\debateKeyId -> debateKeyId /= property.keyId)
                                             debateKeyIds
@@ -309,6 +335,21 @@ urlUpdate location route model =
                     }
                         ! [ updatedCmd
                           , Cmd.map translateDebatePropertiesMsg updatedArgumentsCmd
+                          ]
+
+            PropertiesAsValueRoute ->
+                let
+                    propertiesAsValueModel =
+                        Properties.SameValue.State.init authentication language id
+
+                    ( updatedPropertiesAsValueModel, updatedPropertiesAsValueCmd ) =
+                        Properties.SameValue.State.urlUpdate location propertiesAsValueModel
+                in
+                    { updatedModel
+                        | activeTab = PropertiesAsValueTab updatedPropertiesAsValueModel
+                    }
+                        ! [ updatedCmd
+                          , Cmd.map translatePropertiesAsValueMsg updatedPropertiesAsValueCmd
                           ]
 
             PropertiesRoute ->

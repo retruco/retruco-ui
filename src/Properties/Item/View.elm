@@ -12,6 +12,7 @@ import LineViews exposing (viewPropertyIdLine, viewStatementIdLine)
 import Properties.Item.Types exposing (..)
 import Properties.SameObject.View
 import Properties.SameObjectAndKey.View
+import Properties.SameValue.View
 import Statements.Toolbar.View
 import Statements.ViewsHelpers exposing (viewStatementIdRatingPanel, viewStatementRatingPanel)
 import Urls
@@ -189,6 +190,25 @@ view model =
                                                 ]
                                                 [ text <| I18n.translate language I18n.Properties ]
                                             ]
+                                        , li [ class "nav-item" ]
+                                            [ aForPath
+                                                (ForParent << Navigate)
+                                                language
+                                                (Urls.idToPropertiesAsValuePath data property.id)
+                                                [ classList
+                                                    [ ( "active"
+                                                      , case model.activeTab of
+                                                            PropertiesAsValueTab _ ->
+                                                                True
+
+                                                            _ ->
+                                                                False
+                                                      )
+                                                    , ( "nav-link", True )
+                                                    ]
+                                                ]
+                                                [ text <| I18n.translate language I18n.Uses ]
+                                            ]
                                         ]
                                    , case model.activeTab of
                                         DebatePropertiesTab debatePropertiesModel ->
@@ -197,6 +217,10 @@ view model =
 
                                         NoTab ->
                                             text ""
+
+                                        PropertiesAsValueTab propertiesAsValueModel ->
+                                            Properties.SameValue.View.view propertiesAsValueModel
+                                                |> Html.map translatePropertiesAsValueMsg
 
                                         PropertiesTab propertiesModel ->
                                             Properties.SameObject.View.view propertiesModel

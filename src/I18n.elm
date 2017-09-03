@@ -151,6 +151,7 @@ type TranslationId
     | PasswordLost
     | PasswordPlaceholder
     | Properties
+    | PropertiesDescription
     | PropertyKeyPlaceholder
     | RadioButtonForFollowingAutocompleter
     | ReadingSelectedImage
@@ -1304,6 +1305,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Properties"
                 , french = s "Propriétés"
+                , spanish = todo
+            }
+
+        PropertiesDescription ->
+            { emptyTranslationSet
+                | english = s "List of properties"
+                , french = s "Liste de propriétés"
                 , spanish = todo
             }
 
