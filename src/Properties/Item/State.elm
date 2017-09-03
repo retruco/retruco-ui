@@ -327,14 +327,14 @@ urlUpdate location route model =
                     debatePropertiesModel =
                         DebateProperties.SameObject.State.init authentication language id
 
-                    ( updatedDebatePropertiesModel, updatedArgumentsCmd ) =
+                    ( updatedDebatePropertiesModel, updatedDebatePropertiesCmd ) =
                         DebateProperties.SameObject.State.urlUpdate location debatePropertiesModel
                 in
                     { updatedModel
                         | activeTab = DebatePropertiesTab updatedDebatePropertiesModel
                     }
                         ! [ updatedCmd
-                          , Cmd.map translateDebatePropertiesMsg updatedArgumentsCmd
+                          , Cmd.map translateDebatePropertiesMsg updatedDebatePropertiesCmd
                           ]
 
             PropertiesAsValueRoute ->
@@ -357,14 +357,14 @@ urlUpdate location route model =
                     propertiesModel =
                         Properties.SameObject.State.init authentication language id
 
-                    ( updatedPropertiesModel, updatedArgumentsCmd ) =
+                    ( updatedPropertiesModel, updatedPropertiesCmd ) =
                         Properties.SameObject.State.urlUpdate location propertiesModel
                 in
                     { updatedModel
                         | activeTab = PropertiesTab updatedPropertiesModel
                     }
                         ! [ updatedCmd
-                          , Cmd.map translatePropertiesMsg updatedArgumentsCmd
+                          , Cmd.map translatePropertiesMsg updatedPropertiesCmd
                           ]
 
             SameObjectAndKeyPropertiesRoute keyId ->
