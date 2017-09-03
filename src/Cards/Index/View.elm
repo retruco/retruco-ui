@@ -14,10 +14,10 @@ import Views
 import WebData
 
 
-searchSortLabelCouples : List ( String, String )
+searchSortLabelCouples : List ( String, I18n.TranslationId )
 searchSortLabelCouples =
-    [ ( "old", "Old" )
-    , ( "recent", "Recent" )
+    [ ( "old", I18n.OldSortLabel )
+    , ( "recent", I18n.RecentSortLabel )
     ]
 
 
@@ -127,9 +127,22 @@ viewInlineSearchSort language searchSort errorMaybe searchSortChanged =
                  ]
                     ++ errorAttributes
                 )
-                (List.map
-                    (Views.viewOption searchSort)
-                    searchSortLabelCouples
+                (searchSortLabelCouples
+                    |> List.map
+                        (\( symbol, labelI18n ) ->
+                            ( symbol
+                            , I18n.translate language labelI18n
+                            )
+                        )
+                    |> List.sortBy (\( symbol, label ) -> label)
+                    |> List.map
+                        (\( symbol, label ) ->
+                            option
+                                [ selected (symbol == searchSort)
+                                , value symbol
+                                ]
+                                [ text label ]
+                        )
                 )
              ]
                 ++ errorBlock

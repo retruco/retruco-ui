@@ -12,12 +12,12 @@ import String
 import WebData exposing (LoadingStatus, WebData(..))
 
 
-searchSortLabelCouples : List ( String, String )
+searchSortLabelCouples : List ( String, I18n.TranslationId )
 searchSortLabelCouples =
-    [ ( "popular", "Popular" )
-    , ( "old", "Old" )
-    , ( "recent", "Recent" )
-    , ( "trending", "Trending" )
+    [ ( "old", I18n.OldSortLabel )
+    , ( "popular", I18n.PopularSortLabel )
+    , ( "recent", I18n.RecentSortLabel )
+    , ( "trending", I18n.TrendingSortLabel )
     ]
 
 
@@ -83,8 +83,8 @@ viewBigMessage title message =
         ]
 
 
-viewInlineSearchSort : String -> Maybe String -> (String -> msg) -> Html msg
-viewInlineSearchSort searchSort errorMaybe searchSortChanged =
+viewInlineSearchSort : I18n.Language -> String -> Maybe String -> (String -> msg) -> Html msg
+viewInlineSearchSort language searchSort errorMaybe searchSortChanged =
     let
         ( errorClass, errorAttributes, errorBlock ) =
             case errorMaybe of
@@ -111,9 +111,22 @@ viewInlineSearchSort searchSort errorMaybe searchSortChanged =
                  ]
                     ++ errorAttributes
                 )
-                (List.map
-                    (viewOption searchSort)
-                    searchSortLabelCouples
+                (searchSortLabelCouples
+                    |> List.map
+                        (\( symbol, labelI18n ) ->
+                            ( symbol
+                            , I18n.translate language labelI18n
+                            )
+                        )
+                    |> List.sortBy (\( symbol, label ) -> label)
+                    |> List.map
+                        (\( symbol, label ) ->
+                            option
+                                [ selected (symbol == searchSort)
+                                , value symbol
+                                ]
+                                [ text label ]
+                        )
                 )
              ]
                 ++ errorBlock
@@ -168,25 +181,6 @@ viewNotFound language =
     viewBigMessage
         (I18n.translate language I18n.PageNotFound)
         (I18n.translate language I18n.PageNotFoundExplanation)
-
-
-viewOption : a -> ( a, String ) -> Html msg
-viewOption selectedItem ( item, label ) =
-    let
-        itemString =
-            toString item
-
-        itemString_ =
-            if String.left 1 itemString == "\"" && String.right 1 itemString == "\"" then
-                String.slice 1 -1 itemString
-            else
-                itemString
-    in
-        option
-            [ selected (item == selectedItem)
-            , value itemString_
-            ]
-            [ text label ]
 
 
 viewWebData : I18n.Language -> (LoadingStatus a -> Html msg) -> WebData a -> Html msg

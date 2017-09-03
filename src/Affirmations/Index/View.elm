@@ -29,7 +29,7 @@ view model =
                 [ div [ class "navbar-collapse" ]
                     [ Html.form [ class "form-inline mr-auto", onSubmit (ForSelf Submit) ]
                         [ Views.viewInlineSearchSort
-                            -- language
+                            language
                             model.searchSort
                             (Dict.get "searchSort" model.errors)
                             (ForSelf << SearchSortChanged)

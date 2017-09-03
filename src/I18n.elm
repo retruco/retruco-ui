@@ -141,6 +141,7 @@ type TranslationId
     | NumberPlaceholder
     | Objects
     | ObjectsDescription
+    | OldSortLabel
     | PageLoading
     | PageLoadingExplanation
     | PageNotFound
@@ -150,12 +151,14 @@ type TranslationId
     | PasswordChangeFailed
     | PasswordLost
     | PasswordPlaceholder
+    | PopularSortLabel
     | Properties
     | PropertiesDescription
     | PropertyKeyPlaceholder
     | RadioButtonForFollowingAutocompleter
     | ReadingSelectedImage
     | ReadMore
+    | RecentSortLabel
     | Register
     | RegisterNow
     | ResetPassword
@@ -196,6 +199,7 @@ type TranslationId
     | Timeout
     | TimeoutExplanation
     | Trash
+    | TrendingSortLabel
     | TrueWord
     | TweetMessage String String
     | Type
@@ -1238,6 +1242,13 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        OldSortLabel ->
+            { emptyTranslationSet
+                | english = s "Old"
+                , french = s "Ancien"
+                , spanish = todo
+            }
+
         PageLoading ->
             { emptyTranslationSet
                 | english = s "Page is loading"
@@ -1301,6 +1312,13 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        PopularSortLabel ->
+            { emptyTranslationSet
+                | english = s "Popular"
+                , french = s "Populaire"
+                , spanish = todo
+            }
+
         Properties ->
             { emptyTranslationSet
                 | english = s "Properties"
@@ -1340,6 +1358,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Read more"
                 , french = s "En savoir plus"
+                , spanish = todo
+            }
+
+        RecentSortLabel ->
+            { emptyTranslationSet
+                | english = s "Recent"
+                , french = s "Récent"
                 , spanish = todo
             }
 
@@ -1656,6 +1681,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Trash"
                 , french = s "Jeter"
+                , spanish = todo
+            }
+
+        TrendingSortLabel ->
+            { emptyTranslationSet
+                | english = s "Trending"
+                , french = s "Tendance"
                 , spanish = todo
             }
 

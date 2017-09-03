@@ -97,10 +97,10 @@ viewFormControls model =
                         |> List.sortBy (\( symbol, label ) -> label)
                         |> (::) ( "", "" )
                         |> List.map
-                            (\( keyId, label ) ->
+                            (\( symbol, label ) ->
                                 option
-                                    [ selected (keyId == model.keyId)
-                                    , value keyId
+                                    [ selected (symbol == model.keyId)
+                                    , value symbol
                                     ]
                                     [ text label ]
                             )
