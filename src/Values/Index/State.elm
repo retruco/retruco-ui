@@ -18,10 +18,10 @@ init authentication language =
     , errors = Dict.empty
     , language = language
     , searchCriteria =
-        { sort = "latest"
+        { sort = "recent"
         , term = Nothing
         }
-    , searchSort = "latest"
+    , searchSort = "recent"
     , searchTerm = ""
     , showTrashed = False
     , webData = NotAsked
@@ -79,13 +79,13 @@ update msg model =
                         limit =
                             Just 10
                     in
-                        -- TODO: Handle sort order.
                         Requests.getValues
                             model.authentication
                             model.searchCriteria.term
                             limit
                             False
                             model.showTrashed
+                            model.searchCriteria.sort
                             |> Http.send (ForSelf << Retrieved)
             in
                 ( newModel, cmd )
@@ -106,7 +106,7 @@ update msg model =
             )
 
         SearchSortChanged searchSort ->
-            ( { model | searchSort = searchSort }, Cmd.none )
+            update Submit { model | searchSort = searchSort }
 
         SearchTermChanged searchTerm ->
             ( { model | searchTerm = searchTerm }, Cmd.none )

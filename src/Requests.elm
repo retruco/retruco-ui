@@ -382,8 +382,8 @@ getValue authentication id =
         }
 
 
-getValues : Maybe Authentication -> Maybe String -> Maybe Int -> Bool -> Bool -> Http.Request DataIdsBody
-getValues authentication term limit ratedOnly showTrashed =
+getValues : Maybe Authentication -> Maybe String -> Maybe Int -> Bool -> Bool -> String -> Http.Request DataIdsBody
+getValues authentication term limit ratedOnly showTrashed sort =
     Http.request
         { method = "GET"
         , headers = authenticationHeaders authentication
@@ -415,6 +415,7 @@ getValues authentication term limit ratedOnly showTrashed =
                             Nothing
                        )
                      , ( "show", Just "values" )
+                     , ( "sort", Just sort )
                      , ( "term"
                        , case term of
                             Just term ->

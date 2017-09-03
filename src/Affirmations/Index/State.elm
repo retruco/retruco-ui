@@ -21,10 +21,10 @@ init authentication language =
     , ids = Nothing
     , language = language
     , searchCriteria =
-        { sort = "Popular"
+        { sort = "popular"
         , term = Nothing
         }
-    , searchSort = "Popular"
+    , searchSort = "popular"
     , searchTerm = ""
     , showTrashed = False
     }
@@ -90,13 +90,13 @@ update msg model =
                 limit =
                     Just 10
               in
-                -- TODO: Handle sort order.
                 Requests.getValues
                     model.authentication
                     model.searchCriteria.term
                     limit
                     True
                     model.showTrashed
+                    model.searchCriteria.sort
                     |> Http.send (ForSelf << Retrieved)
             )
 
@@ -119,7 +119,7 @@ update msg model =
                 )
 
         SearchSortChanged searchSort ->
-            ( { model | searchSort = searchSort }, Cmd.none )
+            update Submit { model | searchSort = searchSort }
 
         SearchTermChanged searchTerm ->
             ( { model | searchTerm = searchTerm }, Cmd.none )

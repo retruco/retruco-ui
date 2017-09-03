@@ -14,9 +14,10 @@ import WebData exposing (LoadingStatus, WebData(..))
 
 searchSortLabelCouples : List ( String, String )
 searchSortLabelCouples =
-    [ ( "Popular", "Popular" )
-    , ( "Recent", "Recent" )
-    , ( "Trending", "Trending" )
+    [ ( "popular", "Popular" )
+    , ( "old", "Old" )
+    , ( "recent", "Recent" )
+    , ( "trending", "Trending" )
     ]
 
 

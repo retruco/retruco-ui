@@ -16,8 +16,8 @@ import WebData
 
 searchSortLabelCouples : List ( String, String )
 searchSortLabelCouples =
-    [ ( "first", "First" )
-    , ( "latest", "Latest" )
+    [ ( "old", "Old" )
+    , ( "recent", "Recent" )
     ]
 
 
@@ -55,7 +55,7 @@ view model =
                             model.searchTerm
                             (Dict.get "searchTerm" model.errors)
                             (ForSelf << SearchTermChanged)
-                        , button [ class "btn btn-primary", type_ "button" ]
+                        , button [ class "btn btn-primary", type_ "submit" ]
                             [ span [ class "fa fa-search" ] []
                             , text " "
                             , text <| I18n.translate language I18n.Search
