@@ -101,22 +101,14 @@ update msg model =
             )
 
         Retrieved (Err httpError) ->
-            ( { model
-                | httpError = Just httpError
-              }
-            , Cmd.none
-            )
+            ( { model | httpError = Just httpError }, Cmd.none )
 
         Retrieved (Ok { data }) ->
             let
                 mergedModel =
                     mergeModelData data model
             in
-                ( { mergedModel
-                    | ids = Just data.ids
-                  }
-                , Cmd.none
-                )
+                ( { mergedModel | ids = Just data.ids }, Cmd.none )
 
         SearchSortChanged searchSort ->
             update Submit { model | searchSort = searchSort }
@@ -130,9 +122,7 @@ update msg model =
                     ( { model | errors = errors }, Cmd.none )
 
                 Ok searchCriteria ->
-                    update
-                        Retrieve
-                        { model | errors = Dict.empty, searchCriteria = searchCriteria }
+                    update Retrieve { model | errors = Dict.empty, searchCriteria = searchCriteria }
 
 
 urlUpdate : Navigation.Location -> Model -> ( Model, Cmd Msg )
@@ -151,8 +141,8 @@ urlUpdate location model =
         newModel
             ! [ cmd
               , Ports.setDocumentMetadata
-                    { description = I18n.translate language I18n.ValuesDescription
+                    { description = I18n.translate language I18n.AffirmationsDescription
                     , imageUrl = Urls.appLogoFullUrl
-                    , title = I18n.translate language I18n.Values
+                    , title = I18n.translate language I18n.Affirmations
                     }
               ]

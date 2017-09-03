@@ -8,14 +8,17 @@ import I18n
 import Navigation
 import Ports
 import Requests
+import Types exposing (DataProxy, initData, mergeData)
 import Urls
-import WebData exposing (..)
 
 
 init : Maybe Authentication -> I18n.Language -> Model
 init authentication language =
     { authentication = authentication
+    , data = initData
     , errors = Dict.empty
+    , httpError = Nothing
+    , ids = Nothing
     , language = language
     , searchCriteria =
         { sort = "recent"
@@ -24,7 +27,6 @@ init authentication language =
     , searchSort = "recent"
     , searchTerm = ""
     , showTrashed = False
-    , webData = NotAsked
     }
 
 
@@ -66,49 +68,53 @@ convertControlsToSearchCriteria model =
             Err (Dict.fromList errorsList)
 
 
+mergeModelData : DataProxy a -> Model -> Model
+mergeModelData data model =
+    let
+        mergedData =
+            mergeData data model.data
+    in
+        { model
+            | data = mergedData
+        }
+
+
 update : InternalMsg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Found (Err httpError) ->
-            let
-                _ =
-                    Debug.log "Cards.State update Loaded Err" httpError
+        Retrieve ->
+            ( { model
+                | httpError = Nothing
+                , ids = Nothing
+              }
+            , let
+                limit =
+                    10
 
-                newModel =
-                    { model | webData = Failure httpError }
-            in
-                ( newModel, Cmd.none )
-
-        Found (Ok body) ->
-            ( { model | webData = Data (Loaded body) }
-            , Cmd.none
+                offset =
+                    0
+              in
+                -- TODO: Handle sort order.
+                Requests.getCards
+                    model.authentication
+                    (Maybe.withDefault "" model.searchCriteria.term)
+                    limit
+                    offset
+                    []
+                    []
+                    model.showTrashed
+                    |> Http.send (ForSelf << Retrieved)
             )
 
-        Search ->
+        Retrieved (Err httpError) ->
+            ( { model | httpError = Just httpError }, Cmd.none )
+
+        Retrieved (Ok { data }) ->
             let
-                newModel =
-                    { model | webData = Data (Loading (getData model.webData)) }
-
-                cmd =
-                    let
-                        limit =
-                            10
-
-                        offset =
-                            0
-                    in
-                        -- TODO: Handle sort order.
-                        Requests.getCards
-                            model.authentication
-                            (Maybe.withDefault "" model.searchCriteria.term)
-                            limit
-                            offset
-                            []
-                            []
-                            model.showTrashed
-                            |> Http.send (ForSelf << Found)
+                mergedModel =
+                    mergeModelData data model
             in
-                ( newModel, cmd )
+                ( { mergedModel | ids = Just data.ids }, Cmd.none )
 
         SearchSortChanged searchSort ->
             update Submit { model | searchSort = searchSort }
@@ -122,9 +128,7 @@ update msg model =
                     ( { model | errors = errors }, Cmd.none )
 
                 Ok searchCriteria ->
-                    update
-                        Search
-                        { model | errors = Dict.empty, searchCriteria = searchCriteria }
+                    update Retrieve { model | errors = Dict.empty, searchCriteria = searchCriteria }
 
 
 urlUpdate : Navigation.Location -> Model -> ( Model, Cmd Msg )

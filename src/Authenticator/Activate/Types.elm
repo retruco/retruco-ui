@@ -2,7 +2,6 @@ module Authenticator.Activate.Types exposing (..)
 
 import Http
 import Types exposing (User, UserBody)
-import WebData exposing (WebData)
 
 
 type alias Authentication =
@@ -21,7 +20,9 @@ type InternalMsg
 
 
 type alias Model =
-    WebData Authentication
+    { authentication : Maybe Authentication
+    , httpError : Maybe Http.Error
+    }
 
 
 type Msg

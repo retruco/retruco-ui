@@ -7,11 +7,11 @@ import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Html.Events exposing (..)
 import Html.Helpers exposing (aForPath, aIfIsUrl)
+import Http.Error
 import I18n
 import Json.Decode
 import LineViews exposing (viewCardIdLine)
 import Views
-import WebData
 
 
 searchSortLabelCouples : List ( String, I18n.TranslationId )
@@ -37,6 +37,9 @@ decodeSearchSort value =
 view : Model -> Html Msg
 view model =
     let
+        data =
+            model.data
+
         language =
             model.language
     in
@@ -61,6 +64,7 @@ view model =
                             , text <| I18n.translate language I18n.Search
                             ]
                         ]
+                    , text " "
                     , ul [ class "navbar-nav" ]
                         [ li [ class "nav-item" ]
                             [ aForPath
@@ -73,29 +77,39 @@ view model =
                         ]
                     ]
                 ]
-            , Views.viewWebData
-                language
-                (\loadingStatus ->
-                    case loadingStatus of
-                        WebData.Loading _ ->
+            , case model.ids of
+                Just ids ->
+                    div [ class "list-group" ]
+                        (List.map
+                            (\cardId ->
+                                aForPath
+                                    (ForParent << Navigate)
+                                    language
+                                    ("/cards/" ++ cardId)
+                                    [ class "list-group-item list-group-item-action" ]
+                                    [ viewCardIdLine language Nothing data cardId ]
+                            )
+                            ids
+                        )
+
+                Nothing ->
+                    case model.httpError of
+                        Just httpError ->
+                            div
+                                [ class "alert alert-danger"
+                                , role "alert"
+                                ]
+                                [ strong []
+                                    [ text <|
+                                        I18n.translate language I18n.ValuesRetrievalFailed
+                                            ++ I18n.translate language I18n.Colon
+                                    ]
+                                , text <| Http.Error.toString language httpError
+                                ]
+
+                        Nothing ->
                             div [ class "text-center" ]
                                 [ Views.viewLoading language ]
-
-                        WebData.Loaded body ->
-                            div [ class "list-group" ]
-                                (List.map
-                                    (\cardId ->
-                                        aForPath
-                                            (ForParent << Navigate)
-                                            language
-                                            ("/cards/" ++ cardId)
-                                            [ class "list-group-item list-group-item-action" ]
-                                            [ viewCardIdLine language Nothing body.data cardId ]
-                                    )
-                                    body.data.ids
-                                )
-                )
-                model.webData
             ]
 
 

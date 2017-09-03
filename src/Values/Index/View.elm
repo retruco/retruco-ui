@@ -6,12 +6,12 @@ import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Html.Events exposing (..)
 import Html.Helpers exposing (aForPath)
+import Http.Error
 import I18n
 import Json.Decode
 import LineViews exposing (viewValueIdLine)
 import Values.Index.Types exposing (..)
 import Views
-import WebData
 
 
 searchSortLabelCouples : List ( String, I18n.TranslationId )
@@ -37,6 +37,9 @@ decodeSearchSort value =
 view : Model -> Html Msg
 view model =
     let
+        data =
+            model.data
+
         language =
             model.language
     in
@@ -74,29 +77,39 @@ view model =
                         ]
                     ]
                 ]
-            , Views.viewWebData
-                language
-                (\loadingStatus ->
-                    case loadingStatus of
-                        WebData.Loading _ ->
+            , case model.ids of
+                Just ids ->
+                    div [ class "list-group" ]
+                        (List.map
+                            (\valueId ->
+                                aForPath
+                                    (ForParent << Navigate)
+                                    language
+                                    ("/values/" ++ valueId)
+                                    [ class "list-group-item list-group-item-action" ]
+                                    [ viewValueIdLine language Nothing False data valueId ]
+                            )
+                            ids
+                        )
+
+                Nothing ->
+                    case model.httpError of
+                        Just httpError ->
+                            div
+                                [ class "alert alert-danger"
+                                , role "alert"
+                                ]
+                                [ strong []
+                                    [ text <|
+                                        I18n.translate language I18n.ValuesRetrievalFailed
+                                            ++ I18n.translate language I18n.Colon
+                                    ]
+                                , text <| Http.Error.toString language httpError
+                                ]
+
+                        Nothing ->
                             div [ class "text-center" ]
                                 [ Views.viewLoading language ]
-
-                        WebData.Loaded body ->
-                            div [ class "list-group" ]
-                                (List.map
-                                    (\valueId ->
-                                        aForPath
-                                            (ForParent << Navigate)
-                                            language
-                                            ("/values/" ++ valueId)
-                                            [ class "list-group-item list-group-item-action" ]
-                                            [ viewValueIdLine language Nothing False body.data valueId ]
-                                    )
-                                    body.data.ids
-                                )
-                )
-                model.webData
             ]
 
 

@@ -7,15 +7,18 @@ import I18n
 import Navigation
 import Ports
 import Requests
+import Types exposing (DataProxy, initData, mergeData)
 import Urls
 import Values.Index.Types exposing (..)
-import WebData exposing (..)
 
 
 init : Maybe Authentication -> I18n.Language -> Model
 init authentication language =
     { authentication = authentication
+    , data = initData
     , errors = Dict.empty
+    , httpError = Nothing
+    , ids = Nothing
     , language = language
     , searchCriteria =
         { sort = "recent"
@@ -24,7 +27,6 @@ init authentication language =
     , searchSort = "recent"
     , searchTerm = ""
     , showTrashed = False
-    , webData = NotAsked
     }
 
 
@@ -66,44 +68,48 @@ convertControlsToSearchCriteria model =
             Err (Dict.fromList errorsList)
 
 
+mergeModelData : DataProxy a -> Model -> Model
+mergeModelData data model =
+    let
+        mergedData =
+            mergeData data model.data
+    in
+        { model
+            | data = mergedData
+        }
+
+
 update : InternalMsg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Retrieve ->
-            let
-                newModel =
-                    { model | webData = Data (Loading (getData model.webData)) }
-
-                cmd =
-                    let
-                        limit =
-                            Just 10
-                    in
-                        Requests.getValues
-                            model.authentication
-                            model.searchCriteria.term
-                            limit
-                            False
-                            model.showTrashed
-                            model.searchCriteria.sort
-                            |> Http.send (ForSelf << Retrieved)
-            in
-                ( newModel, cmd )
-
-        Retrieved (Err err) ->
-            let
-                _ =
-                    Debug.log "Values.State update Loaded Err" err
-
-                newModel =
-                    { model | webData = Failure err }
-            in
-                ( newModel, Cmd.none )
-
-        Retrieved (Ok body) ->
-            ( { model | webData = Data (Loaded body) }
-            , Cmd.none
+            ( { model
+                | httpError = Nothing
+                , ids = Nothing
+              }
+            , let
+                limit =
+                    Just 10
+              in
+                Requests.getValues
+                    model.authentication
+                    model.searchCriteria.term
+                    limit
+                    False
+                    model.showTrashed
+                    model.searchCriteria.sort
+                    |> Http.send (ForSelf << Retrieved)
             )
+
+        Retrieved (Err httpError) ->
+            ( { model | httpError = Just httpError }, Cmd.none )
+
+        Retrieved (Ok { data }) ->
+            let
+                mergedModel =
+                    mergeModelData data model
+            in
+                ( { mergedModel | ids = Just data.ids }, Cmd.none )
 
         SearchSortChanged searchSort ->
             update Submit { model | searchSort = searchSort }
@@ -117,9 +123,7 @@ update msg model =
                     ( { model | errors = errors }, Cmd.none )
 
                 Ok searchCriteria ->
-                    update
-                        Retrieve
-                        { model | errors = Dict.empty, searchCriteria = searchCriteria }
+                    update Retrieve { model | errors = Dict.empty, searchCriteria = searchCriteria }
 
 
 urlUpdate : Navigation.Location -> Model -> ( Model, Cmd Msg )

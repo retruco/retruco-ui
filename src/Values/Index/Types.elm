@@ -5,7 +5,6 @@ import Dict exposing (Dict)
 import Http
 import I18n
 import Types exposing (..)
-import WebData exposing (..)
 
 
 type ExternalMsg
@@ -26,13 +25,15 @@ type InternalMsg
 
 type alias Model =
     { authentication : Maybe Authentication
+    , data : DataProxy {}
     , errors : FormErrors
+    , httpError : Maybe Http.Error
+    , ids : Maybe (List String)
     , language : I18n.Language
     , searchCriteria : SearchCriteria
     , searchSort : String
     , searchTerm : String
     , showTrashed : Bool
-    , webData : WebData DataIdsBody
     }
 
 

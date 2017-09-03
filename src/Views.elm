@@ -4,12 +4,8 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Html.Events exposing (on, onInput, targetValue)
-import Http exposing (Error(..))
-import Http.Error
 import I18n
 import Json.Decode
-import String
-import WebData exposing (LoadingStatus, WebData(..))
 
 
 searchSortLabelCouples : List ( String, I18n.TranslationId )
@@ -181,42 +177,3 @@ viewNotFound language =
     viewBigMessage
         (I18n.translate language I18n.PageNotFound)
         (I18n.translate language I18n.PageNotFoundExplanation)
-
-
-viewWebData : I18n.Language -> (LoadingStatus a -> Html msg) -> WebData a -> Html msg
-viewWebData language viewSuccess webData =
-    case webData of
-        NotAsked ->
-            div [ class "text-center" ]
-                [ viewLoading language ]
-
-        Failure err ->
-            let
-                genericTitle =
-                    I18n.translate language I18n.GenericError
-
-                title =
-                    case err of
-                        BadPayload _ _ ->
-                            genericTitle
-
-                        BadStatus response ->
-                            if response.status.code == 404 then
-                                I18n.translate language I18n.PageNotFound
-                            else
-                                -- TODO Add I18n.BadStatusExplanation prefix
-                                genericTitle
-
-                        BadUrl _ ->
-                            genericTitle
-
-                        NetworkError ->
-                            genericTitle
-
-                        Timeout ->
-                            genericTitle
-            in
-                viewBigMessage title (Http.Error.toString language err)
-
-        Data loadingStatus ->
-            viewSuccess loadingStatus

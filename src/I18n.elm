@@ -1,7 +1,6 @@
 module I18n exposing (..)
 
 import Dict exposing (Dict)
-import String
 
 
 -- STRINGS TO TRANSLATE
@@ -228,6 +227,7 @@ type TranslationId
     | ValueRetrievalFailed
     | Values
     | ValuesDescription
+    | ValuesRetrievalFailed
     | ValueType
     | VoteBestContributions
     | Website
@@ -1883,6 +1883,13 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        ValuesRetrievalFailed ->
+            { emptyTranslationSet
+                | english = s "Retrieval of values failed"
+                , french = s "Échec de la récupération des valeurs"
+                , spanish = todo
+            }
+
         ValueType ->
             { emptyTranslationSet
                 | english = s "Value Type"
@@ -1965,6 +1972,7 @@ keyIdLabelCouples =
     ]
 
 
+keyLabelById : Dict String TranslationId
 keyLabelById =
     Dict.fromList keyIdLabelCouples
 

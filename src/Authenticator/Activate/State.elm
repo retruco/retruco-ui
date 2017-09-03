@@ -5,54 +5,42 @@ import Http
 import I18n
 import Requests
 import Task
-import WebData exposing (..)
 
 
 init : Model
 init =
-    NotAsked
+    { authentication = Nothing
+    , httpError = Nothing
+    }
 
 
 update : InternalMsg -> Model -> I18n.Language -> ( Model, Cmd Msg )
 update msg model _ =
     case msg of
         ActivateUser userId authorization ->
-            let
-                newModel =
-                    Data (Loading (getData model))
+            ( { model | httpError = Nothing }
+            , Requests.activateUser userId authorization
+                |> Http.send (ForSelf << UserActivated)
+            )
 
-                cmd =
-                    Requests.activateUser userId authorization
-                        |> Http.send (ForSelf << UserActivated)
-            in
-                ( newModel, cmd )
+        ActivationSent (Err httpError) ->
+            ( { model | httpError = Just httpError }, Cmd.none )
 
-        ActivationSent response ->
-            case response of
-                Err err ->
-                    let
-                        _ =
-                            Debug.log "Authenticator.ActivationSent Error" err
-                    in
-                        ( model, Cmd.none )
-
-                Ok body ->
-                    ( model, Cmd.none )
+        ActivationSent (Ok _) ->
+            ( model, Cmd.none )
 
         SendActivation authentication ->
-            let
-                cmd =
-                    Requests.sendActivation authentication
-                        |> Http.send (ForSelf << ActivationSent)
-            in
-                ( model, cmd )
+            ( { model | httpError = Nothing }
+            , Requests.sendActivation authentication
+                |> Http.send (ForSelf << ActivationSent)
+            )
 
         UserActivated (Err httpError) ->
-            ( Failure httpError
+            ( { model | httpError = Just httpError }
             , Task.perform (\_ -> ForParent (Terminated (Err ()))) (Task.succeed ())
             )
 
-        UserActivated (Ok body) ->
-            ( Data (Loaded body.data)
-            , Task.perform (\_ -> ForParent (Terminated (Ok <| Just body.data))) (Task.succeed ())
+        UserActivated (Ok { data }) ->
+            ( { model | authentication = Just data }
+            , Task.perform (\_ -> ForParent (Terminated (Ok <| Just data))) (Task.succeed ())
             )
