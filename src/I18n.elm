@@ -554,8 +554,8 @@ getTranslationSet translationId =
 
         CardIdField ->
             { emptyTranslationSet
-                | english = s "Link to a card"
-                , french = s "Lien vers une fiche"
+                | english = s "Card"
+                , french = s "Fiche"
                 , spanish = todo
             }
 
