@@ -1,7 +1,6 @@
 module Properties.SameObject.State exposing (..)
 
 import Authenticator.Types exposing (Authentication)
-import Constants exposing (debateKeyIds)
 import Http
 import I18n
 import Navigation
@@ -96,12 +95,20 @@ update msg model =
             ( { model | httpError = Just httpError }, Cmd.none )
 
         KeyUpserted (Ok { data }) ->
-            -- let
-            --     mergedModel =
-            --          mergeModelData data model
-            -- in
-            --     update (LoadProperties data.id) mergedModel
-            ( model, Cmd.none )
+            let
+                mergedModel =
+                    mergeModelData data model
+            in
+                ( mergedModel
+                , Task.perform
+                    (\_ ->
+                        ForParent <|
+                            Navigate <|
+                                Urls.languagePath mergedModel.language <|
+                                    Urls.idToSameObjectAndKeyPropertiesPath mergedModel.data model.objectId data.id
+                    )
+                    (Task.succeed ())
+                )
 
         Retrieve ->
             ( { model

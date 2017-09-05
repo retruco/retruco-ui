@@ -10,6 +10,7 @@ import Http.Error
 import I18n
 import Json.Decode
 import LineViews exposing (viewValueIdLine)
+import Urls
 import Values.Index.Types exposing (..)
 import Views
 
@@ -85,7 +86,7 @@ view model =
                                 aForPath
                                     (ForParent << Navigate)
                                     language
-                                    ("/values/" ++ valueId)
+                                    (Urls.idToPath data valueId)
                                     [ class "list-group-item list-group-item-action" ]
                                     [ viewValueIdLine language Nothing False data valueId ]
                             )

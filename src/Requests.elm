@@ -116,8 +116,8 @@ autocompletePropertiesKeys authentication language cardTypes term limit =
             apiUrl
                 ++ "properties/keys/autocomplete"
                 ++ Urls.paramsToQuery
-                    ([ ( "class", Just "Card" )
-                     , ( "language", Just (I18n.languageIdFromLanguage language) )
+                    -- ([ ( "class", Just "Card" )
+                    ([ ( "language", Just (I18n.languageIdFromLanguage language) )
                      , ( "limit", Just (toString limit) )
                      , ( "term"
                        , let

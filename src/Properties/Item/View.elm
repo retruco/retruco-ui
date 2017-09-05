@@ -33,17 +33,20 @@ view model =
 
                 language =
                     model.language
+
+                navigateMsg =
+                    ForParent << Navigate
             in
                 case ( model.property, model.toolbarModel ) of
                     ( Just property, Just toolbarModel ) ->
                         div []
-                            ([ div [ class "align-items-center d-flex flex-nowrap justify-content-between" ]
+                            [ div [ class "align-items-center d-flex flex-nowrap justify-content-between" ]
                                 [ div [ class "mb-3 w-100" ]
                                     [ div [ class "align-items-center d-flex flex-nowrap justify-content-between ml-4" ]
                                         [ div [ class "lead" ]
                                             [ viewStatementIdLine
                                                 language
-                                                (Just (ForParent << Navigate))
+                                                (Just navigateMsg)
                                                 True
                                                 False
                                                 data
@@ -51,7 +54,7 @@ view model =
                                             ]
                                         , viewStatementIdRatingPanel
                                             language
-                                            (ForParent << Navigate)
+                                            navigateMsg
                                             data
                                             property.objectId
                                         ]
@@ -85,7 +88,7 @@ view model =
                                         [ div [ class "lead" ]
                                             [ viewStatementIdLine
                                                 language
-                                                (Just (ForParent << Navigate))
+                                                (Just navigateMsg)
                                                 True
                                                 False
                                                 data
@@ -93,140 +96,136 @@ view model =
                                             ]
                                         , viewStatementIdRatingPanel
                                             language
-                                            (ForParent << Navigate)
+                                            navigateMsg
                                             data
                                             property.valueId
                                         ]
                                     ]
-                                , viewStatementRatingPanel language (ForParent << Navigate) False data property
+                                , viewStatementRatingPanel language navigateMsg False data property
                                 ]
-                             ]
-                                ++ (case model.similarDebatePropertyIds of
-                                        Just similarDebatePropertyIds ->
-                                            let
-                                                similarDebatePropertyCount =
-                                                    List.length similarDebatePropertyIds
-                                            in
-                                                if similarDebatePropertyCount > 0 then
-                                                    [ div [ class "alert alert-warning", role "alert" ]
-                                                        [ h3 [ class "alert-heading" ]
-                                                            [ text <|
-                                                                I18n.translate language <|
-                                                                    I18n.SimilarArgumentsTitle
-                                                                        similarDebatePropertyCount
-                                                            ]
-                                                        , p []
-                                                            [ text <|
-                                                                I18n.translate language <|
-                                                                    I18n.SimilarArgumentsDescription
-                                                                        similarDebatePropertyCount
-                                                            ]
-                                                        , ul [ class "list-group" ]
-                                                            (List.map
-                                                                (\similarDebatePropertyId ->
-                                                                    li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
-                                                                        [ viewPropertyIdLine
-                                                                            language
-                                                                            (Just (ForParent << Navigate))
-                                                                            True
-                                                                            data
-                                                                            similarDebatePropertyId
-                                                                        , viewStatementIdRatingPanel
-                                                                            language
-                                                                            (ForParent << Navigate)
-                                                                            data
-                                                                            similarDebatePropertyId
-                                                                        ]
-                                                                )
-                                                                similarDebatePropertyIds
-                                                            )
-                                                        ]
+                            , case model.similarDebatePropertyIds of
+                                Just similarDebatePropertyIds ->
+                                    let
+                                        similarDebatePropertyCount =
+                                            List.length similarDebatePropertyIds
+                                    in
+                                        if similarDebatePropertyCount > 0 then
+                                            div [ class "alert alert-warning", role "alert" ]
+                                                [ h3 [ class "alert-heading" ]
+                                                    [ text <|
+                                                        I18n.translate language <|
+                                                            I18n.SimilarArgumentsTitle
+                                                                similarDebatePropertyCount
                                                     ]
-                                                else
-                                                    []
-
-                                        Nothing ->
-                                            []
-                                   )
-                                ++ [ Statements.Toolbar.View.view toolbarModel
-                                        |> Html.map translateToolbarMsg
-                                   , hr [] []
-                                   , ul [ class "nav nav-tabs" ]
-                                        [ li [ class "nav-item" ]
-                                            [ aForPath
-                                                (ForParent << Navigate)
-                                                language
-                                                (Urls.idToDebatePropertiesPath data property.id)
-                                                [ classList
-                                                    [ ( "active"
-                                                      , case model.activeTab of
-                                                            DebatePropertiesTab _ ->
-                                                                True
-
-                                                            _ ->
-                                                                False
-                                                      )
-                                                    , ( "nav-link", True )
+                                                , p []
+                                                    [ text <|
+                                                        I18n.translate language <|
+                                                            I18n.SimilarArgumentsDescription
+                                                                similarDebatePropertyCount
                                                     ]
+                                                , ul [ class "list-group" ]
+                                                    (List.map
+                                                        (\similarDebatePropertyId ->
+                                                            li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
+                                                                [ viewPropertyIdLine
+                                                                    language
+                                                                    (Just navigateMsg)
+                                                                    True
+                                                                    data
+                                                                    similarDebatePropertyId
+                                                                , viewStatementIdRatingPanel
+                                                                    language
+                                                                    navigateMsg
+                                                                    data
+                                                                    similarDebatePropertyId
+                                                                ]
+                                                        )
+                                                        similarDebatePropertyIds
+                                                    )
                                                 ]
-                                                [ text <| I18n.translate language I18n.Arguments ]
-                                            ]
-                                        , li [ class "nav-item" ]
-                                            [ aForPath
-                                                (ForParent << Navigate)
-                                                language
-                                                (Urls.idToPropertiesPath data property.id)
-                                                [ classList
-                                                    [ ( "active"
-                                                      , case model.activeTab of
-                                                            PropertiesTab _ ->
-                                                                True
-
-                                                            _ ->
-                                                                False
-                                                      )
-                                                    , ( "nav-link", True )
-                                                    ]
-                                                ]
-                                                [ text <| I18n.translate language I18n.Properties ]
-                                            ]
-                                        , li [ class "nav-item" ]
-                                            [ aForPath
-                                                (ForParent << Navigate)
-                                                language
-                                                (Urls.idToPropertiesAsValuePath data property.id)
-                                                [ classList
-                                                    [ ( "active"
-                                                      , case model.activeTab of
-                                                            PropertiesAsValueTab _ ->
-                                                                True
-
-                                                            _ ->
-                                                                False
-                                                      )
-                                                    , ( "nav-link", True )
-                                                    ]
-                                                ]
-                                                [ text <| I18n.translate language I18n.Uses ]
-                                            ]
-                                        ]
-                                   , case model.activeTab of
-                                        DebatePropertiesTab debatePropertiesModel ->
-                                            DebateProperties.SameObject.View.view debatePropertiesModel
-                                                |> Html.map translateDebatePropertiesMsg
-
-                                        NoTab ->
+                                        else
                                             text ""
 
-                                        PropertiesAsValueTab propertiesAsValueModel ->
-                                            Properties.SameValue.View.view propertiesAsValueModel
-                                                |> Html.map translatePropertiesAsValueMsg
+                                Nothing ->
+                                    text ""
+                            , Statements.Toolbar.View.view toolbarModel
+                                |> Html.map translateToolbarMsg
+                            , hr [] []
+                            , ul [ class "nav nav-tabs" ]
+                                [ li [ class "nav-item" ]
+                                    [ aForPath
+                                        navigateMsg
+                                        language
+                                        (Urls.idToDebatePropertiesPath data property.id)
+                                        [ classList
+                                            [ ( "active"
+                                              , case model.activeTab of
+                                                    DebatePropertiesTab _ ->
+                                                        True
 
-                                        PropertiesTab propertiesModel ->
-                                            Properties.SameObject.View.view propertiesModel
-                                                |> Html.map translatePropertiesMsg
-                                   ]
-                            )
+                                                    _ ->
+                                                        False
+                                              )
+                                            , ( "nav-link", True )
+                                            ]
+                                        ]
+                                        [ text <| I18n.translate language I18n.Arguments ]
+                                    ]
+                                , li [ class "nav-item" ]
+                                    [ aForPath
+                                        navigateMsg
+                                        language
+                                        (Urls.idToPropertiesPath data property.id)
+                                        [ classList
+                                            [ ( "active"
+                                              , case model.activeTab of
+                                                    PropertiesTab _ ->
+                                                        True
+
+                                                    _ ->
+                                                        False
+                                              )
+                                            , ( "nav-link", True )
+                                            ]
+                                        ]
+                                        [ text <| I18n.translate language I18n.Properties ]
+                                    ]
+                                , li [ class "nav-item" ]
+                                    [ aForPath
+                                        navigateMsg
+                                        language
+                                        (Urls.idToPropertiesAsValuePath data property.id)
+                                        [ classList
+                                            [ ( "active"
+                                              , case model.activeTab of
+                                                    PropertiesAsValueTab _ ->
+                                                        True
+
+                                                    _ ->
+                                                        False
+                                              )
+                                            , ( "nav-link", True )
+                                            ]
+                                        ]
+                                        [ text <| I18n.translate language I18n.Uses ]
+                                    ]
+                                ]
+                            , case model.activeTab of
+                                DebatePropertiesTab debatePropertiesModel ->
+                                    DebateProperties.SameObject.View.view debatePropertiesModel
+                                        |> Html.map translateDebatePropertiesMsg
+
+                                NoTab ->
+                                    text ""
+
+                                PropertiesAsValueTab propertiesAsValueModel ->
+                                    Properties.SameValue.View.view propertiesAsValueModel
+                                        |> Html.map translatePropertiesAsValueMsg
+
+                                PropertiesTab propertiesModel ->
+                                    Properties.SameObject.View.view propertiesModel
+                                        |> Html.map translatePropertiesMsg
+                            ]
 
                     ( _, _ ) ->
                         case model.httpError of

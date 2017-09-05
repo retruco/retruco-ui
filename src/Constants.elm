@@ -8,6 +8,11 @@ debateKeyIds =
     [ "cons", "options", "pros", "sources" ]
 
 
+duplicateOfKeyId : String
+duplicateOfKeyId =
+    "duplicate-of"
+
+
 imageLogoPathKeyIds : List String
 imageLogoPathKeyIds =
     [ "logo" ]

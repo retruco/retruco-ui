@@ -75,6 +75,10 @@ type TranslationId
     | DebateSourcesLabel
     | Details
     | Disagree
+    | DuplicatedByDescription Int
+    | DuplicatedByTitle Int
+    | DuplicateOfDescription Int
+    | DuplicateOfTitle Int
     | Edit
     | Email
     | EmailPlaceholder
@@ -774,6 +778,106 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Disagree"
                 , french = s "Désapprouver"
+                , spanish = todo
+            }
+
+        DuplicatedByDescription count ->
+            { emptyTranslationSet
+                | english =
+                    case count of
+                        0 ->
+                            s "There is no duplicate of this item."
+
+                        1 ->
+                            s "There is one duplicate of this item."
+
+                        _ ->
+                            s "There are several duplicates of this item."
+                , french =
+                    case count of
+                        0 ->
+                            s "Il n'y a aucun doublon de cet élément."
+
+                        1 ->
+                            s "Il y a un doublon de cet élément."
+
+                        _ ->
+                            s "Il y a plusieurs doublons de cet élément."
+                , spanish = todo
+            }
+
+        DuplicatedByTitle count ->
+            { emptyTranslationSet
+                | english =
+                    case count of
+                        0 ->
+                            s "No Duplicate"
+
+                        1 ->
+                            s "1 Duplicate"
+
+                        _ ->
+                            s ((toString count) ++ " Duplicates")
+                , french =
+                    case count of
+                        0 ->
+                            s "Aucun doublon"
+
+                        1 ->
+                            s "1 doublon"
+
+                        _ ->
+                            s ((toString count) ++ " doublons")
+                , spanish = todo
+            }
+
+        DuplicateOfDescription count ->
+            { emptyTranslationSet
+                | english =
+                    case count of
+                        0 ->
+                            s "This item is not a duplicate."
+
+                        1 ->
+                            s "This item is a duplicate of another item. Use the other item instead of this one."
+
+                        _ ->
+                            s "This item is a duplicate of several other items. Use one these items instead of this one."
+                , french =
+                    case count of
+                        0 ->
+                            s "Cet élement n'est pas un doublon."
+
+                        1 ->
+                            s "Cet élément est le doublon d'un autre. Utilisez cet autre élément, plutôt que celui-ci."
+
+                        _ ->
+                            s "Cet élément est le doublon d'autres éléments. Utilisez un de ces autres élément, plutôt que celui-ci."
+                , spanish = todo
+            }
+
+        DuplicateOfTitle count ->
+            { emptyTranslationSet
+                | english =
+                    case count of
+                        0 ->
+                            s "Not a Duplicate"
+
+                        1 ->
+                            s "Duplicate"
+
+                        _ ->
+                            s "Duplicate"
+                , french =
+                    case count of
+                        0 ->
+                            s "Pas un doublon"
+
+                        1 ->
+                            s "Doublon"
+
+                        _ ->
+                            s "Doublon"
                 , spanish = todo
             }
 

@@ -20,6 +20,8 @@ type InternalMsg
     = CardRetrieved (Result Http.Error DataIdBody)
     | DataUpdated (DataProxy {})
     | DebatePropertiesMsg DebateProperties.SameObject.Types.InternalMsg
+    | DuplicatedByRetrieved (Result Http.Error DataIdsBody)
+    | DuplicateOfRetrieved (Result Http.Error DataIdsBody)
     | PropertiesAsValueMsg Properties.SameValue.Types.InternalMsg
     | PropertiesMsg Properties.SameObject.Types.InternalMsg
     | Retrieve
@@ -32,6 +34,8 @@ type alias Model =
     , authentication : Maybe Authentication
     , card : Maybe Card
     , data : DataProxy {}
+    , duplicatedByPropertyIds : Maybe (List String)
+    , duplicateOfPropertyIds : Maybe (List String)
     , id : String
     , httpError : Maybe Http.Error
     , language : I18n.Language

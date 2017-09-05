@@ -178,7 +178,7 @@ update msg model =
                         ( model, Cmd.none )
 
             AffirmationUpserted data ->
-                update (Navigate <| Urls.languagePath language ("/affirmations/" ++ data.id)) model
+                update (Navigate <| Urls.languagePath language <| Urls.idToPath data data.id) model
 
             AuthenticatorMsg childMsg ->
                 let
@@ -388,7 +388,7 @@ update msg model =
                         ( model, Cmd.none )
 
             ValueUpserted data ->
-                update (Navigate <| Urls.languagePath language ("/values/" ++ data.id)) model
+                update (Navigate <| Urls.languagePath language <| Urls.idToPath data data.id) model
 
 
 urlUpdate : Navigation.Location -> Model -> ( Model, Cmd Msg )

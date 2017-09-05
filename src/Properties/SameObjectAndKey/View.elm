@@ -6,9 +6,10 @@ import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Http.Error
 import I18n
-import LineViews exposing (viewValueIdLine)
+import LineViews exposing (viewStatementIdLine)
 import Properties.SameObjectAndKey.Types exposing (..)
-import Statements.ViewsHelpers exposing (viewStatementRatingPanel)
+import Statements.ViewsHelpers exposing (viewStatementIdRatingPanel, viewStatementRatingPanel)
+import Strings
 import Values.New.View
 import Views
 
@@ -21,21 +22,71 @@ view model =
 
         language =
             model.language
+
+        navigateMsg =
+            ForParent << Navigate
     in
         case model.propertyIds of
             Just propertyIds ->
                 div []
-                    [ ul [ class "list-group" ]
+                    [ div [ class "align-items-center d-flex flex-nowrap justify-content-between" ]
+                        [ div [ class "mb-3 w-100" ]
+                            [ div [ class "align-items-center d-flex flex-nowrap justify-content-between ml-4" ]
+                                [ div [ class "lead" ]
+                                    [ viewStatementIdLine
+                                        language
+                                        (Just navigateMsg)
+                                        True
+                                        False
+                                        data
+                                        model.objectId
+                                    ]
+                                , viewStatementIdRatingPanel
+                                    language
+                                    navigateMsg
+                                    data
+                                    model.objectId
+                                ]
+                            , let
+                                keyLabel =
+                                    Dict.get model.keyId I18n.keyLabelById
+                                        |> Maybe.map (I18n.translate language)
+                                        |> Maybe.withDefault (Strings.idToString language data model.keyId)
+                              in
+                                div [ class "align-items-baseline d-flex flex-nowrap" ]
+                                    [ span
+                                        [ ariaHidden True
+                                        , classList
+                                            [ ( "fa", True )
+                                            , ( if model.keyId == "cons" then
+                                                    "fa-minus"
+                                                else if model.keyId == "pros" then
+                                                    "fa-plus"
+                                                else
+                                                    "fa-circle"
+                                              , True
+                                              )
+                                            , ( "fa-fw", True )
+                                            , ( "mr-2", True )
+                                            ]
+                                        ]
+                                        []
+                                    , span [ class "lead" ] [ text keyLabel ]
+                                    ]
+                            ]
+                        ]
+                    , hr [] []
+                    , ul [ class "list-group" ]
                         (List.filterMap
                             (\propertyId ->
                                 case Dict.get propertyId data.properties of
                                     Just property ->
                                         Just <|
                                             li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
-                                                [ viewValueIdLine language Nothing False data property.valueId
+                                                [ viewStatementIdLine language Nothing True False data property.valueId
                                                 , viewStatementRatingPanel
                                                     language
-                                                    (ForParent << Navigate)
+                                                    navigateMsg
                                                     True
                                                     data
                                                     property
@@ -46,6 +97,7 @@ view model =
                             )
                             propertyIds
                         )
+                    , hr [] []
                     , Values.New.View.view model.newValueModel
                         |> Html.map translateNewValueMsg
                     ]

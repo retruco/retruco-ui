@@ -1,6 +1,7 @@
 module Values.Item.State exposing (..)
 
 import Authenticator.Types exposing (Authentication)
+import Constants exposing (duplicateOfKeyId)
 import DebateProperties.SameObject.State
 import Dict exposing (Dict)
 import Http
@@ -23,6 +24,8 @@ init authentication language id =
     { activeTab = NoTab
     , authentication = authentication
     , data = initData
+    , duplicatedByPropertyIds = Nothing
+    , duplicateOfPropertyIds = Nothing
     , httpError = Nothing
     , id = id
     , language = language
@@ -174,6 +177,42 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        DuplicatedByRetrieved (Err httpError) ->
+            ( { model
+                | httpError = Just httpError
+              }
+            , Cmd.none
+            )
+
+        DuplicatedByRetrieved (Ok { data }) ->
+            let
+                mergedModel =
+                    mergeModelData data model
+            in
+                ( { mergedModel
+                    | duplicatedByPropertyIds = Just data.ids
+                  }
+                , Cmd.none
+                )
+
+        DuplicateOfRetrieved (Err httpError) ->
+            ( { model
+                | httpError = Just httpError
+              }
+            , Cmd.none
+            )
+
+        DuplicateOfRetrieved (Ok { data }) ->
+            let
+                mergedModel =
+                    mergeModelData data model
+            in
+                ( { mergedModel
+                    | duplicateOfPropertyIds = Just data.ids
+                  }
+                , Cmd.none
+                )
+
         PropertiesAsValueMsg childMsg ->
             case model.activeTab of
                 PropertiesAsValueTab propertiesAsValueModel ->
@@ -204,7 +243,9 @@ update msg model =
 
         Retrieve ->
             ( { model
-                | httpError = Nothing
+                | duplicatedByPropertyIds = Nothing
+                , duplicateOfPropertyIds = Nothing
+                , httpError = Nothing
                 , toolbarModel = Nothing
                 , typedValue = Nothing
               }
@@ -252,9 +293,25 @@ update msg model =
                 mergedModel =
                     mergeModelData data model
             in
-                ( mergedModel
-                , Ports.setDocumentMetadataForStatementId mergedModel.language mergedModel.data mergedModel.id
-                )
+                mergedModel
+                    ! ([ Ports.setDocumentMetadataForStatementId mergedModel.language mergedModel.data mergedModel.id ]
+                        ++ [ Requests.getProperties
+                                model.authentication
+                                model.showTrashed
+                                []
+                                [ duplicateOfKeyId ]
+                                [ model.id ]
+                                |> Http.send (ForSelf << DuplicatedByRetrieved)
+                           ]
+                        ++ [ Requests.getProperties
+                                model.authentication
+                                model.showTrashed
+                                [ model.id ]
+                                [ duplicateOfKeyId ]
+                                []
+                                |> Http.send (ForSelf << DuplicateOfRetrieved)
+                           ]
+                      )
 
 
 urlUpdate : Navigation.Location -> Route -> Model -> ( Model, Cmd Msg )

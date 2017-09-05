@@ -12,7 +12,7 @@ import Properties.SameObject.View
 import Properties.SameObjectAndKey.View
 import Properties.SameValue.View
 import Statements.Toolbar.View
-import Statements.ViewsHelpers exposing (viewStatementRatingPanel)
+import Statements.ViewsHelpers exposing (viewDuplicatedByAlert, viewDuplicateOfAlert, viewStatementRatingPanel)
 import Urls
 import Values.Item.Types exposing (..)
 import Views
@@ -47,6 +47,16 @@ view model =
                                     ]
                                 , viewStatementRatingPanel language (ForParent << Navigate) False data typedValue
                                 ]
+                            , viewDuplicatedByAlert
+                                language
+                                (ForParent << Navigate)
+                                data
+                                model.duplicatedByPropertyIds
+                            , viewDuplicateOfAlert
+                                language
+                                (ForParent << Navigate)
+                                data
+                                model.duplicateOfPropertyIds
                             , Statements.Toolbar.View.view toolbarModel
                                 |> Html.map translateToolbarMsg
                             , hr [] []

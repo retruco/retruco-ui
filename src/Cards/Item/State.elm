@@ -3,6 +3,7 @@ module Cards.Item.State exposing (..)
 import Authenticator.Types exposing (Authentication)
 import Cards.Item.Routes exposing (..)
 import Cards.Item.Types exposing (..)
+import Constants exposing (duplicateOfKeyId)
 import DebateProperties.SameObject.State
 import Dict exposing (Dict)
 import Http
@@ -24,6 +25,8 @@ init authentication language id =
     , authentication = authentication
     , card = Nothing
     , data = initData
+    , duplicatedByPropertyIds = Nothing
+    , duplicateOfPropertyIds = Nothing
     , httpError = Nothing
     , id = id
     , language = language
@@ -173,18 +176,67 @@ update msg model =
 
         CardRetrieved (Ok { data }) ->
             let
-                card =
-                    getCard data.cards data.id
-
                 mergedModel =
                     mergeModelData data model
             in
-                ( mergedModel
-                , Ports.setDocumentMetadataForStatementId mergedModel.language mergedModel.data mergedModel.id
-                )
+                mergedModel
+                    ! ([ Ports.setDocumentMetadataForStatementId mergedModel.language mergedModel.data mergedModel.id ]
+                        ++ [ Requests.getProperties
+                                model.authentication
+                                model.showTrashed
+                                []
+                                [ duplicateOfKeyId ]
+                                [ model.id ]
+                                |> Http.send (ForSelf << DuplicatedByRetrieved)
+                           ]
+                        ++ [ Requests.getProperties
+                                model.authentication
+                                model.showTrashed
+                                [ model.id ]
+                                [ duplicateOfKeyId ]
+                                []
+                                |> Http.send (ForSelf << DuplicateOfRetrieved)
+                           ]
+                      )
 
         DataUpdated data ->
             ( mergeModelData data model, Cmd.none )
+
+        DuplicatedByRetrieved (Err httpError) ->
+            ( { model
+                | httpError = Just httpError
+              }
+            , Cmd.none
+            )
+
+        DuplicatedByRetrieved (Ok { data }) ->
+            let
+                mergedModel =
+                    mergeModelData data model
+            in
+                ( { mergedModel
+                    | duplicatedByPropertyIds = Just data.ids
+                  }
+                , Cmd.none
+                )
+
+        DuplicateOfRetrieved (Err httpError) ->
+            ( { model
+                | httpError = Just httpError
+              }
+            , Cmd.none
+            )
+
+        DuplicateOfRetrieved (Ok { data }) ->
+            let
+                mergedModel =
+                    mergeModelData data model
+            in
+                ( { mergedModel
+                    | duplicateOfPropertyIds = Just data.ids
+                  }
+                , Cmd.none
+                )
 
         DebatePropertiesMsg childMsg ->
             case model.activeTab of
@@ -231,6 +283,8 @@ update msg model =
         Retrieve ->
             ( { model
                 | card = Nothing
+                , duplicatedByPropertyIds = Nothing
+                , duplicateOfPropertyIds = Nothing
                 , httpError = Nothing
                 , toolbarModel = Nothing
               }
