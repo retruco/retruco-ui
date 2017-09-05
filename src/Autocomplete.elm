@@ -267,7 +267,7 @@ viewList config howManyToShow state data =
         getKeyedItems datum =
             ( config.getItemId datum, viewItem config state datum )
     in
-        keyedDiv [ Html.Attributes.class "dropdown-menu" ]
+        keyedDiv [ Html.Attributes.class "dropdown-menu show" ]
             (List.take howManyToShow data
                 |> List.map getKeyedItems
             )
