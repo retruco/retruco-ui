@@ -21,10 +21,10 @@ init authentication language =
     , ids = Nothing
     , language = language
     , searchCriteria =
-        { sort = "popular"
+        { sort = "trending"
         , term = Nothing
         }
-    , searchSort = "popular"
+    , searchSort = "trending"
     , searchTerm = ""
     , showTrashed = False
     }
