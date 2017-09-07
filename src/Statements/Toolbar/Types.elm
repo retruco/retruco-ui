@@ -19,8 +19,12 @@ type InternalMsg
     | ShareOnGooglePlus String
     | ShareOnLinkedIn String
     | ShareOnTwitter String
-    | Trash
+    | Start
+    | StatementRetrieved (Result Http.Error DataIdBody)
+    | Trash TrashAction
     | TrashPosted (Result Http.Error DataIdBody)
+    | TrashRatingPosted (Result Http.Error DataIdBody)
+    | TrashRetrieved (Result Http.Error DataIdsBody)
 
 
 type alias Model statementType =
@@ -29,6 +33,8 @@ type alias Model statementType =
     , httpError : Maybe Http.Error
     , language : I18n.Language
     , statement : statementType
+    , trashAction : Maybe TrashAction
+    , trashPropertyId : Maybe String
     }
 
 
@@ -47,6 +53,11 @@ type alias MsgTranslation parentMsg =
 
 type alias MsgTranslator parentMsg =
     Msg -> parentMsg
+
+
+type TrashAction
+    = DebateTrash
+    | RateTrash (Maybe Int)
 
 
 translateMsg : MsgTranslation parentMsg -> MsgTranslator parentMsg

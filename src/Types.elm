@@ -329,16 +329,34 @@ mergeData new old =
         filterObsoleteBallotIds =
             List.filterMap
                 (\{ ballotId } ->
-                    if (not <| Dict.member ballotId new.ballots) && Dict.member ballotId old.ballots then
-                        Just ballotId
-                    else
-                        Nothing
+                    let
+                        hasNewBallot =
+                            case Dict.get ballotId new.ballots of
+                                Just newBallot ->
+                                    not newBallot.deleted
+
+                                Nothing ->
+                                    False
+                    in
+                        if hasNewBallot then
+                            Nothing
+                        else
+                            case Dict.get ballotId old.ballots of
+                                Just oldBallot ->
+                                    if oldBallot.deleted then
+                                        Just ballotId
+                                    else
+                                        Nothing
+
+                                Nothing ->
+                                    Just ballotId
                 )
 
         obsoleteBallotIds =
             Set.fromList <|
                 List.concat
-                    [ Dict.values new.properties |> filterObsoleteBallotIds
+                    [ Dict.values new.cards |> filterObsoleteBallotIds
+                    , Dict.values new.properties |> filterObsoleteBallotIds
                     , Dict.values new.values |> filterObsoleteBallotIds
                     ]
 

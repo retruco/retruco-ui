@@ -13,6 +13,7 @@ import Properties.SameObjectAndKey.State
 import Properties.SameValue.State
 import Requests
 import Statements.Toolbar.State
+import Statements.Toolbar.Types
 import Types exposing (..)
 import Urls
 import Values.Item.Routes exposing (..)
@@ -292,21 +293,29 @@ update msg model =
             let
                 mergedModel =
                     mergeModelData data model
+
+                ( updatedModel, updatedCmd ) =
+                    update (ToolbarMsg (Statements.Toolbar.Types.Start)) mergedModel
             in
-                mergedModel
-                    ! ([ Ports.setDocumentMetadataForStatementId mergedModel.language mergedModel.data mergedModel.id ]
+                updatedModel
+                    ! ([ updatedCmd
+                       , Ports.setDocumentMetadataForStatementId
+                            updatedModel.language
+                            updatedModel.data
+                            updatedModel.id
+                       ]
                         ++ [ Requests.getProperties
-                                model.authentication
-                                model.showTrashed
+                                updatedModel.authentication
+                                updatedModel.showTrashed
                                 []
                                 [ duplicateOfKeyId ]
-                                [ model.id ]
+                                [ updatedModel.id ]
                                 |> Http.send (ForSelf << DuplicatedByRetrieved)
                            ]
                         ++ [ Requests.getProperties
-                                model.authentication
-                                model.showTrashed
-                                [ model.id ]
+                                updatedModel.authentication
+                                updatedModel.showTrashed
+                                [ updatedModel.id ]
                                 [ duplicateOfKeyId ]
                                 []
                                 |> Http.send (ForSelf << DuplicateOfRetrieved)

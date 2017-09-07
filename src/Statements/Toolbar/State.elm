@@ -4,9 +4,11 @@ import Authenticator.Types exposing (Authentication)
 import Http
 import I18n
 import Ports
+import Process
 import Requests
 import Statements.Toolbar.Types exposing (..)
 import Task
+import Time
 import Types exposing (..)
 import Urls
 
@@ -18,6 +20,8 @@ init authentication language data statement =
     , httpError = Nothing
     , language = language
     , statement = statement
+    , trashAction = Nothing
+    , trashPropertyId = Nothing
     }
 
 
@@ -33,7 +37,10 @@ setModelData : DataProxy {} -> Statement b -> Model (Statement b) -> Model (Stat
 setModelData data statement model =
     -- Note: setModelData is used when the content of a stetement changes. It must not be used when the statement (aka
     -- its id) changes.
-    { model | data = data, statement = statement }
+    { model
+        | data = data
+        , statement = statement
+    }
 
 
 update : InternalMsg -> Model (Statement b) -> ( Model (Statement b), Cmd Msg )
@@ -73,23 +80,119 @@ update msg model =
         ShareOnTwitter url ->
             ( model, Ports.shareOnTwitter url )
 
-        Trash ->
+        Start ->
             ( model
-            , Requests.postProperty model.authentication model.statement.id "trashed" "true" Nothing
-                |> Http.send (ForSelf << TrashPosted)
+            , Requests.getProperties model.authentication True [ model.statement.id ] [ "trashed" ] [ "true" ]
+                |> Http.send (ForSelf << TrashRetrieved)
             )
+
+        StatementRetrieved (Err httpError) ->
+            ( { model | httpError = Just httpError }, Cmd.none )
+
+        StatementRetrieved (Ok { data }) ->
+            ( model
+            , Task.perform (\_ -> ForParent <| DataUpdated <| mergeData data initData) (Task.succeed ())
+            )
+
+        Trash trashAction ->
+            let
+                trashRating =
+                    case trashAction of
+                        DebateTrash ->
+                            Nothing
+
+                        RateTrash (Just rating) ->
+                            Just rating
+
+                        RateTrash Nothing ->
+                            Nothing
+            in
+                ( { model
+                    | trashAction =
+                        case trashAction of
+                            DebateTrash ->
+                                Just trashAction
+
+                            RateTrash (Just rating) ->
+                                Nothing
+
+                            RateTrash Nothing ->
+                                Just trashAction
+                  }
+                , Requests.postProperty model.authentication model.statement.id "trashed" "true" trashRating
+                    |> Http.send (ForSelf << TrashPosted)
+                )
 
         TrashPosted (Err httpError) ->
             ( { model | httpError = Just httpError }, Cmd.none )
 
-        TrashPosted (Ok body) ->
-            ( model
-            , Task.perform
-                (\_ ->
-                    ForParent <|
-                        Navigate <|
-                            Urls.languagePath model.language <|
-                                Urls.idToPropertiesPath body.data body.data.id
-                )
-                (Task.succeed ())
+        TrashPosted (Ok { data }) ->
+            let
+                trashPropertyId =
+                    data.id
+            in
+                { model | trashPropertyId = Just trashPropertyId }
+                    ! [ Task.perform (\_ -> ForParent <| DataUpdated <| mergeData data initData) (Task.succeed ())
+                      , case model.trashAction of
+                            Just DebateTrash ->
+                                Task.perform
+                                    (\_ ->
+                                        ForParent <|
+                                            Navigate <|
+                                                Urls.languagePath model.language <|
+                                                    Urls.idToPropertiesPath data trashPropertyId
+                                    )
+                                    (Task.succeed ())
+
+                            Just (RateTrash (Just trashRating)) ->
+                                Requests.rateStatement model.authentication trashPropertyId trashRating
+                                    |> Http.send (ForSelf << TrashRatingPosted)
+
+                            Just (RateTrash Nothing) ->
+                                Requests.unrateStatement model.authentication trashPropertyId
+                                    |> Http.send (ForSelf << TrashRatingPosted)
+
+                            Nothing ->
+                                Task.attempt (ForSelf << StatementRetrieved)
+                                    (Process.sleep (1 * Time.second)
+                                        |> Task.andThen
+                                            (\_ ->
+                                                Requests.getValue model.authentication model.statement.id
+                                                    |> Http.toTask
+                                            )
+                                    )
+                      ]
+
+        TrashRatingPosted (Err httpError) ->
+            ( { model | httpError = Just httpError }, Cmd.none )
+
+        TrashRatingPosted (Ok { data }) ->
+            -- Note: Don't merge data with model.data, because it will be done by parent when receiving the DataUpdated
+            -- message.
+            model
+                ! [ Task.perform (\_ -> ForParent <| DataUpdated <| mergeData data initData) (Task.succeed ())
+                  , Task.attempt (ForSelf << StatementRetrieved)
+                        (Process.sleep (1 * Time.second)
+                            |> Task.andThen
+                                (\_ ->
+                                    Requests.getValue model.authentication model.statement.id
+                                        |> Http.toTask
+                                )
+                        )
+                  ]
+
+        TrashRetrieved (Err httpError) ->
+            ( { model | httpError = Just httpError }, Cmd.none )
+
+        TrashRetrieved (Ok { data }) ->
+            ( { model
+                | trashPropertyId =
+                    case data.ids of
+                        id :: _ ->
+                            Just id
+
+                        [] ->
+                            Nothing
+              }
+            , Task.perform (\_ -> ForParent <| DataUpdated <| mergeData data initData) (Task.succeed ())
             )

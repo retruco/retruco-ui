@@ -14,6 +14,7 @@ type TranslationId
     | AboutDescription
     | AboutLead
     | Abstain
+    | AbstainOnTrashing
     | AccountCreationFailed
     | ActivationDescription
     | ActivationFailed
@@ -73,6 +74,7 @@ type TranslationId
     | DebateOptionsLabel
     | DebateProsLabel
     | DebateSourcesLabel
+    | DebateTrashing
     | Details
     | Disagree
     | DuplicatedByDescription Int
@@ -201,6 +203,7 @@ type TranslationId
     | TextField
     | Timeout
     | TimeoutExplanation
+    | ToggleDropdown
     | Trash
     | TrendingSortLabel
     | TrueWord
@@ -233,7 +236,9 @@ type TranslationId
     | ValuesDescription
     | ValuesRetrievalFailed
     | ValueType
+    | VoteAgainstTrashing
     | VoteBestContributions
+    | VoteForTrashing
     | Website
 
 
@@ -283,6 +288,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Abstain"
                 , french = s "M'abstenir"
+                , spanish = todo
+            }
+
+        AbstainOnTrashing ->
+            { emptyTranslationSet
+                | english = s "Abstain on trashing"
+                , french = s "M'abstenir pour jeter"
                 , spanish = todo
             }
 
@@ -764,6 +776,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "= Source"
                 , french = s "= Source"
+                , spanish = todo
+            }
+
+        DebateTrashing ->
+            { emptyTranslationSet
+                | english = s "Debate trashing"
+                , french = s "Débattre sur jeter"
                 , spanish = todo
             }
 
@@ -1781,6 +1800,13 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        ToggleDropdown ->
+            { emptyTranslationSet
+                | english = s "Toggle Dropdown"
+                , french = s "Changer l'état du menu déroulant"
+                , spanish = todo
+            }
+
         Trash ->
             { emptyTranslationSet
                 | english = s "Trash"
@@ -2001,10 +2027,24 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        VoteAgainstTrashing ->
+            { emptyTranslationSet
+                | english = s "Vote against trashing"
+                , french = s "Voter contre jeter"
+                , spanish = todo
+            }
+
         VoteBestContributions ->
             { emptyTranslationSet
                 | english = s "Vote for the best contributions"
                 , french = s "Votez pour les meilleurs contributions"
+                , spanish = todo
+            }
+
+        VoteForTrashing ->
+            { emptyTranslationSet
+                | english = s "Vote for trashing"
+                , french = s "Voter pour jeter"
                 , spanish = todo
             }
 

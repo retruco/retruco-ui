@@ -15,6 +15,7 @@ import Properties.SameObjectAndKey.State
 import Properties.SameValue.State
 import Requests
 import Statements.Toolbar.State
+import Statements.Toolbar.Types
 import Types exposing (..)
 import Urls
 
@@ -272,15 +273,23 @@ update msg model =
             let
                 mergedModel =
                     mergeModelData data model
+
+                ( updatedModel, updatedCmd ) =
+                    update (ToolbarMsg (Statements.Toolbar.Types.Start)) mergedModel
             in
-                mergedModel
-                    ! ([ Ports.setDocumentMetadataForStatementId mergedModel.language mergedModel.data mergedModel.id ]
-                        ++ case mergedModel.property of
+                updatedModel
+                    ! ([ updatedCmd
+                       , Ports.setDocumentMetadataForStatementId
+                            updatedModel.language
+                            updatedModel.data
+                            updatedModel.id
+                       ]
+                        ++ case updatedModel.property of
                             Just property ->
                                 if List.member property.keyId debateKeyIds then
                                     [ Requests.getProperties
-                                        model.authentication
-                                        model.showTrashed
+                                        updatedModel.authentication
+                                        updatedModel.showTrashed
                                         [ property.objectId ]
                                         (List.filter
                                             (\debateKeyId -> debateKeyId /= property.keyId)
