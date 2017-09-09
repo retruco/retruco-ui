@@ -781,8 +781,8 @@ getTranslationSet translationId =
 
         DebateTrashing ->
             { emptyTranslationSet
-                | english = s "Debate trashing"
-                , french = s "Débattre sur jeter"
+                | english = s "Debate trashing…"
+                , french = s "Débattre sur jeter…"
                 , spanish = todo
             }
 
