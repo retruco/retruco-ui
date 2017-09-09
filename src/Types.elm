@@ -373,29 +373,3 @@ mergeData new old =
             , users = Dict.union new.users old.users
             , values = Dict.union new.values old.values
         }
-
-
-mergeDataId : DataId -> DataId -> DataId
-mergeDataId new old =
-    let
-        mergedData =
-            mergeData new old
-    in
-        { mergedData
-            | id =
-                if String.isEmpty new.id then
-                    old.id
-                else
-                    new.id
-        }
-
-
-mergeDataIds : DataIds -> DataIds -> DataIds
-mergeDataIds new old =
-    let
-        mergedData =
-            mergeData new old
-    in
-        { mergedData
-            | ids = List.append old.ids new.ids
-        }

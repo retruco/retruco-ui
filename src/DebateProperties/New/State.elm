@@ -10,7 +10,7 @@ import Navigation
 import Ports
 import Requests
 import Task
-import Types exposing (DataProxy, initDataId, mergeData, mergeDataId)
+import Types exposing (DataProxy, initDataId, mergeData)
 import Urls
 import Values.New.State
 import Values.New.Types
@@ -111,9 +111,9 @@ update msg model =
         Upserted (Ok body) ->
             let
                 data =
-                    mergeDataId body.data model.data
+                    mergeData body.data model.data
             in
-                ( { model | data = data }
+                ( { model | data = { data | id = body.data.id } }
                 , Task.perform (\_ -> ForParent <| PropertyUpserted data) (Task.succeed ())
                 )
 

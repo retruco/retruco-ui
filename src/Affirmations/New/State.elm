@@ -9,7 +9,7 @@ import Navigation
 import Ports
 import Requests
 import Task
-import Types exposing (DataProxy, initDataId, mergeData, mergeDataId)
+import Types exposing (DataProxy, initDataId, mergeData)
 import Urls
 import Values.New.State
 import Values.New.Types
