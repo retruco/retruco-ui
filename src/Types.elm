@@ -241,52 +241,6 @@ type ValueType
     | WrongValue String String
 
 
-cardSubTypeIdsIntersect : List String -> List String -> Bool
-cardSubTypeIdsIntersect cardSubTypeIds1 cardSubTypeIds2 =
-    List.any (\subTypeId -> List.member subTypeId cardSubTypeIds2)
-        cardSubTypeIds1
-
-
-getCard : Dict String Card -> String -> Card
-getCard cards id =
-    case Dict.get id cards of
-        Nothing ->
-            Debug.crash "getCard: Should never happen"
-
-        Just card ->
-            card
-
-
-getOrderedCards : DataIds -> List Card
-getOrderedCards { cards, ids } =
-    List.map (getCard cards) ids
-
-
-getOrderedProperties : DataIds -> List Property
-getOrderedProperties { properties, ids } =
-    List.map (getProperty properties) ids
-
-
-getProperty : Dict String Property -> String -> Property
-getProperty properties id =
-    case Dict.get id properties of
-        Nothing ->
-            Debug.crash ("getProperty: Should never happen id=" ++ id)
-
-        Just property ->
-            property
-
-
-getValue : Dict String TypedValue -> String -> TypedValue
-getValue values id =
-    case Dict.get id values of
-        Nothing ->
-            Debug.crash ("getValue: Should never happen id=" ++ id)
-
-        Just value ->
-            value
-
-
 initData : DataProxy {}
 initData =
     { ballots = Dict.empty
