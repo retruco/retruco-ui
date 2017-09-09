@@ -382,8 +382,8 @@ getValue authentication id =
         }
 
 
-getValues : Maybe Authentication -> Maybe String -> Maybe Int -> Bool -> Bool -> String -> Http.Request DataIdsBody
-getValues authentication term limit ratedOnly showTrashed sort =
+getValues : Maybe Authentication -> Maybe String -> Int -> Int -> Bool -> Bool -> String -> Http.Request DataIdsBody
+getValues authentication term limit offset ratedOnly showTrashed sort =
     Http.request
         { method = "GET"
         , headers = authenticationHeaders authentication
@@ -392,14 +392,8 @@ getValues authentication term limit ratedOnly showTrashed sort =
                 ++ "values"
                 ++ Urls.paramsToQuery
                     ([ ( "depth", Just "3" )
-                     , ( "limit"
-                       , case limit of
-                            Just limit ->
-                                Just (toString limit)
-
-                            Nothing ->
-                                Nothing
-                       )
+                     , ( "limit", Just (toString limit) )
+                     , ( "offset", Just (toString offset) )
                      , ( "rated"
                        , if ratedOnly then
                             Just "true"

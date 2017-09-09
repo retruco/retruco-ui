@@ -25,7 +25,7 @@ view model =
             model.language
     in
         div []
-            [ nav
+            ([ nav
                 [ class "bg-light navbar navbar-expand-sm navbar-light" ]
                 [ div [ class "navbar-collapse" ]
                     [ Html.form [ class "form-inline mr-auto", onSubmit (ForSelf Submit) ]
@@ -58,55 +58,68 @@ view model =
                         ]
                     ]
                 ]
-            , case model.ids of
-                Just ids ->
-                    div []
-                        [ ul [ class "list-group" ]
-                            (Array.toList ids
-                                |> List.filterMap
-                                    (\valueId ->
-                                        case Dict.get valueId data.values of
-                                            Just typedValue ->
-                                                Just <|
-                                                    li
-                                                        [ class "d-flex flex-nowrap justify-content-between list-group-item"
-                                                        ]
-                                                        [ viewValueTypeLine
-                                                            language
-                                                            (Just (ForParent << Navigate))
-                                                            False
-                                                            data
-                                                            typedValue.value
-                                                        , viewStatementRatingPanel
-                                                            language
-                                                            (ForParent << Navigate)
-                                                            True
-                                                            data
-                                                            typedValue
-                                                        ]
+             ]
+                ++ case model.ids of
+                    Just ids ->
+                        [ div []
+                            [ ul [ class "list-group" ]
+                                (Array.toList ids
+                                    |> List.filterMap
+                                        (\valueId ->
+                                            case Dict.get valueId data.values of
+                                                Just typedValue ->
+                                                    Just <|
+                                                        li
+                                                            [ class "d-flex flex-nowrap justify-content-between list-group-item"
+                                                            ]
+                                                            [ viewValueTypeLine
+                                                                language
+                                                                (Just (ForParent << Navigate))
+                                                                False
+                                                                data
+                                                                typedValue.value
+                                                            , viewStatementRatingPanel
+                                                                language
+                                                                (ForParent << Navigate)
+                                                                True
+                                                                data
+                                                                typedValue
+                                                            ]
 
-                                            Nothing ->
-                                                Nothing
-                                    )
-                            )
+                                                Nothing ->
+                                                    Nothing
+                                        )
+                                )
+                            ]
+                        , if Array.length ids < model.count then
+                            button
+                                [ class "btn btn-secondary btn-lg btn-block"
+                                , onClick <| ForSelf <| Retrieve <| Array.length ids
+                                , type_ "button"
+                                ]
+                                [ text <| I18n.translate language I18n.MoreButton ]
+                          else
+                            text ""
                         ]
 
-                Nothing ->
-                    case model.httpError of
-                        Just httpError ->
-                            div
-                                [ class "alert alert-danger"
-                                , role "alert"
-                                ]
-                                [ strong []
-                                    [ text <|
-                                        I18n.translate language I18n.AffirmationsRetrievalFailed
-                                            ++ I18n.translate language I18n.Colon
+                    Nothing ->
+                        case model.httpError of
+                            Just httpError ->
+                                [ div
+                                    [ class "alert alert-danger"
+                                    , role "alert"
                                     ]
-                                , text <| Http.Error.toString language httpError
+                                    [ strong []
+                                        [ text <|
+                                            I18n.translate language I18n.AffirmationsRetrievalFailed
+                                                ++ I18n.translate language I18n.Colon
+                                        ]
+                                    , text <| Http.Error.toString language httpError
+                                    ]
                                 ]
 
-                        Nothing ->
-                            div [ class "text-center" ]
-                                [ Views.viewLoading language ]
-            ]
+                            Nothing ->
+                                [ div [ class "text-center" ]
+                                    [ Views.viewLoading language ]
+                                ]
+            )

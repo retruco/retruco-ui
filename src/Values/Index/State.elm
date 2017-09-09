@@ -1,5 +1,6 @@
 module Values.Index.State exposing (..)
 
+import Array
 import Authenticator.Types exposing (Authentication)
 import Dict exposing (Dict)
 import Http
@@ -15,6 +16,7 @@ import Values.Index.Types exposing (..)
 init : Maybe Authentication -> I18n.Language -> Model
 init authentication language =
     { authentication = authentication
+    , count = 0
     , data = initData
     , errors = Dict.empty
     , httpError = Nothing
@@ -82,19 +84,17 @@ mergeModelData data model =
 update : InternalMsg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Retrieve ->
-            ( { model
-                | httpError = Nothing
-                , ids = Nothing
-              }
+        Retrieve offset ->
+            ( { model | httpError = Nothing }
             , let
                 limit =
-                    Just 10
+                    10
               in
                 Requests.getValues
                     model.authentication
                     model.searchCriteria.term
                     limit
+                    offset
                     False
                     model.showTrashed
                     model.searchCriteria.sort
@@ -104,12 +104,26 @@ update msg model =
         Retrieved (Err httpError) ->
             ( { model | httpError = Just httpError }, Cmd.none )
 
-        Retrieved (Ok { data }) ->
+        Retrieved (Ok { count, data, offset }) ->
             let
                 mergedModel =
                     mergeModelData data model
+
+                existingIds =
+                    Maybe.withDefault Array.empty model.ids
+
+                ids =
+                    if offset == Array.length existingIds then
+                        Array.append existingIds data.ids
+                    else
+                        existingIds
             in
-                ( { mergedModel | ids = Just data.ids }, Cmd.none )
+                ( { mergedModel
+                    | count = count
+                    , ids = Just ids
+                  }
+                , Cmd.none
+                )
 
         SearchSortChanged searchSort ->
             update Submit { model | searchSort = searchSort }
@@ -123,7 +137,12 @@ update msg model =
                     ( { model | errors = errors }, Cmd.none )
 
                 Ok searchCriteria ->
-                    update Retrieve { model | errors = Dict.empty, searchCriteria = searchCriteria }
+                    update (Retrieve 0)
+                        { model
+                            | errors = Dict.empty
+                            , ids = Nothing
+                            , searchCriteria = searchCriteria
+                        }
 
 
 urlUpdate : Navigation.Location -> Model -> ( Model, Cmd Msg )

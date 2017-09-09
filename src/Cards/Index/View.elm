@@ -45,7 +45,7 @@ view model =
             model.language
     in
         div []
-            [ nav
+            ([ nav
                 [ class "bg-light navbar navbar-expand-sm navbar-light" ]
                 [ div [ class "navbar-collapse" ]
                     [ Html.form [ class "form-inline mr-auto", onSubmit (ForSelf Submit) ]
@@ -78,40 +78,53 @@ view model =
                         ]
                     ]
                 ]
-            , case model.ids of
-                Just ids ->
-                    div [ class "list-group" ]
-                        (Array.toList ids
-                            |> List.map
-                                (\cardId ->
-                                    aForPath
-                                        (ForParent << Navigate)
-                                        language
-                                        ("/cards/" ++ cardId)
-                                        [ class "list-group-item list-group-item-action" ]
-                                        [ viewCardIdLine language Nothing data cardId ]
-                                )
-                        )
-
-                Nothing ->
-                    case model.httpError of
-                        Just httpError ->
-                            div
-                                [ class "alert alert-danger"
-                                , role "alert"
+             ]
+                ++ case model.ids of
+                    Just ids ->
+                        [ div [ class "list-group" ]
+                            (Array.toList ids
+                                |> List.map
+                                    (\cardId ->
+                                        aForPath
+                                            (ForParent << Navigate)
+                                            language
+                                            ("/cards/" ++ cardId)
+                                            [ class "list-group-item list-group-item-action" ]
+                                            [ viewCardIdLine language Nothing data cardId ]
+                                    )
+                            )
+                        , if Array.length ids < model.count then
+                            button
+                                [ class "btn btn-secondary btn-lg btn-block"
+                                , onClick <| ForSelf <| Retrieve <| Array.length ids
+                                , type_ "button"
                                 ]
-                                [ strong []
-                                    [ text <|
-                                        I18n.translate language I18n.ValuesRetrievalFailed
-                                            ++ I18n.translate language I18n.Colon
+                                [ text <| I18n.translate language I18n.MoreButton ]
+                          else
+                            text ""
+                        ]
+
+                    Nothing ->
+                        case model.httpError of
+                            Just httpError ->
+                                [ div
+                                    [ class "alert alert-danger"
+                                    , role "alert"
                                     ]
-                                , text <| Http.Error.toString language httpError
+                                    [ strong []
+                                        [ text <|
+                                            I18n.translate language I18n.ValuesRetrievalFailed
+                                                ++ I18n.translate language I18n.Colon
+                                        ]
+                                    , text <| Http.Error.toString language httpError
+                                    ]
                                 ]
 
-                        Nothing ->
-                            div [ class "text-center" ]
-                                [ Views.viewLoading language ]
-            ]
+                            Nothing ->
+                                [ div [ class "text-center" ]
+                                    [ Views.viewLoading language ]
+                                ]
+            )
 
 
 viewInlineSearchSort : I18n.Language -> String -> Maybe String -> (String -> msg) -> Html msg

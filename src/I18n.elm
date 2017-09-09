@@ -132,6 +132,7 @@ type TranslationId
     | MissingDescription
     | MissingProperties
     | MissingValue
+    | MoreButton
     | NetworkError
     | NetworkErrorExplanation
     | New
@@ -1264,6 +1265,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Missing value"
                 , french = s "Valeur manquante"
+                , spanish = todo
+            }
+
+        MoreButton ->
+            { emptyTranslationSet
+                | english = s "More…"
+                , french = s "Plus…"
                 , spanish = todo
             }
 

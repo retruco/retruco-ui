@@ -17,7 +17,7 @@ type alias FormErrors =
 
 
 type InternalMsg
-    = Retrieve
+    = Retrieve Int
     | Retrieved (Result Http.Error DataIdsBody)
     | SearchSortChanged String
     | SearchTermChanged String
@@ -26,6 +26,7 @@ type InternalMsg
 
 type alias Model =
     { authentication : Maybe Authentication
+    , count : Int
     , data : DataProxy {}
     , errors : FormErrors
     , httpError : Maybe Http.Error
