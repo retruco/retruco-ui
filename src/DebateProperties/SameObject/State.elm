@@ -1,5 +1,6 @@
 module DebateProperties.SameObject.State exposing (..)
 
+import Array
 import Authenticator.Types exposing (Authentication)
 import Constants exposing (debateKeyIds)
 import DebateProperties.New.State
@@ -116,13 +117,13 @@ update msg model =
                     | debatePropertyIds =
                         case model.debatePropertyIds of
                             Just debatePropertyIds ->
-                                if List.member data.id debatePropertyIds then
+                                if List.member data.id <| Array.toList debatePropertyIds then
                                     Just debatePropertyIds
                                 else
-                                    Just (data.id :: debatePropertyIds)
+                                    Just <| Array.append (Array.fromList [ data.id ]) debatePropertyIds
 
                             Nothing ->
-                                Just [ data.id ]
+                                Just <| Array.fromList [ data.id ]
                   }
                 , Cmd.none
                 )

@@ -1,6 +1,7 @@
 module Affirmations.Index.View exposing (..)
 
 import Affirmations.Index.Types exposing (..)
+import Array
 import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -61,32 +62,32 @@ view model =
                 Just ids ->
                     div []
                         [ ul [ class "list-group" ]
-                            (List.filterMap
-                                (\valueId ->
-                                    case Dict.get valueId data.values of
-                                        Just typedValue ->
-                                            Just <|
-                                                li
-                                                    [ class "d-flex flex-nowrap justify-content-between list-group-item"
-                                                    ]
-                                                    [ viewValueTypeLine
-                                                        language
-                                                        (Just (ForParent << Navigate))
-                                                        False
-                                                        data
-                                                        typedValue.value
-                                                    , viewStatementRatingPanel
-                                                        language
-                                                        (ForParent << Navigate)
-                                                        True
-                                                        data
-                                                        typedValue
-                                                    ]
+                            (Array.toList ids
+                                |> List.filterMap
+                                    (\valueId ->
+                                        case Dict.get valueId data.values of
+                                            Just typedValue ->
+                                                Just <|
+                                                    li
+                                                        [ class "d-flex flex-nowrap justify-content-between list-group-item"
+                                                        ]
+                                                        [ viewValueTypeLine
+                                                            language
+                                                            (Just (ForParent << Navigate))
+                                                            False
+                                                            data
+                                                            typedValue.value
+                                                        , viewStatementRatingPanel
+                                                            language
+                                                            (ForParent << Navigate)
+                                                            True
+                                                            data
+                                                            typedValue
+                                                        ]
 
-                                        Nothing ->
-                                            Nothing
-                                )
-                                ids
+                                            Nothing ->
+                                                Nothing
+                                    )
                             )
                         ]
 

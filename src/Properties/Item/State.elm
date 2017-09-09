@@ -1,9 +1,10 @@
 module Properties.Item.State exposing (..)
 
+import Array
 import Authenticator.Types exposing (Authentication)
 import Constants exposing (debateKeyIds)
 import DebateProperties.SameObject.State
-import Dict exposing (Dict)
+import Dict
 import Http
 import I18n
 import Navigation
@@ -243,7 +244,7 @@ update msg model =
                     mergeModelData data model
             in
                 ( { mergedModel
-                    | similarDebatePropertyIds = Just data.ids
+                    | similarDebatePropertyIds = Just <| Array.toList data.ids
                   }
                 , Cmd.none
                 )

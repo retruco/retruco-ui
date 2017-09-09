@@ -1,5 +1,6 @@
 module Values.Index.Types exposing (..)
 
+import Array exposing (Array)
 import Authenticator.Types exposing (Authentication)
 import Dict exposing (Dict)
 import Http
@@ -28,7 +29,7 @@ type alias Model =
     , data : DataProxy {}
     , errors : FormErrors
     , httpError : Maybe Http.Error
-    , ids : Maybe (List String)
+    , ids : Maybe (Array String)
     , language : I18n.Language
     , searchCriteria : SearchCriteria
     , searchSort : String

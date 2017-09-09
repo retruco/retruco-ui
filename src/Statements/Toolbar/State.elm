@@ -1,5 +1,6 @@
 module Statements.Toolbar.State exposing (..)
 
+import Array
 import Authenticator.Types exposing (Authentication)
 import Http
 import I18n
@@ -185,14 +186,6 @@ update msg model =
             ( { model | httpError = Just httpError }, Cmd.none )
 
         TrashRetrieved (Ok { data }) ->
-            ( { model
-                | trashPropertyId =
-                    case data.ids of
-                        id :: _ ->
-                            Just id
-
-                        [] ->
-                            Nothing
-              }
+            ( { model | trashPropertyId = Array.get 0 data.ids }
             , Task.perform (\_ -> ForParent <| DataUpdated <| mergeData data initData) (Task.succeed ())
             )

@@ -1,5 +1,6 @@
 module Properties.SameObject.State exposing (..)
 
+import Array
 import Authenticator.Types exposing (Authentication)
 import Http
 import I18n
@@ -159,13 +160,13 @@ update msg model =
                     | propertyIds =
                         case model.propertyIds of
                             Just propertyIds ->
-                                if List.member data.id propertyIds then
+                                if List.member data.id <| Array.toList propertyIds then
                                     Just propertyIds
                                 else
-                                    Just (data.id :: propertyIds)
+                                    Just <| Array.append (Array.fromList [ data.id ]) propertyIds
 
                             Nothing ->
-                                Just [ data.id ]
+                                Just <| Array.fromList [ data.id ]
                   }
                 , Cmd.none
                 )

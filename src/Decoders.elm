@@ -1,6 +1,7 @@
 module Decoders exposing (..)
 
-import Dict exposing (Dict)
+import Array
+import Dict
 import Json.Decode exposing (..)
 import Json.Decode.Extra exposing ((|:))
 import String
@@ -113,11 +114,11 @@ dataIdsBodyDecoder =
 dataIdsDecoder : Decoder DataIds
 dataIdsDecoder =
     map2 (,)
-        (field "ids" (list string))
+        (field "ids" (array string))
         (oneOf [ (field "users" (dict userDecoder)), succeed Dict.empty ])
         |> andThen
             (\( ids, users ) ->
-                (if List.isEmpty ids then
+                (if Array.isEmpty ids then
                     succeed ( Dict.empty, Dict.empty, Dict.empty, Dict.empty, Dict.empty )
                  else
                     map5 (,,,,)

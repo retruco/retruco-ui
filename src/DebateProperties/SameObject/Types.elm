@@ -1,5 +1,6 @@
 module DebateProperties.SameObject.Types exposing (..)
 
+import Array exposing (Array)
 import Authenticator.Types exposing (Authentication)
 import DebateProperties.New.Types
 import Http
@@ -22,7 +23,7 @@ type InternalMsg
 type alias Model =
     { authentication : Maybe Authentication
     , data : DataProxy {}
-    , debatePropertyIds : Maybe (List String)
+    , debatePropertyIds : Maybe (Array String)
     , httpError : Maybe Http.Error
     , language : I18n.Language
     , newDebatePropertyModel : DebateProperties.New.Types.Model

@@ -1,5 +1,6 @@
 module Types exposing (..)
 
+import Array exposing (Array)
 import Dict exposing (Dict)
 import Json.Decode
 import Set
@@ -83,7 +84,7 @@ type alias DataIds =
     { ballots : Dict String Ballot
     , cards : Dict String Card
     , collections : Dict String Collection
-    , ids : List String
+    , ids : Array String
     , properties : Dict String Property
     , users : Dict String User
     , values : Dict String TypedValue
@@ -269,7 +270,7 @@ initDataIds =
     { ballots = Dict.empty
     , cards = Dict.empty
     , collections = Dict.empty
-    , ids = []
+    , ids = Array.empty
     , properties = Dict.empty
     , users = Dict.empty
     , values = Dict.empty

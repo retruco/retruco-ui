@@ -1,5 +1,6 @@
 module DebateProperties.SameObject.View exposing (..)
 
+import Array
 import DebateProperties.New.View
 import DebateProperties.SameObject.Types exposing (..)
 import Html exposing (..)
@@ -25,26 +26,26 @@ view model =
             Just debatePropertyIds ->
                 div []
                     [ div []
-                        [ if List.isEmpty debatePropertyIds then
+                        [ if Array.isEmpty debatePropertyIds then
                             p [] [ text <| I18n.translate language I18n.MissingArguments ]
                           else
                             ul [ class "list-group" ]
-                                (List.map
-                                    (\debatePropertyId ->
-                                        li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
-                                            [ viewPropertyIdLine language
-                                                (Just (ForParent << Navigate))
-                                                False
-                                                data
-                                                debatePropertyId
-                                            , viewStatementIdRatingPanel
-                                                language
-                                                (ForParent << Navigate)
-                                                data
-                                                debatePropertyId
-                                            ]
-                                    )
-                                    debatePropertyIds
+                                (Array.toList debatePropertyIds
+                                    |> List.map
+                                        (\debatePropertyId ->
+                                            li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
+                                                [ viewPropertyIdLine language
+                                                    (Just (ForParent << Navigate))
+                                                    False
+                                                    data
+                                                    debatePropertyId
+                                                , viewStatementIdRatingPanel
+                                                    language
+                                                    (ForParent << Navigate)
+                                                    data
+                                                    debatePropertyId
+                                                ]
+                                        )
                                 )
                         ]
                     , hr [] []

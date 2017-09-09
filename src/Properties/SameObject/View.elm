@@ -1,7 +1,8 @@
 module Properties.SameObject.View exposing (..)
 
+import Array
 import Constants exposing (debateKeyIds)
-import Dict exposing (Dict)
+import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
@@ -33,7 +34,8 @@ view model =
             Just propertyIds ->
                 let
                     properties =
-                        List.filterMap (\propertyId -> Dict.get propertyId data.properties) propertyIds
+                        Array.toList propertyIds
+                            |> List.filterMap (\propertyId -> Dict.get propertyId data.properties)
 
                     keyIdLabelCouples =
                         properties

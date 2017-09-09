@@ -1,5 +1,6 @@
 module Properties.SameObject.Types exposing (..)
 
+import Array exposing (Array)
 import Authenticator.Types exposing (Authentication)
 import Http
 import I18n
@@ -29,7 +30,7 @@ type alias Model =
     , keysAutocompleteModel : Properties.KeysAutocomplete.Types.Model
     , language : I18n.Language
     , objectId : String
-    , propertyIds : Maybe (List String)
+    , propertyIds : Maybe (Array String)
     , showTrashed : Bool
     }
 

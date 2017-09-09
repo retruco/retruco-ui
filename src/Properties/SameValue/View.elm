@@ -1,5 +1,6 @@
 module Properties.SameValue.View exposing (..)
 
+import Array
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
@@ -27,26 +28,26 @@ view model =
             Just propertyIds ->
                 div []
                     [ div []
-                        [ if List.isEmpty propertyIds then
+                        [ if Array.isEmpty propertyIds then
                             p [] [ text <| I18n.translate language I18n.MissingArguments ]
                           else
                             ul [ class "list-group" ]
-                                (List.map
-                                    (\propertyId ->
-                                        li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
-                                            [ viewPropertyIdLine language
-                                                (Just navigateMsg)
-                                                True
-                                                data
-                                                propertyId
-                                            , viewStatementIdRatingPanel
-                                                language
-                                                navigateMsg
-                                                data
-                                                propertyId
-                                            ]
-                                    )
-                                    propertyIds
+                                (Array.toList propertyIds
+                                    |> List.map
+                                        (\propertyId ->
+                                            li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
+                                                [ viewPropertyIdLine language
+                                                    (Just navigateMsg)
+                                                    True
+                                                    data
+                                                    propertyId
+                                                , viewStatementIdRatingPanel
+                                                    language
+                                                    navigateMsg
+                                                    data
+                                                    propertyId
+                                                ]
+                                        )
                                 )
                         ]
                     ]

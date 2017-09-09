@@ -1,7 +1,8 @@
 module Cards.Index.View exposing (..)
 
+import Array
 import Cards.Index.Types exposing (..)
-import Dict exposing (Dict)
+import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
@@ -80,16 +81,16 @@ view model =
             , case model.ids of
                 Just ids ->
                     div [ class "list-group" ]
-                        (List.map
-                            (\cardId ->
-                                aForPath
-                                    (ForParent << Navigate)
-                                    language
-                                    ("/cards/" ++ cardId)
-                                    [ class "list-group-item list-group-item-action" ]
-                                    [ viewCardIdLine language Nothing data cardId ]
-                            )
-                            ids
+                        (Array.toList ids
+                            |> List.map
+                                (\cardId ->
+                                    aForPath
+                                        (ForParent << Navigate)
+                                        language
+                                        ("/cards/" ++ cardId)
+                                        [ class "list-group-item list-group-item-action" ]
+                                        [ viewCardIdLine language Nothing data cardId ]
+                                )
                         )
 
                 Nothing ->

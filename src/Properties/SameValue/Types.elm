@@ -1,5 +1,6 @@
 module Properties.SameValue.Types exposing (..)
 
+import Array exposing (Array)
 import Authenticator.Types exposing (Authentication)
 import Http
 import I18n
@@ -22,7 +23,7 @@ type alias Model =
     , data : DataProxy {}
     , httpError : Maybe Http.Error
     , language : I18n.Language
-    , propertyIds : Maybe (List String)
+    , propertyIds : Maybe (Array String)
     , showTrashed : Bool
     , valueId : String
     }

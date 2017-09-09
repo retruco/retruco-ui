@@ -1,6 +1,7 @@
 module Values.Index.View exposing (..)
 
-import Dict exposing (Dict)
+import Array
+import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
@@ -81,16 +82,16 @@ view model =
             , case model.ids of
                 Just ids ->
                     div [ class "list-group" ]
-                        (List.map
-                            (\valueId ->
-                                aForPath
-                                    (ForParent << Navigate)
-                                    language
-                                    (Urls.idToPath data valueId)
-                                    [ class "list-group-item list-group-item-action" ]
-                                    [ viewValueIdLine language Nothing False data valueId ]
-                            )
-                            ids
+                        (Array.toList ids
+                            |> List.map
+                                (\valueId ->
+                                    aForPath
+                                        (ForParent << Navigate)
+                                        language
+                                        (Urls.idToPath data valueId)
+                                        [ class "list-group-item list-group-item-action" ]
+                                        [ viewValueIdLine language Nothing False data valueId ]
+                                )
                         )
 
                 Nothing ->

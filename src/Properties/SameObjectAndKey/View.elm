@@ -1,6 +1,7 @@
 module Properties.SameObjectAndKey.View exposing (..)
 
-import Dict exposing (Dict)
+import Array
+import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
@@ -77,25 +78,25 @@ view model =
                         ]
                     , hr [] []
                     , ul [ class "list-group" ]
-                        (List.filterMap
-                            (\propertyId ->
-                                case Dict.get propertyId data.properties of
-                                    Just property ->
-                                        Just <|
-                                            li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
-                                                [ viewStatementIdLine language Nothing True False data property.valueId
-                                                , viewStatementRatingPanel
-                                                    language
-                                                    navigateMsg
-                                                    True
-                                                    data
-                                                    property
-                                                ]
+                        (Array.toList propertyIds
+                            |> List.filterMap
+                                (\propertyId ->
+                                    case Dict.get propertyId data.properties of
+                                        Just property ->
+                                            Just <|
+                                                li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
+                                                    [ viewStatementIdLine language Nothing True False data property.valueId
+                                                    , viewStatementRatingPanel
+                                                        language
+                                                        navigateMsg
+                                                        True
+                                                        data
+                                                        property
+                                                    ]
 
-                                    Nothing ->
-                                        Nothing
-                            )
-                            propertyIds
+                                        Nothing ->
+                                            Nothing
+                                )
                         )
                     , hr [] []
                     , Values.New.View.view model.newValueModel

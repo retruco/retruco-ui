@@ -1,11 +1,12 @@
 module Cards.Item.State exposing (..)
 
+import Array
 import Authenticator.Types exposing (Authentication)
 import Cards.Item.Routes exposing (..)
 import Cards.Item.Types exposing (..)
 import Constants exposing (duplicateOfKeyId)
 import DebateProperties.SameObject.State
-import Dict exposing (Dict)
+import Dict
 import Http
 import I18n
 import Navigation
@@ -224,7 +225,7 @@ update msg model =
                     mergeModelData data model
             in
                 ( { mergedModel
-                    | duplicatedByPropertyIds = Just data.ids
+                    | duplicatedByPropertyIds = Just <| Array.toList data.ids
                   }
                 , Cmd.none
                 )
@@ -242,7 +243,7 @@ update msg model =
                     mergeModelData data model
             in
                 ( { mergedModel
-                    | duplicateOfPropertyIds = Just data.ids
+                    | duplicateOfPropertyIds = Just <| Array.toList data.ids
                   }
                 , Cmd.none
                 )
