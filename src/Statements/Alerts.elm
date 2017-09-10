@@ -1,14 +1,13 @@
-module Statements.ViewsHelpers exposing (..)
+module Statements.Alerts exposing (..)
 
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
-import Html.Helpers exposing (aForPath)
 import I18n
 import LineViews exposing (viewStatementIdLine)
+import Statements.RatingPanels exposing (viewStatementIdRatingPanel)
 import Types exposing (Argument, DataProxy, Statement)
-import Urls
 
 
 viewDuplicatedByAlert : I18n.Language -> (String -> msg) -> DataProxy a -> Maybe (List String) -> Html msg
@@ -39,7 +38,7 @@ viewDuplicatedByAlert language navigateMsg data duplicatedByPropertyIds =
                         , ul [ class "list-group" ]
                             (List.map
                                 (\duplicatedByProperty ->
-                                    li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
+                                    li [ class "align-items-center d-flex flex-nowrap justify-content-between list-group-item" ]
                                         [ viewStatementIdLine
                                             language
                                             (Just navigateMsg)
@@ -92,7 +91,7 @@ viewDuplicateOfAlert language navigateMsg data duplicateOfPropertyIds =
                         , ul [ class "list-group" ]
                             (List.map
                                 (\duplicateOfProperty ->
-                                    li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
+                                    li [ class "align-items-center d-flex flex-nowrap justify-content-between list-group-item" ]
                                         [ viewStatementIdLine
                                             language
                                             (Just navigateMsg)
@@ -115,77 +114,3 @@ viewDuplicateOfAlert language navigateMsg data duplicateOfPropertyIds =
 
         Nothing ->
             text ""
-
-
-viewStatementIdRatingPanel : I18n.Language -> Maybe (String -> msg) -> DataProxy a -> String -> Html msg
-viewStatementIdRatingPanel language navigateMsg data statementId =
-    case Dict.get statementId data.cards of
-        Just card ->
-            viewStatementRatingPanel language navigateMsg data card
-
-        Nothing ->
-            case Dict.get statementId data.properties of
-                Just property ->
-                    viewStatementRatingPanel language navigateMsg data property
-
-                Nothing ->
-                    case Dict.get statementId data.values of
-                        Just typedValue ->
-                            viewStatementRatingPanel language navigateMsg data typedValue
-
-                        Nothing ->
-                            i [ class "text-warning" ] [ text (I18n.translate language <| I18n.UnknownId statementId) ]
-
-
-viewStatementRatingPanel :
-    I18n.Language
-    -> Maybe (String -> msg)
-    -> DataProxy a
-    -> { b | argumentCount : Int, id : String, ratingCount : Int, ratingSum : Int, trashed : Bool }
-    -> Html msg
-viewStatementRatingPanel language navigateMsg data { argumentCount, id, ratingCount, ratingSum, trashed } =
-    let
-        buttonClass =
-            classList
-                [ ( "btn", True )
-                , ( "btn-lg", True )
-                , ( if trashed then
-                        "btn-danger"
-                    else if ratingSum > 0 then
-                        "btn-outline-success"
-                    else
-                        "btn-outline-danger"
-                  , True
-                  )
-                , ( "ml-3", True )
-                ]
-
-        buttonWithAttributes =
-            case navigateMsg of
-                Just navigateMsg ->
-                    aForPath
-                        navigateMsg
-                        language
-                        (Urls.idToPath data id)
-                        [ buttonClass ]
-
-                Nothing ->
-                    button
-                        [ buttonClass
-                        , disabled True
-                        , type_ "button"
-                        ]
-    in
-        buttonWithAttributes
-            [ strong [] [ text <| toString ratingSum ]
-            , text " / "
-            , text <|
-                I18n.translate
-                    language
-                    (I18n.CountVotes ratingCount)
-            , br [] []
-            , text <|
-                I18n.translate
-                    language
-                    (I18n.CountArguments argumentCount)
-            ]

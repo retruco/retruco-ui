@@ -72,7 +72,7 @@ view model =
                                                 valueIds =
                                                     List.map .valueId keyProperties
                                             in
-                                                li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
+                                                li [ class "align-items-center d-flex flex-nowrap justify-content-between list-group-item" ]
                                                     [ div []
                                                         [ div [ class "align-items-baseline d-flex flex-nowrap" ]
                                                             [ span

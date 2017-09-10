@@ -12,7 +12,8 @@ import Properties.SameObject.View
 import Properties.SameObjectAndKey.View
 import Properties.SameValue.View
 import Statements.Toolbar.View
-import Statements.ViewsHelpers exposing (viewDuplicatedByAlert, viewDuplicateOfAlert, viewStatementRatingPanel)
+import Statements.Alerts exposing (viewDuplicatedByAlert, viewDuplicateOfAlert)
+import Statements.RatingPanels exposing (viewStatementRatingPanel)
 import Urls
 import Values.Item.Types exposing (..)
 import Views

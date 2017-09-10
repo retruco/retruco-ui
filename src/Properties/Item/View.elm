@@ -14,7 +14,7 @@ import Properties.SameObject.View
 import Properties.SameObjectAndKey.View
 import Properties.SameValue.View
 import Statements.Toolbar.View
-import Statements.ViewsHelpers exposing (viewStatementIdRatingPanel, viewStatementRatingPanel)
+import Statements.RatingPanels exposing (viewStatementIdRatingPanel, viewStatementRatingPanel)
 import Urls
 import Views
 
@@ -126,7 +126,7 @@ view model =
                                                 , ul [ class "list-group" ]
                                                     (List.map
                                                         (\similarDebatePropertyId ->
-                                                            li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
+                                                            li [ class "align-items-center d-flex flex-nowrap justify-content-between list-group-item" ]
                                                                 [ viewPropertyIdLine
                                                                     language
                                                                     (Just navigateMsg)

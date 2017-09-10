@@ -9,7 +9,7 @@ import Html.Attributes.Aria exposing (..)
 import Http.Error
 import I18n
 import LineViews exposing (viewPropertyIdLine)
-import Statements.ViewsHelpers exposing (viewStatementIdRatingPanel)
+import Statements.RatingPanels exposing (viewStatementIdRatingPanel)
 import Views
 
 
@@ -36,7 +36,7 @@ view model =
                                 (Array.toList debatePropertyIds
                                     |> List.map
                                         (\debatePropertyId ->
-                                            li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
+                                            li [ class "align-items-center d-flex flex-nowrap justify-content-between list-group-item" ]
                                                 [ viewPropertyIdLine language
                                                     (Just navigateMsg)
                                                     False

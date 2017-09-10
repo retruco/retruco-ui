@@ -6,6 +6,7 @@ import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Html.Helpers exposing (aForPath, aIfIsUrl)
 import I18n
+import Statements.RatingPanels exposing (viewStatementIdRatingPanel)
 import Strings
 import Types exposing (..)
 import Urls
@@ -85,12 +86,17 @@ viewPropertyLine language navigateMsg independent data property =
     in
         div []
             [ if independent then
-                div [ class "ml-4" ]
+                div [ class "align-items-center d-flex flex-nowrap justify-content-between ml-4" ]
                     [ viewStatementIdLine
                         language
                         navigateMsg
                         True
                         False
+                        data
+                        property.objectId
+                    , viewStatementIdRatingPanel
+                        language
+                        Nothing
                         data
                         property.objectId
                     ]
@@ -116,12 +122,17 @@ viewPropertyLine language navigateMsg independent data property =
                     []
                 , span [] [ text keyLabel ]
                 ]
-            , div [ class "ml-4" ]
+            , div [ class "align-items-center d-flex flex-nowrap justify-content-between ml-4" ]
                 [ viewStatementIdLine
                     language
                     navigateMsg
                     True
                     False
+                    data
+                    property.valueId
+                , viewStatementIdRatingPanel
+                    language
+                    Nothing
                     data
                     property.valueId
                 ]

@@ -9,7 +9,7 @@ import Http.Error
 import I18n
 import LineViews exposing (viewStatementIdLine)
 import Properties.SameObjectAndKey.Types exposing (..)
-import Statements.ViewsHelpers exposing (viewStatementIdRatingPanel, viewStatementRatingPanel)
+import Statements.RatingPanels exposing (viewStatementIdRatingPanel, viewStatementRatingPanel)
 import Strings
 import Values.New.View
 import Views
@@ -84,7 +84,7 @@ view model =
                                     case Dict.get propertyId data.properties of
                                         Just property ->
                                             Just <|
-                                                li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
+                                                li [ class "align-items-center d-flex flex-nowrap justify-content-between list-group-item" ]
                                                     [ viewStatementIdLine language Nothing True False data property.valueId
                                                     , viewStatementRatingPanel
                                                         language

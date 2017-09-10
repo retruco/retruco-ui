@@ -11,7 +11,7 @@ import Html.Helpers exposing (aForPath)
 import Http.Error
 import I18n
 import LineViews exposing (viewValueTypeLine)
-import Statements.ViewsHelpers exposing (viewStatementRatingPanel)
+import Statements.RatingPanels exposing (viewStatementRatingPanel)
 import Views
 
 
@@ -70,7 +70,7 @@ view model =
                                                 Just typedValue ->
                                                     Just <|
                                                         li
-                                                            [ class "d-flex flex-nowrap justify-content-between list-group-item"
+                                                            [ class "align-items-center d-flex flex-nowrap justify-content-between list-group-item"
                                                             ]
                                                             [ viewValueTypeLine
                                                                 language

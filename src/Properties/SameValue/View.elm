@@ -8,7 +8,7 @@ import Http.Error
 import I18n
 import LineViews exposing (viewPropertyIdLine)
 import Properties.SameValue.Types exposing (..)
-import Statements.ViewsHelpers exposing (viewStatementIdRatingPanel)
+import Statements.RatingPanels exposing (viewStatementIdRatingPanel)
 import Views
 
 
@@ -35,7 +35,7 @@ view model =
                                 (Array.toList propertyIds
                                     |> List.map
                                         (\propertyId ->
-                                            li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
+                                            li [ class "align-items-center d-flex flex-nowrap justify-content-between list-group-item" ]
                                                 [ viewPropertyIdLine language
                                                     (Just navigateMsg)
                                                     True
