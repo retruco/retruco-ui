@@ -79,9 +79,9 @@ view model =
                                                                 [ ariaHidden True
                                                                 , classList
                                                                     [ ( "fa", True )
-                                                                    , ( if keyId == "cons" then
+                                                                    , ( if keyId == "con" then
                                                                             "fa-minus"
-                                                                        else if keyId == "pros" then
+                                                                        else if keyId == "pro" then
                                                                             "fa-plus"
                                                                         else
                                                                             "fa-circle"

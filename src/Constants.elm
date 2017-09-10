@@ -5,7 +5,7 @@ module Constants exposing (..)
 
 debateKeyIds : List String
 debateKeyIds =
-    [ "cons", "options", "pros", "sources" ]
+    [ "con", "option", "pro", "remark", "source" ]
 
 
 duplicateOfKeyId : String

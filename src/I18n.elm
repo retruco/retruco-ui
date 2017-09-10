@@ -70,10 +70,11 @@ type TranslationId
     | CreateAccountNow
     | CreateYourAccount
     | Debate
-    | DebateConsLabel
-    | DebateOptionsLabel
-    | DebateProsLabel
-    | DebateSourcesLabel
+    | DebateConLabel
+    | DebateOptionLabel
+    | DebateProLabel
+    | DebateRemarkLabel
+    | DebateSourceLabel
     | DebateTrashing
     | Details
     | Disagree
@@ -752,28 +753,35 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
-        DebateConsLabel ->
+        DebateConLabel ->
             { emptyTranslationSet
                 | english = s "- Argument Against"
                 , french = s "- Argument contre"
                 , spanish = todo
             }
 
-        DebateOptionsLabel ->
+        DebateOptionLabel ->
             { emptyTranslationSet
                 | english = s "= Answer to Question"
                 , french = s "= Réponse à la question"
                 , spanish = todo
             }
 
-        DebateProsLabel ->
+        DebateProLabel ->
             { emptyTranslationSet
                 | english = s "+ Argument For"
                 , french = s "+ Argument pour"
                 , spanish = todo
             }
 
-        DebateSourcesLabel ->
+        DebateRemarkLabel ->
+            { emptyTranslationSet
+                | english = s "= Remark"
+                , french = s "= Remarque"
+                , spanish = todo
+            }
+
+        DebateSourceLabel ->
             { emptyTranslationSet
                 | english = s "= Source"
                 , french = s "= Source"
@@ -2117,10 +2125,11 @@ todo =
 
 keyIdLabelCouples : List ( String, TranslationId )
 keyIdLabelCouples =
-    [ ( "pros", DebateProsLabel )
-    , ( "cons", DebateConsLabel )
-    , ( "options", DebateOptionsLabel )
-    , ( "sources", DebateSourcesLabel )
+    [ ( "pro", DebateProLabel )
+    , ( "con", DebateConLabel )
+    , ( "remark", DebateRemarkLabel )
+    , ( "option", DebateOptionLabel )
+    , ( "source", DebateSourceLabel )
     ]
 
 
