@@ -43,7 +43,7 @@ view model =
                                                     propertyId
                                                 , viewStatementIdRatingPanel
                                                     language
-                                                    navigateMsg
+                                                    (Just navigateMsg)
                                                     data
                                                     propertyId
                                                 ]

@@ -45,7 +45,7 @@ view model =
                                         data
                                         typedValue.value
                                     ]
-                                , viewStatementRatingPanel language (ForParent << Navigate) False data typedValue
+                                , viewStatementRatingPanel language Nothing data typedValue
                                 ]
                             , viewDuplicatedByAlert
                                 language

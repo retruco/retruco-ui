@@ -21,6 +21,9 @@ view model =
 
         language =
             model.language
+
+        navigateMsg =
+            ForParent << Navigate
     in
         case model.debatePropertyIds of
             Just debatePropertyIds ->
@@ -35,13 +38,13 @@ view model =
                                         (\debatePropertyId ->
                                             li [ class "d-flex flex-nowrap justify-content-between list-group-item" ]
                                                 [ viewPropertyIdLine language
-                                                    (Just (ForParent << Navigate))
+                                                    (Just navigateMsg)
                                                     False
                                                     data
                                                     debatePropertyId
                                                 , viewStatementIdRatingPanel
                                                     language
-                                                    (ForParent << Navigate)
+                                                    (Just navigateMsg)
                                                     data
                                                     debatePropertyId
                                                 ]

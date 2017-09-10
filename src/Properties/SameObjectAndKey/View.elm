@@ -44,7 +44,7 @@ view model =
                                     ]
                                 , viewStatementIdRatingPanel
                                     language
-                                    navigateMsg
+                                    (Just navigateMsg)
                                     data
                                     model.objectId
                                 ]
@@ -88,8 +88,7 @@ view model =
                                                     [ viewStatementIdLine language Nothing True False data property.valueId
                                                     , viewStatementRatingPanel
                                                         language
-                                                        navigateMsg
-                                                        True
+                                                        (Just navigateMsg)
                                                         data
                                                         property
                                                     ]

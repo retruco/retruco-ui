@@ -44,7 +44,7 @@ view model =
                                         data
                                         card
                                     ]
-                                , viewStatementRatingPanel language (ForParent << Navigate) False data card
+                                , viewStatementRatingPanel language Nothing data card
                                 ]
                             , viewDuplicatedByAlert
                                 language

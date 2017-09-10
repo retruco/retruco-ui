@@ -80,8 +80,7 @@ view model =
                                                                 typedValue.value
                                                             , viewStatementRatingPanel
                                                                 language
-                                                                (ForParent << Navigate)
-                                                                True
+                                                                (Just <| ForParent << Navigate)
                                                                 data
                                                                 typedValue
                                                             ]

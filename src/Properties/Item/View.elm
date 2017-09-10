@@ -54,7 +54,7 @@ view model =
                                             ]
                                         , viewStatementIdRatingPanel
                                             language
-                                            navigateMsg
+                                            (Just navigateMsg)
                                             data
                                             property.objectId
                                         ]
@@ -96,12 +96,12 @@ view model =
                                             ]
                                         , viewStatementIdRatingPanel
                                             language
-                                            navigateMsg
+                                            (Just navigateMsg)
                                             data
                                             property.valueId
                                         ]
                                     ]
-                                , viewStatementRatingPanel language navigateMsg False data property
+                                , viewStatementRatingPanel language Nothing data property
                                 ]
                             , case model.similarDebatePropertyIds of
                                 Just similarDebatePropertyIds ->
@@ -135,7 +135,7 @@ view model =
                                                                     similarDebatePropertyId
                                                                 , viewStatementIdRatingPanel
                                                                     language
-                                                                    navigateMsg
+                                                                    (Just navigateMsg)
                                                                     data
                                                                     similarDebatePropertyId
                                                                 ]

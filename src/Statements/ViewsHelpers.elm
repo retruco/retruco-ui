@@ -6,7 +6,7 @@ import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Html.Helpers exposing (aForPath)
 import I18n
-import LineViews exposing (viewPropertyIdLine, viewStatementIdLine)
+import LineViews exposing (viewStatementIdLine)
 import Types exposing (Argument, DataProxy, Statement)
 import Urls
 
@@ -49,7 +49,7 @@ viewDuplicatedByAlert language navigateMsg data duplicatedByPropertyIds =
                                             duplicatedByProperty.objectId
                                         , viewStatementIdRatingPanel
                                             language
-                                            navigateMsg
+                                            (Just navigateMsg)
                                             data
                                             duplicatedByProperty.objectId
                                         ]
@@ -102,7 +102,7 @@ viewDuplicateOfAlert language navigateMsg data duplicateOfPropertyIds =
                                             duplicateOfProperty.valueId
                                         , viewStatementIdRatingPanel
                                             language
-                                            navigateMsg
+                                            (Just navigateMsg)
                                             data
                                             duplicateOfProperty.valueId
                                         ]
@@ -117,21 +117,21 @@ viewDuplicateOfAlert language navigateMsg data duplicateOfPropertyIds =
             text ""
 
 
-viewStatementIdRatingPanel : I18n.Language -> (String -> msg) -> DataProxy a -> String -> Html msg
+viewStatementIdRatingPanel : I18n.Language -> Maybe (String -> msg) -> DataProxy a -> String -> Html msg
 viewStatementIdRatingPanel language navigateMsg data statementId =
     case Dict.get statementId data.cards of
         Just card ->
-            viewStatementRatingPanel language navigateMsg True data card
+            viewStatementRatingPanel language navigateMsg data card
 
         Nothing ->
             case Dict.get statementId data.properties of
                 Just property ->
-                    viewStatementRatingPanel language navigateMsg True data property
+                    viewStatementRatingPanel language navigateMsg data property
 
                 Nothing ->
                     case Dict.get statementId data.values of
                         Just typedValue ->
-                            viewStatementRatingPanel language navigateMsg True data typedValue
+                            viewStatementRatingPanel language navigateMsg data typedValue
 
                         Nothing ->
                             i [ class "text-warning" ] [ text (I18n.translate language <| I18n.UnknownId statementId) ]
@@ -139,12 +139,11 @@ viewStatementIdRatingPanel language navigateMsg data statementId =
 
 viewStatementRatingPanel :
     I18n.Language
-    -> (String -> msg)
-    -> Bool
+    -> Maybe (String -> msg)
     -> DataProxy a
     -> { b | argumentCount : Int, id : String, ratingCount : Int, ratingSum : Int, trashed : Bool }
     -> Html msg
-viewStatementRatingPanel language navigateMsg addLink data { argumentCount, id, ratingCount, ratingSum, trashed } =
+viewStatementRatingPanel language navigateMsg data { argumentCount, id, ratingCount, ratingSum, trashed } =
     let
         buttonClass =
             classList
@@ -162,18 +161,20 @@ viewStatementRatingPanel language navigateMsg addLink data { argumentCount, id, 
                 ]
 
         buttonWithAttributes =
-            if addLink then
-                aForPath
-                    navigateMsg
-                    language
-                    (Urls.idToPath data id)
-                    [ buttonClass ]
-            else
-                button
-                    [ buttonClass
-                    , disabled True
-                    , type_ "button"
-                    ]
+            case navigateMsg of
+                Just navigateMsg ->
+                    aForPath
+                        navigateMsg
+                        language
+                        (Urls.idToPath data id)
+                        [ buttonClass ]
+
+                Nothing ->
+                    button
+                        [ buttonClass
+                        , disabled True
+                        , type_ "button"
+                        ]
     in
         buttonWithAttributes
             [ strong [] [ text <| toString ratingSum ]
