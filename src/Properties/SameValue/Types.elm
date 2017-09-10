@@ -4,7 +4,6 @@ import Array exposing (Array)
 import Authenticator.Types exposing (Authentication)
 import Http
 import I18n
-import Properties.KeysAutocomplete.Types
 import Types exposing (..)
 
 
