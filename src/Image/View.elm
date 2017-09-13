@@ -2,6 +2,7 @@ module Image.View exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Attributes.Aria exposing (..)
 import Http.Error
 import Image.Types exposing (..)
 import I18n
@@ -14,7 +15,7 @@ viewImageUploadStatus language imageUploadStatus =
         missingImage messageI18n =
             div [ class "text-center" ]
                 [ span
-                    [ attribute "aria-hidden" "true"
+                    [ ariaHidden True
                     , class "fa fa-camera fa-4"
                     ]
                     []

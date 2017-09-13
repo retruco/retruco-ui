@@ -38,7 +38,7 @@ view model =
                     ( Just typedValue, Just toolbarModel ) ->
                         div []
                             [ div [ class "align-items-center d-flex flex-nowrap justify-content-between mb-3" ]
-                                [ h1 []
+                                [ h1 [ class "h4" ]
                                     [ viewValueTypeLine
                                         language
                                         (Just (ForParent << Navigate))

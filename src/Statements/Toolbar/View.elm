@@ -38,6 +38,19 @@ view model =
 viewStatementRatingToolbar : I18n.Language -> DataProxy a -> String -> Maybe String -> Html Msg
 viewStatementRatingToolbar language data ballotId trashPropertyId =
     let
+        ballot =
+            Dict.get ballotId data.ballots
+                |> Maybe.andThen
+                    (\ballot ->
+                        if ballot.deleted then
+                            Nothing
+                        else
+                            Just ballot
+                    )
+
+        ballotRating =
+            Maybe.map .rating ballot
+
         rateMsg =
             (ForSelf << Rate)
 
@@ -48,105 +61,104 @@ viewStatementRatingToolbar language data ballotId trashPropertyId =
             [ class "d-flex toolbar"
             , role "toolbar"
             ]
-            [ let
-                ballot =
-                    Dict.get ballotId data.ballots
-                        |> Maybe.andThen
-                            (\ballot ->
-                                if ballot.deleted then
-                                    Nothing
-                                else
-                                    Just ballot
-                            )
-
-                ballotRating =
-                    Maybe.map .rating ballot
-              in
-                div
-                    [ ariaLabel "Rating panel"
-                    , class "btn-group"
-                    , role "group"
+            [ div
+                [ ariaLabel "Rating panel"
+                , class "btn-group"
+                , role "group"
+                ]
+                [ button
+                    [ ariaPressed (ballotRating == Just 1)
+                    , classList
+                        [ ( "active", ballotRating == Just 1 )
+                        , ( "btn", True )
+                        , ( "btn-outline-success", True )
+                        ]
+                    , onClick
+                        (if ballotRating == Just 1 then
+                            rateMsg Nothing
+                         else
+                            rateMsg (Just 1)
+                        )
+                    , type_ "button"
                     ]
-                    [ button
-                        [ ariaPressed (ballotRating == Just 1)
-                        , classList
-                            [ ( "active", ballotRating == Just 1 )
-                            , ( "btn", True )
-                            , ( "btn-outline-success", True )
-                            ]
-                        , onClick
-                            (if ballotRating == Just 1 then
-                                rateMsg Nothing
-                             else
-                                rateMsg (Just 1)
-                            )
-                        , type_ "button"
+                    [ span
+                        [ ariaHidden True
+                        , class "fa fa-thumbs-o-up"
                         ]
-                        [ span
-                            [ ariaHidden True
-                            , class "fa fa-thumbs-o-up"
-                            ]
-                            []
-                        , text " "
-                        , text <|
-                            I18n.translate
-                                language
-                                I18n.Agree
-                        ]
-                    , button
-                        [ ariaPressed (ballotRating == Just 0)
-                        , classList
-                            [ ( "active", ballotRating == Just 0 )
-                            , ( "btn", True )
-                            , ( "btn-outline-secondary", True )
-                            ]
-                        , onClick
-                            (if ballotRating == Just 0 then
-                                rateMsg Nothing
-                             else
-                                rateMsg (Just 0)
-                            )
-                        , type_ "button"
-                        ]
-                        [ span
-                            [ ariaHidden True
-                            , class "fa fa-square-o"
-                            ]
-                            []
-                        , text " "
-                        , text <|
-                            I18n.translate
-                                language
-                                I18n.Abstain
-                        ]
-                    , button
-                        [ ariaPressed (ballotRating == Just -1)
-                        , classList
-                            [ ( "active", ballotRating == Just -1 )
-                            , ( "btn", True )
-                            , ( "btn-outline-danger", True )
-                            ]
-                        , onClick
-                            (if ballotRating == Just -1 then
-                                rateMsg Nothing
-                             else
-                                rateMsg (Just -1)
-                            )
-                        , type_ "button"
-                        ]
-                        [ span
-                            [ ariaHidden True
-                            , class "fa fa-thumbs-o-down"
-                            ]
-                            []
-                        , text " "
-                        , text <|
-                            I18n.translate
-                                language
-                                I18n.Disagree
-                        ]
+                        []
+                    , text " "
+                    , text <| I18n.translate language I18n.VotePlusAction
                     ]
-            , text " "
+                , button
+                    [ ariaPressed (ballotRating == Just 0)
+                    , classList
+                        [ ( "active", ballotRating == Just 0 )
+                        , ( "btn", True )
+                        , ( "btn-outline-secondary", True )
+                        ]
+                    , onClick
+                        (if ballotRating == Just 0 then
+                            rateMsg Nothing
+                         else
+                            rateMsg (Just 0)
+                        )
+                    , type_ "button"
+                    ]
+                    [ span
+                        [ ariaHidden True
+                        , class "fa fa-square-o"
+                        ]
+                        []
+                    , text " "
+                    , text <| I18n.translate language I18n.VoteNeutralAction
+                    ]
+                , button
+                    [ ariaPressed (ballotRating == Just -1)
+                    , classList
+                        [ ( "active", ballotRating == Just -1 )
+                        , ( "btn", True )
+                        , ( "btn-outline-danger", True )
+                        ]
+                    , onClick
+                        (if ballotRating == Just -1 then
+                            rateMsg Nothing
+                         else
+                            rateMsg (Just -1)
+                        )
+                    , type_ "button"
+                    ]
+                    [ span
+                        [ ariaHidden True
+                        , class "fa fa-thumbs-o-down"
+                        ]
+                        []
+                    , text " "
+                    , text <| I18n.translate language I18n.VoteMinusAction
+                    ]
+                ]
+            , button
+                ([ ariaPressed (ballotRating == Nothing)
+                 , classList
+                    [ ( "active", ballotRating == Nothing )
+                    , ( "btn", True )
+                    , ( "btn-outline-info", True )
+                    , ( "ml-3", True )
+                    ]
+                 , type_ "button"
+                 ]
+                    ++ if ballotRating == Nothing then
+                        []
+                       else
+                        [ onClick <| rateMsg Nothing ]
+                )
+                [ span
+                    [ ariaHidden True
+                    , class "fa fa-close"
+                    ]
+                    []
+                , text " "
+                , text <| I18n.translate language I18n.AbstainAction
+                ]
             , let
                 trashBallotRating =
                     trashPropertyId
@@ -201,7 +213,8 @@ viewStatementRatingToolbar language data ballotId trashPropertyId =
                                 I18n.Trash
                         ]
                     , div [ class "dropdown-menu" ]
-                        [ button
+                        [ h5 [ class "dropdown-header" ] [ text <| I18n.translate language I18n.TrashThisItemQuestion ]
+                        , button
                             [ class "dropdown-item"
                             , onClick <|
                                 trashMsg <|
@@ -214,17 +227,23 @@ viewStatementRatingToolbar language data ballotId trashPropertyId =
                             , type_ "button"
                             ]
                             [ i
-                                [ attribute "aria-hidden" "true"
+                                [ ariaHidden True
                                 , class
                                     (if trashBallotRating == Just 1 then
-                                        "fa fa-check-square-o fa-fw"
+                                        "fa fa-circle fa-fw mr-3"
                                      else
-                                        "fa fa-fw fa-square-o"
+                                        "fa fa-fw fa-circle-o mr-3"
                                     )
                                 ]
                                 []
                             , text " "
-                            , text <| I18n.translate language I18n.VoteForTrashing
+                            , span
+                                [ ariaHidden True
+                                , class "fa fa-thumbs-o-up"
+                                ]
+                                []
+                            , text " "
+                            , text <| I18n.translate language I18n.VotePlusAction
                             ]
                         , button
                             [ class "dropdown-item"
@@ -239,17 +258,23 @@ viewStatementRatingToolbar language data ballotId trashPropertyId =
                             , type_ "button"
                             ]
                             [ i
-                                [ attribute "aria-hidden" "true"
+                                [ ariaHidden True
                                 , class
                                     (if trashBallotRating == Just 0 then
-                                        "fa fa-check-square-o fa-fw"
+                                        "fa fa-circle fa-fw mr-3"
                                      else
-                                        "fa fa-fw fa-square-o"
+                                        "fa fa-fw fa-circle-o mr-3"
                                     )
                                 ]
                                 []
                             , text " "
-                            , text <| I18n.translate language I18n.AbstainOnTrashing
+                            , span
+                                [ ariaHidden True
+                                , class "fa fa-square-o"
+                                ]
+                                []
+                            , text " "
+                            , text <| I18n.translate language I18n.VoteNeutralAction
                             ]
                         , button
                             [ class "dropdown-item"
@@ -264,17 +289,55 @@ viewStatementRatingToolbar language data ballotId trashPropertyId =
                             , type_ "button"
                             ]
                             [ i
-                                [ attribute "aria-hidden" "true"
+                                [ ariaHidden True
                                 , class
                                     (if trashBallotRating == Just -1 then
-                                        "fa fa-check-square-o fa-fw"
+                                        "fa fa-circle fa-fw mr-3"
                                      else
-                                        "fa fa-fw fa-square-o"
+                                        "fa fa-fw fa-circle-o mr-3"
                                     )
                                 ]
                                 []
                             , text " "
-                            , text <| I18n.translate language I18n.VoteAgainstTrashing
+                            , span
+                                [ ariaHidden True
+                                , class "fa fa-thumbs-o-down"
+                                ]
+                                []
+                            , text " "
+                            , text <| I18n.translate language I18n.VoteMinusAction
+                            ]
+                        , div [ class "dropdown-divider" ] []
+                        , button
+                            ([ classList
+                                [ ( "dropdown-item", True )
+                                , ( "disabled", trashBallotRating == Nothing )
+                                ]
+                             , type_ "button"
+                             ]
+                                ++ if trashBallotRating == Nothing then
+                                    []
+                                   else
+                                    [ onClick <| trashMsg <| RateTrash Nothing ]
+                            )
+                            [ i
+                                [ ariaHidden True
+                                , class
+                                    (if trashBallotRating == Nothing then
+                                        "fa fa-circle fa-fw mr-3"
+                                     else
+                                        "fa fa-fw fa-circle-o mr-3"
+                                    )
+                                ]
+                                []
+                            , text " "
+                            , span
+                                [ ariaHidden True
+                                , class "fa fa-close"
+                                ]
+                                []
+                            , text " "
+                            , text <| I18n.translate language I18n.AbstainAction
                             ]
                         , div [ class "dropdown-divider" ] []
                         , button
@@ -282,7 +345,7 @@ viewStatementRatingToolbar language data ballotId trashPropertyId =
                             , onClick <| trashMsg DebateTrash
                             , type_ "button"
                             ]
-                            [ text <| I18n.translate language I18n.DebateTrashing ]
+                            [ text <| I18n.translate language I18n.DebateAction ]
                         ]
                     ]
             ]
@@ -350,7 +413,7 @@ viewStatementSocialToolbar language shareOnFacebookMsg shareOnGooglePlusMsg shar
                         { stopPropagation = True, preventDefault = True }
                         (Json.Decode.succeed (shareOnFacebookMsg facebookUrl))
                     ]
-                    [ i [ attribute "aria-hidden" "true", class "fa fa-facebook" ] [] ]
+                    [ i [ ariaHidden True, class "fa fa-facebook" ] [] ]
                 , a
                     [ class "btn btn-light"
                     , href googlePlusUrl
@@ -359,7 +422,7 @@ viewStatementSocialToolbar language shareOnFacebookMsg shareOnGooglePlusMsg shar
                         { stopPropagation = True, preventDefault = True }
                         (Json.Decode.succeed (shareOnGooglePlusMsg googlePlusUrl))
                     ]
-                    [ i [ attribute "aria-hidden" "true", class "fa fa-google-plus" ] [] ]
+                    [ i [ ariaHidden True, class "fa fa-google-plus" ] [] ]
                 , a
                     [ class "btn btn-light"
                     , href linkedInUrl
@@ -368,7 +431,7 @@ viewStatementSocialToolbar language shareOnFacebookMsg shareOnGooglePlusMsg shar
                         { stopPropagation = True, preventDefault = True }
                         (Json.Decode.succeed (shareOnLinkedInMsg linkedInUrl))
                     ]
-                    [ i [ attribute "aria-hidden" "true", class "fa fa-linkedin" ] [] ]
+                    [ i [ ariaHidden True, class "fa fa-linkedin" ] [] ]
                 , a
                     [ class "btn btn-light"
                     , href twitterUrl
@@ -377,6 +440,6 @@ viewStatementSocialToolbar language shareOnFacebookMsg shareOnGooglePlusMsg shar
                         { stopPropagation = True, preventDefault = True }
                         (Json.Decode.succeed (shareOnTwitterMsg twitterUrl))
                     ]
-                    [ i [ attribute "aria-hidden" "true", class "fa fa-twitter" ] [] ]
+                    [ i [ ariaHidden True, class "fa fa-twitter" ] [] ]
                 ]
         ]

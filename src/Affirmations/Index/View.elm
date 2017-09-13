@@ -72,12 +72,14 @@ view model =
                                                         li
                                                             [ class "align-items-center d-flex flex-nowrap justify-content-between list-group-item"
                                                             ]
-                                                            [ viewValueTypeLine
-                                                                language
-                                                                (Just (ForParent << Navigate))
-                                                                False
-                                                                data
-                                                                typedValue.value
+                                                            [ div [ class "lead" ]
+                                                                [ viewValueTypeLine
+                                                                    language
+                                                                    (Just (ForParent << Navigate))
+                                                                    False
+                                                                    data
+                                                                    typedValue.value
+                                                                ]
                                                             , viewStatementRatingPanel
                                                                 language
                                                                 (Just <| ForParent << Navigate)

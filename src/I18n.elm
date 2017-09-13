@@ -13,8 +13,7 @@ type TranslationId
     | AboutCreditsContent
     | AboutDescription
     | AboutLead
-    | Abstain
-    | AbstainOnTrashing
+    | AbstainAction
     | AccountCreationFailed
     | ActivationDescription
     | ActivationFailed
@@ -31,7 +30,6 @@ type TranslationId
     | Affirmations
     | AffirmationsDescription
     | AffirmationsRetrievalFailed
-    | Agree
     | Arguments
     | ArgumentsAbout
     | ArgumentsRetrievalFailed
@@ -69,15 +67,13 @@ type TranslationId
     | Create
     | CreateAccountNow
     | CreateYourAccount
-    | Debate
+    | DebateAction
     | DebateConLabel
     | DebateOptionLabel
     | DebateProLabel
     | DebateRemarkLabel
     | DebateSourceLabel
-    | DebateTrashing
     | Details
-    | Disagree
     | DuplicatedByDescription Int
     | DuplicatedByTitle Int
     | DuplicateOfDescription Int
@@ -207,6 +203,7 @@ type TranslationId
     | TimeoutExplanation
     | ToggleDropdown
     | Trash
+    | TrashThisItemQuestion
     | TrendingSortLabel
     | TrueWord
     | TweetMessage String String
@@ -238,9 +235,10 @@ type TranslationId
     | ValuesDescription
     | ValuesRetrievalFailed
     | ValueType
-    | VoteAgainstTrashing
     | VoteBestContributions
-    | VoteForTrashing
+    | VoteMinusAction
+    | VoteNeutralAction
+    | VotePlusAction
     | Website
 
 
@@ -286,17 +284,10 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
-        Abstain ->
+        AbstainAction ->
             { emptyTranslationSet
-                | english = s "Abstain"
-                , french = s "M'abstenir"
-                , spanish = todo
-            }
-
-        AbstainOnTrashing ->
-            { emptyTranslationSet
-                | english = s "Abstain on trashing"
-                , french = s "M'abstenir pour jeter"
+                | english = s "I abstain"
+                , french = s "Je m'abstiens"
                 , spanish = todo
             }
 
@@ -427,13 +418,6 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Retrieval of affirmations failed"
                 , french = s "Échec de la récupération des affirmations"
-                , spanish = todo
-            }
-
-        Agree ->
-            { emptyTranslationSet
-                | english = s "Agree"
-                , french = s "Approuver"
                 , spanish = todo
             }
 
@@ -746,10 +730,10 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
-        Debate ->
+        DebateAction ->
             { emptyTranslationSet
-                | english = s "Debate"
-                , french = s "Débattre"
+                | english = s "I debate…"
+                , french = s "Je débats…"
                 , spanish = todo
             }
 
@@ -788,24 +772,10 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
-        DebateTrashing ->
-            { emptyTranslationSet
-                | english = s "Debate trashing…"
-                , french = s "Débattre sur jeter…"
-                , spanish = todo
-            }
-
         Details ->
             { emptyTranslationSet
                 | english = s "Details"
                 , french = s "Details"
-                , spanish = todo
-            }
-
-        Disagree ->
-            { emptyTranslationSet
-                | english = s "Disagree"
-                , french = s "Désapprouver"
                 , spanish = todo
             }
 
@@ -1830,6 +1800,13 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        TrashThisItemQuestion ->
+            { emptyTranslationSet
+                | english = s "Trash this item?"
+                , french = s "Jeter cet élément ?"
+                , spanish = todo
+            }
+
         TrendingSortLabel ->
             { emptyTranslationSet
                 | english = s "Trending"
@@ -2043,13 +2020,6 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
-        VoteAgainstTrashing ->
-            { emptyTranslationSet
-                | english = s "Vote against trashing"
-                , french = s "Voter contre jeter"
-                , spanish = todo
-            }
-
         VoteBestContributions ->
             { emptyTranslationSet
                 | english = s "Vote for the best contributions"
@@ -2057,10 +2027,24 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
-        VoteForTrashing ->
+        VoteMinusAction ->
             { emptyTranslationSet
-                | english = s "Vote for trashing"
-                , french = s "Voter pour jeter"
+                | english = s "I disagree"
+                , french = s "Je désapprouve"
+                , spanish = todo
+            }
+
+        VoteNeutralAction ->
+            { emptyTranslationSet
+                | english = s "I stay neutral"
+                , french = s "Je reste neutre"
+                , spanish = todo
+            }
+
+        VotePlusAction ->
+            { emptyTranslationSet
+                | english = s "I agree"
+                , french = s "J'approuve"
                 , spanish = todo
             }
 
