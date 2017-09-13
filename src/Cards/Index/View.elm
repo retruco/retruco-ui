@@ -11,7 +11,7 @@ import Html.Helpers exposing (aForPath, aIfIsUrl)
 import Http.Error
 import I18n
 import Json.Decode
-import LineViews exposing (viewCardIdLine)
+import Statements.Lines exposing (viewCardIdLine)
 import Views
 
 

@@ -10,7 +10,7 @@ import Html.Helpers exposing (aForPath)
 import Http.Error
 import I18n
 import Json.Decode
-import LineViews exposing (viewValueIdLine)
+import Statements.Lines exposing (viewValueIdLine)
 import Urls
 import Values.Index.Types exposing (..)
 import Views

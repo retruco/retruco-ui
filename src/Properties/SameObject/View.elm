@@ -9,10 +9,10 @@ import Html.Attributes.Aria exposing (..)
 import Html.Helpers exposing (aForPath)
 import Http.Error
 import I18n
-import LineViews exposing (viewStatementIdLine)
 import Properties.KeysAutocomplete.View
 import Properties.SameObject.Types exposing (..)
 import Set exposing (Set)
+import Statements.Lines exposing (viewStatementIdLine)
 import Strings
 import Urls
 import Views

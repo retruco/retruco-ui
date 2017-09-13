@@ -10,7 +10,7 @@ import Html.Events exposing (..)
 import Html.Helpers exposing (aForPath)
 import Http.Error
 import I18n
-import LineViews exposing (viewValueTypeLine)
+import Statements.Lines exposing (viewValueTypeLine)
 import Statements.RatingPanels exposing (viewStatementRatingPanel)
 import Views
 

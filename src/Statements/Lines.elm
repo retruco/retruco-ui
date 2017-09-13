@@ -1,4 +1,4 @@
-module LineViews exposing (..)
+module Statements.Lines exposing (..)
 
 import Dict exposing (Dict)
 import Html exposing (..)

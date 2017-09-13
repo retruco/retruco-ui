@@ -5,7 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import I18n
-import LineViews exposing (viewStatementIdLine)
+import Statements.Lines exposing (viewStatementIdLine)
 import Statements.RatingPanels exposing (viewStatementIdRatingPanel)
 import Types exposing (Argument, DataProxy, Statement)
 

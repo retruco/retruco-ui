@@ -8,13 +8,13 @@ import Html.Attributes.Aria exposing (..)
 import Html.Helpers exposing (aForPath)
 import Http.Error
 import I18n
-import LineViews exposing (viewPropertyIdLine, viewStatementIdLine)
 import Properties.Item.Types exposing (..)
 import Properties.SameObject.View
 import Properties.SameObjectAndKey.View
 import Properties.SameValue.View
-import Statements.Toolbar.View
+import Statements.Lines exposing (viewPropertyIdLine, viewStatementIdLine)
 import Statements.RatingPanels exposing (viewStatementIdRatingPanel, viewStatementRatingPanel)
+import Statements.Toolbar.View
 import Urls
 import Views
 

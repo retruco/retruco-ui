@@ -8,7 +8,7 @@ import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Http.Error
 import I18n
-import LineViews exposing (viewPropertyIdLine)
+import Statements.Lines exposing (viewPropertyIdLine)
 import Statements.RatingPanels exposing (viewStatementIdRatingPanel)
 import Views
 
