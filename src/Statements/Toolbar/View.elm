@@ -45,7 +45,7 @@ viewStatementRatingToolbar language data ballotId trashPropertyId =
             (ForSelf << Trash)
     in
         div
-            [ class "toolbar"
+            [ class "d-flex toolbar"
             , role "toolbar"
             ]
             [ let
@@ -174,36 +174,8 @@ viewStatementRatingToolbar language data ballotId trashPropertyId =
                             -- Just 1 or Nothing
                             "btn-outline-danger"
               in
-                div [ class "btn-group" ]
+                div [ class "dropdown ml-3" ]
                     [ button
-                        [ ariaPressed (trashBallotRating /= Nothing)
-                        , classList
-                            [ ( "active", trashBallotRating /= Nothing )
-                            , ( "btn", True )
-                            , ( buttonClass, True )
-                            ]
-                        , onClick <|
-                            trashMsg <|
-                                RateTrash <|
-                                    (if trashBallotRating == Nothing then
-                                        Just 1
-                                     else
-                                        Nothing
-                                    )
-                        , type_ "button"
-                        ]
-                        [ span
-                            [ ariaHidden True
-                            , class "fa fa-trash-o"
-                            ]
-                            []
-                        , text " "
-                        , text <|
-                            I18n.translate
-                                language
-                                I18n.Trash
-                        ]
-                    , button
                         [ attribute "aria-expanded" "false"
                         , attribute "aria-haspopup" "true"
                         , ariaPressed (trashBallotRating /= Nothing)
@@ -217,7 +189,17 @@ viewStatementRatingToolbar language data ballotId trashPropertyId =
                         , attribute "data-toggle" "dropdown"
                         , type_ "button"
                         ]
-                        [ span [ class "sr-only" ] [ text <| I18n.translate language I18n.ToggleDropdown ] ]
+                        [ span
+                            [ ariaHidden True
+                            , class "fa fa-trash-o"
+                            ]
+                            []
+                        , text " "
+                        , text <|
+                            I18n.translate
+                                language
+                                I18n.Trash
+                        ]
                     , div [ class "dropdown-menu" ]
                         [ button
                             [ class "dropdown-item"
