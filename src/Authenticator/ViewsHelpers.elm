@@ -5,6 +5,7 @@ import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Html.Events exposing (..)
 import I18n
+import Json.Decode
 
 
 errorInfos : String -> Maybe String -> ( String, List (Attribute msg), List (Html msg1) )
@@ -27,6 +28,75 @@ errorInfos controlId error =
 
             Nothing ->
                 ( "", [], [] )
+
+
+viewConnectionTabs : I18n.Language -> Maybe msg -> Maybe msg -> Maybe msg -> Html msg
+viewConnectionTabs language passwordResetMsg signInMsg signUpMsg =
+    ul [ class "nav nav-tabs" ]
+        [ li [ class "nav-item" ]
+            [ a
+                ([ classList
+                    [ ( "active", signInMsg == Nothing )
+                    , ( "nav-link", True )
+                    ]
+                 , href "#"
+                 ]
+                    ++ case signInMsg of
+                        Just signInMsg ->
+                            [ onWithOptions
+                                "click"
+                                { stopPropagation = True, preventDefault = True }
+                                (Json.Decode.succeed signInMsg)
+                            ]
+
+                        Nothing ->
+                            []
+                )
+                [ text <| I18n.translate language I18n.SignInTab ]
+            ]
+        , li [ class "nav-item" ]
+            [ a
+                ([ classList
+                    [ ( "active", passwordResetMsg == Nothing )
+                    , ( "nav-link", True )
+                    ]
+                 , href "#"
+                 ]
+                    ++ case passwordResetMsg of
+                        Just passwordResetMsg ->
+                            [ onWithOptions
+                                "click"
+                                { stopPropagation = True, preventDefault = True }
+                                (Json.Decode.succeed passwordResetMsg)
+                            ]
+
+                        Nothing ->
+                            []
+                )
+                [ text <| I18n.translate language I18n.ResetPasswordTab ]
+            ]
+        , li [ class "nav-item" ]
+            [ a
+                ([ classList
+                    [ ( "active", signUpMsg == Nothing )
+                    , ( "nav-link", True )
+                    ]
+                 , href "#"
+                 ]
+                    ++ case signUpMsg of
+                        Just signUpMsg ->
+                            [ onWithOptions
+                                "click"
+                                { stopPropagation = True, preventDefault = True }
+                                (Json.Decode.succeed signUpMsg)
+                            ]
+
+                        Nothing ->
+                            []
+                )
+                [ text <| I18n.translate language I18n.SignUpTab ]
+            ]
+        ]
 
 
 viewEmailControl : (String -> msg) -> I18n.Language -> Maybe String -> String -> Html msg

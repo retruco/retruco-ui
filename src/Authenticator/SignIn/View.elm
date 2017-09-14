@@ -45,48 +45,41 @@ view language model =
                         ]
                     ]
     in
-        Html.form [ onSubmit (ForSelf <| Submit) ]
-            (alert
-                ++ [ viewEmailControl
-                        (ForSelf << EmailInput)
-                        language
-                        (Dict.get "email" model.errors)
-                        model.email
-                   , viewPasswordControl
-                        (ForSelf << PasswordInput)
-                        language
-                        (Dict.get "password" model.errors)
-                        model.password
-                   , div [ class "form-group" ]
-                        [ button
-                            [ class "btn btn-primary"
-                            , type_ "submit"
+        div []
+            [ viewConnectionTabs
+                language
+                (Just (ForParent <| ChangeRoute ResetPasswordRoute))
+                Nothing
+                (Just (ForParent <| ChangeRoute SignUpRoute))
+            , Html.form [ onSubmit (ForSelf <| Submit) ]
+                (alert
+                    ++ [ viewEmailControl
+                            (ForSelf << EmailInput)
+                            language
+                            (Dict.get "email" model.errors)
+                            model.email
+                       , viewPasswordControl
+                            (ForSelf << PasswordInput)
+                            language
+                            (Dict.get "password" model.errors)
+                            model.password
+                       , div [ class "form-group" ]
+                            [ button
+                                [ class "btn btn-primary"
+                                , type_ "submit"
+                                ]
+                                [ text (I18n.translate language I18n.SignIn) ]
+                            , text " "
+                            , button
+                                [ class "btn btn-warning float-right"
+                                , type_ "button"
+                                , onClick (ForSelf <| Cancel)
+                                ]
+                                [ text (I18n.translate language I18n.Cancel) ]
                             ]
-                            [ text (I18n.translate language I18n.SignIn) ]
-                        , text " "
-                        , button
-                            [ class "btn btn-secondary"
-                            , type_ "button"
-                            , onClick (ForParent <| ChangeRoute ResetPasswordRoute)
-                            ]
-                            [ text (I18n.translate language I18n.ResetPassword) ]
-                        , text " "
-                        , button
-                            [ class "btn btn-secondary"
-                            , type_ "button"
-                            , onClick (ForParent <| ChangeRoute SignUpRoute)
-                            ]
-                            [ text (I18n.translate language I18n.SignUp) ]
-                        , text " "
-                        , button
-                            [ class "btn btn-warning float-right"
-                            , type_ "button"
-                            , onClick (ForSelf <| Cancel)
-                            ]
-                            [ text (I18n.translate language I18n.Cancel) ]
-                        ]
-                   ]
-            )
+                       ]
+                )
+            ]
 
 
 viewModalBody : I18n.Language -> Model -> Html Msg

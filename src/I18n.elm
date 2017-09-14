@@ -168,6 +168,7 @@ type TranslationId
     | ResetPasswordDescription
     | ResetPasswordExplanation
     | ResetPasswordLink
+    | ResetPasswordTab
     | ResetPasswordTitle
     | RetrucoLogo
     | SameObjectAndKeyPropertiesRetrievalFailed
@@ -184,6 +185,7 @@ type TranslationId
     | ShowAll Int
     | SignIn
     | SignInDescription
+    | SignInTab
     | SignInTitle
     | SignInToContribute
     | SignOut
@@ -192,6 +194,7 @@ type TranslationId
     | SignOutTitle
     | SignUp
     | SignUpDescription
+    | SignUpTab
     | SignUpTitle
     | SimilarArgumentsDescription Int
     | SimilarArgumentsTitle Int
@@ -1519,6 +1522,13 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        ResetPasswordTab ->
+            { emptyTranslationSet
+                | english = s "Reset Password"
+                , french = s "Changement de mot de passe"
+                , spanish = todo
+            }
+
         ResetPasswordTitle ->
             { emptyTranslationSet
                 | english = s "Password Reset"
@@ -1631,6 +1641,13 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        SignInTab ->
+            { emptyTranslationSet
+                | english = s "Sign In"
+                , french = s "Connexion"
+                , spanish = todo
+            }
+
         SignInTitle ->
             { emptyTranslationSet
                 | english = s "Sign In"
@@ -1684,6 +1701,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "User's sign up"
                 , french = s "Inscription de l'utilisateur"
+                , spanish = todo
+            }
+
+        SignUpTab ->
+            { emptyTranslationSet
+                | english = s "Sign Up"
+                , french = s "Inscription"
                 , spanish = todo
             }
 
