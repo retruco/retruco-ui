@@ -345,7 +345,7 @@ viewStatementRatingToolbar language data ballotId trashPropertyId =
                             , onClick <| trashMsg DebateTrash
                             , type_ "button"
                             ]
-                            [ text <| I18n.translate language I18n.DebateAction ]
+                            [ text <| I18n.translate language I18n.DebateTrashingAction ]
                         ]
                     ]
             ]

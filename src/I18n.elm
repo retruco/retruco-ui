@@ -67,12 +67,12 @@ type TranslationId
     | Create
     | CreateAccountNow
     | CreateYourAccount
-    | DebateAction
     | DebateConLabel
     | DebateOptionLabel
     | DebateProLabel
     | DebateRemarkLabel
     | DebateSourceLabel
+    | DebateTrashingAction
     | Details
     | DuplicatedByDescription Int
     | DuplicatedByTitle Int
@@ -730,13 +730,6 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
-        DebateAction ->
-            { emptyTranslationSet
-                | english = s "I debate…"
-                , french = s "Je débats…"
-                , spanish = todo
-            }
-
         DebateConLabel ->
             { emptyTranslationSet
                 | english = s "- Argument Against"
@@ -769,6 +762,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "= Source"
                 , french = s "= Source"
+                , spanish = todo
+            }
+
+        DebateTrashingAction ->
+            { emptyTranslationSet
+                | english = s "I debate on trashing…"
+                , french = s "Je débats s'il faut jeter…"
                 , spanish = todo
             }
 
