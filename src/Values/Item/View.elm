@@ -33,6 +33,9 @@ view model =
 
                 language =
                     model.language
+
+                navigateMsg =
+                    ForParent << Navigate
             in
                 case ( model.typedValue, model.toolbarModel ) of
                     ( Just typedValue, Just toolbarModel ) ->
@@ -41,7 +44,7 @@ view model =
                                 [ h1 [ class "h4" ]
                                     [ viewValueTypeLine
                                         language
-                                        (Just (ForParent << Navigate))
+                                        (Just navigateMsg)
                                         False
                                         data
                                         typedValue.value
@@ -50,12 +53,12 @@ view model =
                                 ]
                             , viewDuplicatedByAlert
                                 language
-                                (ForParent << Navigate)
+                                navigateMsg
                                 data
                                 model.duplicatedByPropertyIds
                             , viewDuplicateOfAlert
                                 language
-                                (ForParent << Navigate)
+                                navigateMsg
                                 data
                                 model.duplicateOfPropertyIds
                             , Statements.Toolbar.View.view toolbarModel
@@ -64,7 +67,7 @@ view model =
                             , ul [ class "nav nav-tabs" ]
                                 [ li [ class "nav-item" ]
                                     [ aForPath
-                                        (ForParent << Navigate)
+                                        navigateMsg
                                         language
                                         (Urls.idToDebatePropertiesPath data typedValue.id)
                                         [ classList
@@ -83,7 +86,7 @@ view model =
                                     ]
                                 , li [ class "nav-item" ]
                                     [ aForPath
-                                        (ForParent << Navigate)
+                                        navigateMsg
                                         language
                                         (Urls.idToPropertiesPath data typedValue.id)
                                         [ classList
@@ -102,7 +105,7 @@ view model =
                                     ]
                                 , li [ class "nav-item" ]
                                     [ aForPath
-                                        (ForParent << Navigate)
+                                        navigateMsg
                                         language
                                         (Urls.idToPropertiesAsValuePath data typedValue.id)
                                         [ classList
@@ -121,7 +124,7 @@ view model =
                                     ]
                                 , li [ class "nav-item" ]
                                     [ aForPath
-                                        (ForParent << Navigate)
+                                        navigateMsg
                                         language
                                         ((Urls.idToPath data typedValue.id) ++ "/details")
                                         [ classList
@@ -140,7 +143,7 @@ view model =
                                 DetailsTab ->
                                     viewValueTypeLine
                                         language
-                                        (Just (ForParent << Navigate))
+                                        (Just navigateMsg)
                                         True
                                         data
                                         typedValue.value
