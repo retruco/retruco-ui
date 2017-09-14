@@ -60,6 +60,7 @@ type TranslationId
     | ChangePasswordTitle
     | Close
     | Colon
+    | Contribute
     | Copyright
     | CountArguments Int
     | CountVersionsAvailable Int
@@ -170,6 +171,7 @@ type TranslationId
     | ResetPasswordLink
     | ResetPasswordTab
     | ResetPasswordTitle
+    | RetrucoIsFreeSoftware
     | RetrucoLogo
     | SameObjectAndKeyPropertiesRetrievalFailed
     | Save
@@ -630,10 +632,17 @@ getTranslationSet translationId =
                 , spanish = s ": "
             }
 
+        Contribute ->
+            { emptyTranslationSet
+                | english = s "Contribute!"
+                , french = s "Contribuez !"
+                , spanish = todo
+            }
+
         Copyright ->
             { emptyTranslationSet
-                | english = s "© 2016 Etalab. Design by Nodesign.net"
-                , french = s "© 2016 Etalab. Design par Nodesign.net"
+                | english = s "© 2016, 2017 Paula Forteza & Emmanuel Raviart"
+                , french = s "© 2016, 2017 Paula Forteza & Emmanuel Raviart"
                 , spanish = todo
             }
 
@@ -1533,6 +1542,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Password Reset"
                 , french = s "Réinitialisation du mot de passe"
+                , spanish = todo
+            }
+
+        RetrucoIsFreeSoftware ->
+            { emptyTranslationSet
+                | english = s "Retruco is free and open source software."
+                , french = s "Retruco est un logiciel libre."
                 , spanish = todo
             }
 
