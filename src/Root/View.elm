@@ -320,17 +320,19 @@ view model =
 
                                         Nothing ->
                                             text "This should not occur: valuesModel == Nothing!"
-                    , footer [ class "bg-secondary footer mt-5 pb-2 pt-2 text-center text-white w-100" ]
-                        [ text <| I18n.translate language I18n.Copyright
-                        , text " — "
-                        , text <| I18n.translate language I18n.RetrucoIsFreeSoftware
-                        , text " "
-                        , a
-                            [ class "btn btn-light btn-sm"
-                            , href "https://framagit.org/retruco/retruco-ui"
-                            , target "_blank"
+                    , footer [ class "footer mt-5 row w-100" ]
+                        [ div [ class "bg-secondary pb-2 pt-2 text-center text-white  w-100" ]
+                            [ text <| I18n.translate language I18n.Copyright
+                            , text " — "
+                            , text <| I18n.translate language I18n.RetrucoIsFreeSoftware
+                            , text " "
+                            , a
+                                [ class "btn btn-light btn-sm"
+                                , href "https://framagit.org/retruco/retruco-ui"
+                                , target "_blank"
+                                ]
+                                [ text <| I18n.translate language I18n.Contribute ]
                             ]
-                            [ text <| I18n.translate language I18n.Contribute ]
                         ]
                     ]
 
