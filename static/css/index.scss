@@ -1,32 +1,19 @@
 /* Note: You can write Sass in this file. */
 
+/* Header & footer */
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
 body {
   padding-top: 4rem;
+  margin-bottom: 3rem;
 }
 
-.statement-line {
-  display: table;
-}
-
-.statement-line-argument-type {
-  display: table-cell;
-  padding-left: 8px;
-}
-
-.statement-line-body {
-  display: table-cell;
-  padding-left: 8px;
-}
-
-// .statement-line-body > .statement-line-title {
-//   margin-top: 0px
-// }
-
-.statement-line-panel {
-  display: table-cell;
-  padding-right: 8px;
-}
-
-.statement-line-panel > .btn-group-vertical {
-  vertical-align: top !important;
+.footer {
+  bottom: 0;
+  height: 3rem;
+  position: absolute;
 }

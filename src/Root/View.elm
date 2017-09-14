@@ -320,7 +320,7 @@ view model =
 
                                         Nothing ->
                                             text "This should not occur: valuesModel == Nothing!"
-                    , footer [ class "bg-secondary footer mt-5 pb-2 pt-2 text-center text-white" ]
+                    , footer [ class "bg-secondary footer mt-5 pb-2 pt-2 text-center text-white w-100" ]
                         [ text <| I18n.translate language I18n.Copyright
                         , text " — "
                         , text <| I18n.translate language I18n.RetrucoIsFreeSoftware
