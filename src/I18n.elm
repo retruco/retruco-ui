@@ -1953,7 +1953,7 @@ getTranslationSet translationId =
         UsernamePlaceholder ->
             { emptyTranslationSet
                 | english = s "John Doe"
-                , french = s "Françoise Martin"
+                , french = s "Louise Dupont"
                 , spanish = todo
             }
 
