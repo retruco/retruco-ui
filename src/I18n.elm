@@ -291,8 +291,8 @@ getTranslationSet translationId =
 
         AbstainAction ->
             { emptyTranslationSet
-                | english = s "I abstain"
-                , french = s "Je m'abstiens"
+                | english = s "Abstain"
+                , french = s "M'abstenir"
                 , spanish = todo
             }
 
@@ -779,8 +779,8 @@ getTranslationSet translationId =
 
         DebateTrashingAction ->
             { emptyTranslationSet
-                | english = s "I debate on trashing…"
-                , french = s "Je débats s'il faut jeter…"
+                | english = s "Debate on Trashing…"
+                , french = s "Débattre s'il faut jeter…"
                 , spanish = todo
             }
 
@@ -2069,22 +2069,22 @@ getTranslationSet translationId =
 
         VoteMinusAction ->
             { emptyTranslationSet
-                | english = s "I disagree"
-                , french = s "Je désapprouve"
+                | english = s "Disagree"
+                , french = s "Désapprouver"
                 , spanish = todo
             }
 
         VoteNeutralAction ->
             { emptyTranslationSet
-                | english = s "I stay neutral"
-                , french = s "Je reste neutre"
+                | english = s "Stay Neutral"
+                , french = s "Rester neutre"
                 , spanish = todo
             }
 
         VotePlusAction ->
             { emptyTranslationSet
-                | english = s "I agree"
-                , french = s "J'approuve"
+                | english = s "Agree"
+                , french = s "Approuver"
                 , spanish = todo
             }
 
