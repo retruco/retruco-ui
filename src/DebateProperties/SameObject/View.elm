@@ -49,11 +49,7 @@ view model =
                                                     False
                                                     data
                                                     debatePropertyId
-                                                , viewStatementIdRatingPanel
-                                                    language
-                                                    (Just navigateMsg)
-                                                    data
-                                                    debatePropertyId
+                                                , viewStatementIdRatingPanel language data debatePropertyId
                                                 ]
                                         )
                                 )

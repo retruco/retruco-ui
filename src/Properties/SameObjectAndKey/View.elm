@@ -48,11 +48,7 @@ view model =
                                         data
                                         model.objectId
                                     ]
-                                , viewStatementIdRatingPanel
-                                    language
-                                    (Just navigateMsg)
-                                    data
-                                    model.objectId
+                                , viewStatementIdRatingPanel language data model.objectId
                                 ]
                             , let
                                 keyLabel =
@@ -99,11 +95,7 @@ view model =
                                                         property.valueId
                                                     )
                                                     [ viewStatementIdLine language True False data property.valueId
-                                                    , viewStatementRatingPanel
-                                                        language
-                                                        (Just navigateMsg)
-                                                        data
-                                                        property
+                                                    , viewStatementRatingPanel language data property
                                                     ]
 
                                         Nothing ->

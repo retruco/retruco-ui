@@ -48,11 +48,7 @@ view model =
                                                     True
                                                     data
                                                     propertyId
-                                                , viewStatementIdRatingPanel
-                                                    language
-                                                    (Just navigateMsg)
-                                                    data
-                                                    propertyId
+                                                , viewStatementIdRatingPanel language data propertyId
                                                 ]
                                         )
                                 )

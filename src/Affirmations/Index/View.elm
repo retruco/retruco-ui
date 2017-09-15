@@ -87,11 +87,7 @@ view model =
                                                                     data
                                                                     typedValue.value
                                                                 ]
-                                                            , viewStatementRatingPanel
-                                                                language
-                                                                (Just navigateMsg)
-                                                                data
-                                                                typedValue
+                                                            , viewStatementRatingPanel language data typedValue
                                                             ]
 
                                                 Nothing ->

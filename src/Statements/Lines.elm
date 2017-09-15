@@ -124,11 +124,7 @@ viewPropertyLine language independent data property =
                         False
                         data
                         property.objectId
-                    , viewStatementIdRatingPanel
-                        language
-                        Nothing
-                        data
-                        property.objectId
+                    , viewStatementIdRatingPanel language data property.objectId
                     ]
               else
                 text ""
@@ -166,11 +162,7 @@ viewPropertyLine language independent data property =
                     False
                     data
                     property.valueId
-                , viewStatementIdRatingPanel
-                    language
-                    Nothing
-                    data
-                    property.valueId
+                , viewStatementIdRatingPanel language data property.valueId
                 ]
             ]
 

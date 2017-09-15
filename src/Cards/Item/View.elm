@@ -54,7 +54,7 @@ view model =
                                         data
                                         card
                                     ]
-                                , viewStatementRatingPanel language Nothing data card
+                                , viewStatementRatingPanel language data card
                                 ]
                             , viewDuplicatedByAlert
                                 language

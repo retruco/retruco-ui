@@ -52,11 +52,7 @@ viewDuplicatedByAlert language navigateMsg data duplicatedByPropertyIds =
                                             False
                                             data
                                             duplicatedByProperty.objectId
-                                        , viewStatementIdRatingPanel
-                                            language
-                                            (Just navigateMsg)
-                                            data
-                                            duplicatedByProperty.objectId
+                                        , viewStatementIdRatingPanel language data duplicatedByProperty.objectId
                                         ]
                                 )
                                 duplicatedByProperties
@@ -111,11 +107,7 @@ viewDuplicateOfAlert language navigateMsg data duplicateOfPropertyIds =
                                             False
                                             data
                                             duplicateOfProperty.valueId
-                                        , viewStatementIdRatingPanel
-                                            language
-                                            (Just navigateMsg)
-                                            data
-                                            duplicateOfProperty.valueId
+                                        , viewStatementIdRatingPanel language data duplicateOfProperty.valueId
                                         ]
                                 )
                                 duplicateOfProperties

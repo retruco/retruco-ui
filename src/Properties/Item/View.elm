@@ -59,11 +59,7 @@ view model =
                                                 data
                                                 property.objectId
                                             ]
-                                        , viewStatementIdRatingPanel
-                                            language
-                                            (Just navigateMsg)
-                                            data
-                                            property.objectId
+                                        , viewStatementIdRatingPanel language data property.objectId
                                         ]
                                     , let
                                         keyLabel =
@@ -107,14 +103,10 @@ view model =
                                                 data
                                                 property.valueId
                                             ]
-                                        , viewStatementIdRatingPanel
-                                            language
-                                            (Just navigateMsg)
-                                            data
-                                            property.valueId
+                                        , viewStatementIdRatingPanel language data property.valueId
                                         ]
                                     ]
-                                , viewStatementRatingPanel language Nothing data property
+                                , viewStatementRatingPanel language data property
                                 ]
                             , case model.similarDebatePropertyIds of
                                 Just similarDebatePropertyIds ->
@@ -154,7 +146,6 @@ view model =
                                                                     similarDebatePropertyId
                                                                 , viewStatementIdRatingPanel
                                                                     language
-                                                                    (Just navigateMsg)
                                                                     data
                                                                     similarDebatePropertyId
                                                                 ]
