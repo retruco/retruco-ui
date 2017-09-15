@@ -21,7 +21,7 @@ init authentication language objectId =
     , debatePropertyIds = Nothing
     , httpError = Nothing
     , language = language
-    , newDebatePropertyModel = DebateProperties.New.State.init authentication language objectId []
+    , newDebatePropertyModel = DebateProperties.New.State.init authentication language objectId [ "TextField" ]
     , objectId = objectId
     , showTrashed = False
     }

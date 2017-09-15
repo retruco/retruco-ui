@@ -98,7 +98,7 @@ viewAutocomplete language parentId controlLabelI18n controlPlaceholderI18n error
     in
         div [ class ("form-group" ++ errorClass) ]
             (List.concat
-                [ [ label [ class "control-label", for controlId ] [ text controlLabel ]
+                [ [ label [ class "control-label sr-only", for controlId ] [ text controlLabel ]
                   , div [ class "input-group" ]
                         [ input
                             (List.concat

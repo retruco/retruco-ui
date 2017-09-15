@@ -16,7 +16,7 @@ import Views exposing (errorInfos)
 view : Model -> Html Msg
 view model =
     section []
-        [ h1 [] [ text <| I18n.translate model.language I18n.NewArgument ]
+        [ h4 [] [ text <| I18n.translate model.language I18n.NewArgument ]
         , viewForm I18n.Create model
         ]
 
@@ -75,10 +75,10 @@ viewFormControls model =
           in
             div [ class ("form-group" ++ errorClass) ]
                 ([ label
-                    [ class "control-label", for controlId ]
+                    [ class "control-label sr-only", for controlId ]
                     [ text <| I18n.translate language I18n.ArgumentType ]
                  , select
-                    ([ class "form-control"
+                    ([ class "form-control custom-select"
                      , id controlId
                      , on "change"
                         (Json.Decode.map (ForSelf << KeyIdChanged)
@@ -95,7 +95,7 @@ viewFormControls model =
                                 )
                             )
                         |> List.sortBy (\( symbol, label ) -> label)
-                        |> (::) ( "", "" )
+                        |> (::) ( "", I18n.translate language I18n.SelectArgumentType )
                         |> List.map
                             (\( symbol, label ) ->
                                 option

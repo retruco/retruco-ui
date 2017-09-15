@@ -101,10 +101,10 @@ viewFormControls model =
                 in
                     div [ class ("form-group" ++ errorClass) ]
                         ([ label
-                            [ class "control-label", for controlId ]
+                            [ class "control-label sr-only", for controlId ]
                             [ text <| I18n.translate language I18n.ValueType ]
                          , select
-                            ([ class "form-control"
+                            ([ class "form-control custom-select"
                              , id controlId
                              , on "change"
                                 (Json.Decode.map (ForSelf << FieldTypeChanged)
@@ -133,51 +133,6 @@ viewFormControls model =
                          ]
                             ++ errorBlock
                         )
-        , if model.fieldType == "TextField" then
-            let
-                controlId =
-                    "language"
-
-                ( errorClass, errorAttributes, errorBlock ) =
-                    errorInfos language controlId (Dict.get controlId model.errors)
-            in
-                div [ class ("form-group" ++ errorClass) ]
-                    ([ label
-                        [ class "control-label", for controlId ]
-                        [ text <| I18n.translate language I18n.LanguageWord ]
-                     , select
-                        ([ class "form-control"
-                         , id controlId
-                         , on "change"
-                            (Json.Decode.map (ForSelf << LanguageChanged)
-                                targetValue
-                            )
-                         ]
-                            ++ errorAttributes
-                        )
-                        (I18n.languages
-                            |> List.map
-                                (\languageI18n ->
-                                    ( I18n.languageIdFromLanguage languageI18n
-                                    , I18n.translate language (I18n.Language languageI18n)
-                                    )
-                                )
-                            |> List.sortBy (\( languageId, languageLabel ) -> languageLabel)
-                            |> (::) ( "", I18n.translate language I18n.EveryLanguage )
-                            |> List.map
-                                (\( languageId, languageLabel ) ->
-                                    option
-                                        [ selected (languageId == model.languageId)
-                                        , value languageId
-                                        ]
-                                        [ text languageLabel ]
-                                )
-                        )
-                     ]
-                        ++ errorBlock
-                    )
-          else
-            text ""
         , if model.fieldType == "BooleanField" then
             let
                 controlId =
@@ -190,7 +145,7 @@ viewFormControls model =
                     errorInfos language controlId (Dict.get controlId model.errors)
             in
                 div [ class ("form-check" ++ errorClass) ]
-                    ([ label [ class "form-check-label", for controlId ]
+                    ([ label [ class "form-check-label sr-only", for controlId ]
                         [ input
                             ([ checked model.booleanValue
                              , class "form-check-input"
@@ -243,7 +198,7 @@ viewFormControls model =
                     errorInfos language controlId (Dict.get controlId model.errors)
             in
                 div [ class ("form-group" ++ errorClass) ]
-                    ([ label [ class "control-label", for controlId ] [ text controlLabel ]
+                    ([ label [ class "control-label sr-only", for controlId ] [ text controlLabel ]
                      , input
                         ([ class "form-control"
                          , id controlId
@@ -277,7 +232,7 @@ viewFormControls model =
                     errorInfos language controlId (Dict.get controlId model.errors)
             in
                 div [ class ("form-group" ++ errorClass) ]
-                    ([ label [ class "control-label", for controlId ] [ text controlLabel ]
+                    ([ label [ class "control-label sr-only", for controlId ] [ text controlLabel ]
                      , input
                         ([ class "form-control"
                          , id controlId
@@ -311,7 +266,7 @@ viewFormControls model =
                     errorInfos language controlId (Dict.get controlId model.errors)
             in
                 div [ class ("form-group" ++ errorClass) ]
-                    ([ label [ class "control-label", for controlId ] [ text controlLabel ]
+                    ([ label [ class "control-label sr-only", for controlId ] [ text controlLabel ]
                      , input
                         ([ class "form-control"
                          , id controlId
@@ -353,7 +308,7 @@ viewFormControls model =
             --         errorInfos language controlId (Dict.get controlId model.errors)
             -- in
             --     div [ class ("form-group" ++ errorClass) ]
-            --         ([ label [ class "control-label", for controlId ] [ text controlLabel ]
+            --         ([ label [ class "control-label sr-only", for controlId ] [ text controlLabel ]
             --          , textarea
             --             ([ class "form-control"
             --              , id controlId
@@ -386,7 +341,7 @@ viewFormControls model =
                     errorInfos language controlId (Dict.get controlId model.errors)
             in
                 div [ class ("form-group" ++ errorClass) ]
-                    ([ label [ class "control-label", for controlId ] [ text controlLabel ]
+                    ([ label [ class "control-label sr-only", for controlId ] [ text controlLabel ]
                      , input
                         ([ class "form-control-file"
                          , id controlId
@@ -400,6 +355,51 @@ viewFormControls model =
                      ]
                         ++ errorBlock
                         ++ [ viewImageUploadStatus language model.imageUploadStatus ]
+                    )
+          else
+            text ""
+        , if model.fieldType == "TextField" then
+            let
+                controlId =
+                    "language"
+
+                ( errorClass, errorAttributes, errorBlock ) =
+                    errorInfos language controlId (Dict.get controlId model.errors)
+            in
+                div [ class ("form-group" ++ errorClass) ]
+                    ([ label
+                        [ class "control-label sr-only", for controlId ]
+                        [ text <| I18n.translate language I18n.LanguageWord ]
+                     , select
+                        ([ class "form-control custom-select"
+                         , id controlId
+                         , on "change"
+                            (Json.Decode.map (ForSelf << LanguageChanged)
+                                targetValue
+                            )
+                         ]
+                            ++ errorAttributes
+                        )
+                        (I18n.languages
+                            |> List.map
+                                (\languageI18n ->
+                                    ( I18n.languageIdFromLanguage languageI18n
+                                    , I18n.translate language (I18n.Language languageI18n)
+                                    )
+                                )
+                            |> List.sortBy (\( languageId, languageLabel ) -> languageLabel)
+                            |> (::) ( "", I18n.translate language I18n.EveryLanguage )
+                            |> List.map
+                                (\( languageId, languageLabel ) ->
+                                    option
+                                        [ selected (languageId == model.languageId)
+                                        , value languageId
+                                        ]
+                                        [ text languageLabel ]
+                                )
+                        )
+                     ]
+                        ++ errorBlock
                     )
           else
             text ""

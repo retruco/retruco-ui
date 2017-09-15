@@ -139,6 +139,7 @@ type TranslationId
     | NewArgument
     | NewArgumentDescription
     | NewCard
+    | NewProperty
     | NewValue
     | NewValueDescription
     | Number
@@ -178,6 +179,7 @@ type TranslationId
     | Score
     | Search
     | SearchPlaceholder
+    | SelectArgumentType
     | SelectCardOrTypeMoreCharacters
     | SelectPropertyKeyOrTypeMoreCharacters
     | SelectValueOrTypeMoreCharacters
@@ -1321,6 +1323,13 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        NewProperty ->
+            { emptyTranslationSet
+                | english = s "New Property"
+                , french = s "Nouvelle propriété"
+                , spanish = todo
+            }
+
         NewValue ->
             { emptyTranslationSet
                 | english = s "New Value"
@@ -1591,6 +1600,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Search terms"
                 , french = s "Termes de la recherche"
+                , spanish = todo
+            }
+
+        SelectArgumentType ->
+            { emptyTranslationSet
+                | english = s "Select an argument type…"
+                , french = s "Sélectionner un type d'argument…"
                 , spanish = todo
             }
 

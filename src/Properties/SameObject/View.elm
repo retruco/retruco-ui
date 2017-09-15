@@ -139,6 +139,7 @@ view model =
                                     )
                             ]
                         , hr [] []
+                        , h4 [] [ text <| I18n.translate model.language I18n.NewProperty ]
                         , let
                             controlId =
                                 "keysAutocomplete"
