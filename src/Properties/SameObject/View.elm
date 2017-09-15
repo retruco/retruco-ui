@@ -99,7 +99,6 @@ view model =
                                                                 [ valueId ] ->
                                                                     viewStatementIdLine
                                                                         language
-                                                                        (Just navigateMsg)
                                                                         True
                                                                         False
                                                                         data
@@ -112,7 +111,6 @@ view model =
                                                                                 li []
                                                                                     [ viewStatementIdLine
                                                                                         language
-                                                                                        (Just navigateMsg)
                                                                                         True
                                                                                         False
                                                                                         data

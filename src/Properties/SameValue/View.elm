@@ -43,8 +43,8 @@ view model =
                                                     data
                                                     propertyId
                                                 )
-                                                [ viewPropertyIdLine language
-                                                    (Just navigateMsg)
+                                                [ viewPropertyIdLine
+                                                    language
                                                     True
                                                     data
                                                     propertyId

@@ -51,7 +51,6 @@ view model =
                                 [ h1 [ class "h4" ]
                                     [ viewValueTypeLine
                                         language
-                                        (Just navigateMsg)
                                         False
                                         data
                                         typedValue.value
@@ -150,7 +149,6 @@ view model =
                                 DetailsTab ->
                                     viewValueTypeLine
                                         language
-                                        (Just navigateMsg)
                                         True
                                         data
                                         typedValue.value

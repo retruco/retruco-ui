@@ -43,7 +43,6 @@ view model =
                                 [ div [ class "lead" ]
                                     [ viewStatementIdLine
                                         language
-                                        (Just navigateMsg)
                                         True
                                         False
                                         data
@@ -99,7 +98,7 @@ view model =
                                                         data
                                                         property.valueId
                                                     )
-                                                    [ viewStatementIdLine language Nothing True False data property.valueId
+                                                    [ viewStatementIdLine language True False data property.valueId
                                                     , viewStatementRatingPanel
                                                         language
                                                         (Just navigateMsg)

@@ -48,7 +48,6 @@ viewDuplicatedByAlert language navigateMsg data duplicatedByPropertyIds =
                                         )
                                         [ viewStatementIdLine
                                             language
-                                            (Just navigateMsg)
                                             True
                                             False
                                             data
@@ -108,7 +107,6 @@ viewDuplicateOfAlert language navigateMsg data duplicateOfPropertyIds =
                                         )
                                         [ viewStatementIdLine
                                             language
-                                            (Just navigateMsg)
                                             True
                                             False
                                             data

@@ -51,7 +51,6 @@ view model =
                                 [ h1 []
                                     [ viewCardLine
                                         language
-                                        (Just navigateMsg)
                                         data
                                         card
                                     ]

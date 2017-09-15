@@ -91,7 +91,7 @@ view model =
                                             language
                                             (Urls.idToPath data valueId)
                                             [ class "list-group-item list-group-item-action" ]
-                                            [ viewValueIdLine language Nothing False data valueId ]
+                                            [ viewValueIdLine language False data valueId ]
                                     )
                             )
                         , if Array.length ids < model.count then

@@ -83,14 +83,13 @@ view model =
                                                             [ div [ class "lead" ]
                                                                 [ viewValueTypeLine
                                                                     language
-                                                                    (Just navigateMsg)
                                                                     False
                                                                     data
                                                                     typedValue.value
                                                                 ]
                                                             , viewStatementRatingPanel
                                                                 language
-                                                                (Just <| ForParent << Navigate)
+                                                                (Just navigateMsg)
                                                                 data
                                                                 typedValue
                                                             ]

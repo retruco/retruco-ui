@@ -54,7 +54,6 @@ view model =
                                         [ div [ class "lead" ]
                                             [ viewStatementIdLine
                                                 language
-                                                (Just navigateMsg)
                                                 True
                                                 False
                                                 data
@@ -103,7 +102,6 @@ view model =
                                         [ div [ class "lead" ]
                                             [ viewStatementIdLine
                                                 language
-                                                (Just navigateMsg)
                                                 True
                                                 False
                                                 data
@@ -151,7 +149,6 @@ view model =
                                                                 )
                                                                 [ viewPropertyIdLine
                                                                     language
-                                                                    (Just navigateMsg)
                                                                     True
                                                                     data
                                                                     similarDebatePropertyId

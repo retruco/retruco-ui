@@ -90,7 +90,7 @@ view model =
                                             language
                                             ("/cards/" ++ cardId)
                                             [ class "list-group-item list-group-item-action" ]
-                                            [ viewCardIdLine language Nothing data cardId ]
+                                            [ viewCardIdLine language data cardId ]
                                     )
                             )
                         , if Array.length ids < model.count then

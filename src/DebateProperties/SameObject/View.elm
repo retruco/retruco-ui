@@ -44,8 +44,8 @@ view model =
                                                     data
                                                     debatePropertyId
                                                 )
-                                                [ viewPropertyIdLine language
-                                                    (Just navigateMsg)
+                                                [ viewPropertyIdLine
+                                                    language
                                                     False
                                                     data
                                                     debatePropertyId
