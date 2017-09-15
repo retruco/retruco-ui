@@ -3,10 +3,8 @@ module Statements.RatingPanels exposing (..)
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Helpers exposing (aForPath)
 import I18n
 import Types exposing (DataProxy)
-import Urls
 
 
 viewStatementIdRatingPanel : I18n.Language -> DataProxy a -> String -> Html msg
@@ -35,32 +33,41 @@ viewStatementRatingPanel :
     -> { b | argumentCount : Int, id : String, ratingCount : Int, ratingSum : Int, trashed : Bool }
     -> Html msg
 viewStatementRatingPanel language data { argumentCount, id, ratingCount, ratingSum, trashed } =
-    button
+    div
         [ classList
-            [ ( "btn", True )
-            , ( "btn-lg", True )
-            , ( if trashed then
-                    "btn-danger"
-                else if ratingSum > 0 then
-                    "btn-outline-success"
+            [ ( "bg-danger", trashed )
+            , ( "border", True )
+            , ( if trashed || ratingSum <= 0 then
+                    "border-danger"
                 else
-                    "btn-outline-danger"
+                    "border-success"
               , True
               )
+            , ( "lead", True )
             , ( "ml-3", True )
+            , ( "p-2", True )
+            , ( if trashed then
+                    "text-white"
+                else if ratingSum > 0 then
+                    "text-success"
+                else
+                    "text-danger"
+              , True
+              )
             ]
-        , disabled True
-        , type_ "button"
         ]
-        [ strong [] [ text <| toString ratingSum ]
-        , text " / "
-        , text <|
-            I18n.translate
-                language
-                (I18n.CountVotes ratingCount)
-        , br [] []
-        , text <|
-            I18n.translate
-                language
-                (I18n.CountArguments argumentCount)
+        [ div [ class "text-center text-nowrap" ]
+            [ strong [] [ text <| toString ratingSum ]
+            , text " / "
+            , text <|
+                I18n.translate
+                    language
+                    (I18n.CountVotes ratingCount)
+            ]
+        , div [ class "text-center text-nowrap" ]
+            [ text <|
+                I18n.translate
+                    language
+                    (I18n.CountArguments argumentCount)
+            ]
         ]
