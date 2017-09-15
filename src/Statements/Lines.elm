@@ -4,12 +4,45 @@ import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
+import Html.Events exposing (onWithOptions)
 import Html.Helpers exposing (aForPath, aIfIsUrl)
 import I18n
+import Json.Decode
 import Statements.RatingPanels exposing (viewStatementIdRatingPanel)
 import Strings
 import Types exposing (..)
 import Urls
+
+
+lineIdAttributes :
+    I18n.Language
+    -> Maybe (String -> msg)
+    -> List ( String, Bool )
+    -> DataProxy a
+    -> String
+    -> List (Attribute msg)
+lineIdAttributes language navigateMsg classItems data id =
+    [ classList
+        ([ ( "align", True )
+         , ( "align-items-center", True )
+         , ( "d-flex", True )
+         , ( "flex-nowrap", True )
+         , ( "justify-content-between", True )
+         ]
+            ++ classItems
+        )
+    ]
+        ++ case navigateMsg of
+            Just navigateMsg ->
+                [ onWithOptions
+                    "click"
+                    { stopPropagation = True, preventDefault = False }
+                    (Json.Decode.succeed (navigateMsg (Urls.languagePath language (Urls.idToPath data id))))
+                , style [ ( "cursor", "pointer" ) ]
+                ]
+
+            Nothing ->
+                []
 
 
 valueTypeToTypeLabel : I18n.Language -> ValueType -> String
@@ -86,7 +119,14 @@ viewPropertyLine language navigateMsg independent data property =
     in
         div []
             [ if independent then
-                div [ class "align-items-center d-flex flex-nowrap justify-content-between ml-4" ]
+                div
+                    (lineIdAttributes
+                        language
+                        Nothing
+                        [ ( "ml-4", True ) ]
+                        data
+                        property.objectId
+                    )
                     [ viewStatementIdLine
                         language
                         navigateMsg
@@ -122,7 +162,14 @@ viewPropertyLine language navigateMsg independent data property =
                     []
                 , span [] [ text keyLabel ]
                 ]
-            , div [ class "align-items-center d-flex flex-nowrap justify-content-between ml-4" ]
+            , div
+                (lineIdAttributes
+                    language
+                    Nothing
+                    [ ( "ml-4", True ) ]
+                    data
+                    property.valueId
+                )
                 [ viewStatementIdLine
                     language
                     navigateMsg

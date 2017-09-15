@@ -5,7 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import I18n
-import Statements.Lines exposing (viewStatementIdLine)
+import Statements.Lines exposing (lineIdAttributes, viewStatementIdLine)
 import Statements.RatingPanels exposing (viewStatementIdRatingPanel)
 import Types exposing (Argument, DataProxy, Statement)
 
@@ -38,7 +38,14 @@ viewDuplicatedByAlert language navigateMsg data duplicatedByPropertyIds =
                         , ul [ class "list-group" ]
                             (List.map
                                 (\duplicatedByProperty ->
-                                    li [ class "align-items-center d-flex flex-nowrap justify-content-between list-group-item" ]
+                                    li
+                                        (lineIdAttributes
+                                            language
+                                            (Just navigateMsg)
+                                            [ ( "list-group-item", True ) ]
+                                            data
+                                            duplicatedByProperty.objectId
+                                        )
                                         [ viewStatementIdLine
                                             language
                                             (Just navigateMsg)
@@ -91,7 +98,14 @@ viewDuplicateOfAlert language navigateMsg data duplicateOfPropertyIds =
                         , ul [ class "list-group" ]
                             (List.map
                                 (\duplicateOfProperty ->
-                                    li [ class "align-items-center d-flex flex-nowrap justify-content-between list-group-item" ]
+                                    li
+                                        (lineIdAttributes
+                                            language
+                                            (Just navigateMsg)
+                                            [ ( "list-group-item", True ) ]
+                                            data
+                                            duplicateOfProperty.valueId
+                                        )
                                         [ viewStatementIdLine
                                             language
                                             (Just navigateMsg)

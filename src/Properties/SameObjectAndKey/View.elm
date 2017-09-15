@@ -8,7 +8,7 @@ import Html.Attributes.Aria exposing (..)
 import Http.Error
 import I18n
 import Properties.SameObjectAndKey.Types exposing (..)
-import Statements.Lines exposing (viewStatementIdLine)
+import Statements.Lines exposing (lineIdAttributes, viewStatementIdLine)
 import Statements.RatingPanels exposing (viewStatementIdRatingPanel, viewStatementRatingPanel)
 import Strings
 import Values.New.View
@@ -32,7 +32,14 @@ view model =
                 div []
                     [ div [ class "align-items-center d-flex flex-nowrap justify-content-between" ]
                         [ div [ class "mb-3 w-100" ]
-                            [ div [ class "align-items-center d-flex flex-nowrap justify-content-between ml-4" ]
+                            [ div
+                                (lineIdAttributes
+                                    language
+                                    (Just navigateMsg)
+                                    [ ( "ml-4", True ) ]
+                                    data
+                                    model.objectId
+                                )
                                 [ div [ class "lead" ]
                                     [ viewStatementIdLine
                                         language
@@ -84,7 +91,14 @@ view model =
                                     case Dict.get propertyId data.properties of
                                         Just property ->
                                             Just <|
-                                                li [ class "align-items-center d-flex flex-nowrap justify-content-between list-group-item" ]
+                                                li
+                                                    (lineIdAttributes
+                                                        language
+                                                        (Just navigateMsg)
+                                                        [ ( "list-group-item", True ) ]
+                                                        data
+                                                        property.valueId
+                                                    )
                                                     [ viewStatementIdLine language Nothing True False data property.valueId
                                                     , viewStatementRatingPanel
                                                         language

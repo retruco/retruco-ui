@@ -12,7 +12,7 @@ import Properties.SameObject.View
 import Properties.SameObjectAndKey.View
 import Properties.SameValue.View
 import Statements.Alerts exposing (viewDuplicatedByAlert, viewDuplicateOfAlert)
-import Statements.Lines exposing (viewCardLine)
+import Statements.Lines exposing (lineIdAttributes, viewCardLine)
 import Statements.RatingPanels exposing (viewStatementRatingPanel)
 import Statements.Toolbar.View
 import Urls
@@ -33,15 +33,25 @@ view model =
 
                 language =
                     model.language
+
+                navigateMsg =
+                    ForParent << Navigate
             in
                 case ( model.card, model.toolbarModel ) of
                     ( Just card, Just toolbarModel ) ->
                         div []
-                            [ div [ class "align-items-center d-flex flex-nowrap justify-content-between mb-3" ]
+                            [ div
+                                (lineIdAttributes
+                                    language
+                                    Nothing
+                                    [ ( "mb-3", True ) ]
+                                    data
+                                    card.id
+                                )
                                 [ h1 []
                                     [ viewCardLine
                                         language
-                                        (Just (ForParent << Navigate))
+                                        (Just navigateMsg)
                                         data
                                         card
                                     ]
@@ -49,12 +59,12 @@ view model =
                                 ]
                             , viewDuplicatedByAlert
                                 language
-                                (ForParent << Navigate)
+                                navigateMsg
                                 data
                                 model.duplicatedByPropertyIds
                             , viewDuplicateOfAlert
                                 language
-                                (ForParent << Navigate)
+                                navigateMsg
                                 data
                                 model.duplicateOfPropertyIds
                             , Statements.Toolbar.View.view toolbarModel
@@ -63,7 +73,7 @@ view model =
                             , ul [ class "nav nav-tabs" ]
                                 [ li [ class "nav-item" ]
                                     [ aForPath
-                                        (ForParent << Navigate)
+                                        navigateMsg
                                         language
                                         (Urls.idToDebatePropertiesPath data card.id)
                                         [ classList
@@ -82,7 +92,7 @@ view model =
                                     ]
                                 , li [ class "nav-item" ]
                                     [ aForPath
-                                        (ForParent << Navigate)
+                                        navigateMsg
                                         language
                                         (Urls.idToPropertiesPath data card.id)
                                         [ classList
@@ -101,7 +111,7 @@ view model =
                                     ]
                                 , li [ class "nav-item" ]
                                     [ aForPath
-                                        (ForParent << Navigate)
+                                        navigateMsg
                                         language
                                         (Urls.idToPropertiesAsValuePath data card.id)
                                         [ classList

@@ -12,7 +12,7 @@ import Properties.Item.Types exposing (..)
 import Properties.SameObject.View
 import Properties.SameObjectAndKey.View
 import Properties.SameValue.View
-import Statements.Lines exposing (viewPropertyIdLine, viewStatementIdLine)
+import Statements.Lines exposing (lineIdAttributes, viewPropertyIdLine, viewStatementIdLine)
 import Statements.RatingPanels exposing (viewStatementIdRatingPanel, viewStatementRatingPanel)
 import Statements.Toolbar.View
 import Urls
@@ -40,9 +40,17 @@ view model =
                 case ( model.property, model.toolbarModel ) of
                     ( Just property, Just toolbarModel ) ->
                         div []
-                            [ div [ class "align-items-center d-flex flex-nowrap justify-content-between" ]
+                            [ div
+                                (lineIdAttributes language Nothing [] data property.id)
                                 [ div [ class "mb-3 w-100" ]
-                                    [ div [ class "align-items-center d-flex flex-nowrap justify-content-between ml-4" ]
+                                    [ div
+                                        (lineIdAttributes
+                                            language
+                                            (Just navigateMsg)
+                                            [ ( "ml-4", True ) ]
+                                            data
+                                            property.objectId
+                                        )
                                         [ div [ class "lead" ]
                                             [ viewStatementIdLine
                                                 language
@@ -84,7 +92,14 @@ view model =
                                                 []
                                             , span [ class "lead" ] [ text keyLabel ]
                                             ]
-                                    , div [ class "align-items-center d-flex flex-nowrap justify-content-between ml-4" ]
+                                    , div
+                                        (lineIdAttributes
+                                            language
+                                            (Just navigateMsg)
+                                            [ ( "ml-4", True ) ]
+                                            data
+                                            property.valueId
+                                        )
                                         [ div [ class "lead" ]
                                             [ viewStatementIdLine
                                                 language
@@ -126,7 +141,14 @@ view model =
                                                 , ul [ class "list-group" ]
                                                     (List.map
                                                         (\similarDebatePropertyId ->
-                                                            li [ class "align-items-center d-flex flex-nowrap justify-content-between list-group-item" ]
+                                                            li
+                                                                (lineIdAttributes
+                                                                    language
+                                                                    (Just navigateMsg)
+                                                                    [ ( "list-group-item", True ) ]
+                                                                    data
+                                                                    similarDebatePropertyId
+                                                                )
                                                                 [ viewPropertyIdLine
                                                                     language
                                                                     (Just navigateMsg)

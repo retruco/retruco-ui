@@ -7,7 +7,7 @@ import Html.Attributes.Aria exposing (..)
 import Http.Error
 import I18n
 import Properties.SameValue.Types exposing (..)
-import Statements.Lines exposing (viewPropertyIdLine)
+import Statements.Lines exposing (lineIdAttributes, viewPropertyIdLine)
 import Statements.RatingPanels exposing (viewStatementIdRatingPanel)
 import Views
 
@@ -35,7 +35,14 @@ view model =
                                 (Array.toList propertyIds
                                     |> List.map
                                         (\propertyId ->
-                                            li [ class "align-items-center d-flex flex-nowrap justify-content-between list-group-item" ]
+                                            li
+                                                (lineIdAttributes
+                                                    language
+                                                    (Just navigateMsg)
+                                                    [ ( "list-group-item", True ) ]
+                                                    data
+                                                    propertyId
+                                                )
                                                 [ viewPropertyIdLine language
                                                     (Just navigateMsg)
                                                     True

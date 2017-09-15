@@ -10,7 +10,7 @@ import Html.Events exposing (..)
 import Html.Helpers exposing (aForPath)
 import Http.Error
 import I18n
-import Statements.Lines exposing (viewValueTypeLine)
+import Statements.Lines exposing (lineIdAttributes, viewValueTypeLine)
 import Statements.RatingPanels exposing (viewStatementRatingPanel)
 import Views
 
@@ -23,6 +23,9 @@ view model =
 
         language =
             model.language
+
+        navigateMsg =
+            ForParent << Navigate
     in
         div []
             ([ nav
@@ -49,7 +52,7 @@ view model =
                     , ul [ class "navbar-nav" ]
                         [ li [ class "nav-item" ]
                             [ aForPath
-                                (ForParent << Navigate)
+                                navigateMsg
                                 language
                                 "/affirmations/new"
                                 [ class "btn btn-secondary", role "button" ]
@@ -70,12 +73,17 @@ view model =
                                                 Just typedValue ->
                                                     Just <|
                                                         li
-                                                            [ class "align-items-center d-flex flex-nowrap justify-content-between list-group-item"
-                                                            ]
+                                                            (lineIdAttributes
+                                                                language
+                                                                (Just navigateMsg)
+                                                                [ ( "list-group-item", True ) ]
+                                                                data
+                                                                typedValue.id
+                                                            )
                                                             [ div [ class "lead" ]
                                                                 [ viewValueTypeLine
                                                                     language
-                                                                    (Just (ForParent << Navigate))
+                                                                    (Just navigateMsg)
                                                                     False
                                                                     data
                                                                     typedValue.value
