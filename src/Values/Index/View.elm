@@ -44,6 +44,9 @@ view model =
 
         language =
             model.language
+
+        navigateMsg =
+            ForParent << Navigate
     in
         div []
             ([ nav
@@ -70,7 +73,7 @@ view model =
                     , ul [ class "navbar-nav" ]
                         [ li [ class "nav-item" ]
                             [ aForPath
-                                (ForParent << Navigate)
+                                navigateMsg
                                 language
                                 "/values/new"
                                 [ class "btn btn-secondary", role "button" ]
@@ -87,11 +90,11 @@ view model =
                                 |> List.map
                                     (\valueId ->
                                         aForPath
-                                            (ForParent << Navigate)
+                                            navigateMsg
                                             language
                                             (Urls.idToPath data valueId)
                                             [ class "list-group-item list-group-item-action" ]
-                                            [ viewValueIdLine language False data valueId ]
+                                            [ viewValueIdLine language navigateMsg False data valueId ]
                                     )
                             )
                         , if Array.length ids < model.count then

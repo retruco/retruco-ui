@@ -10,8 +10,7 @@ import Html.Events exposing (..)
 import Html.Helpers exposing (aForPath)
 import Http.Error
 import I18n
-import Statements.Lines exposing (lineIdAttributes, viewValueTypeLine)
-import Statements.RatingPanels exposing (viewStatementRatingPanel)
+import Statements.Lines exposing (viewStatementIdRatedListGroupLine)
 import Views
 
 
@@ -65,30 +64,20 @@ view model =
                 ++ case model.ids of
                     Just ids ->
                         [ div []
-                            [ ul [ class "list-group" ]
+                            [ div [ class "list-group" ]
                                 (Array.toList ids
                                     |> List.filterMap
                                         (\valueId ->
                                             case Dict.get valueId data.values of
                                                 Just typedValue ->
                                                     Just <|
-                                                        li
-                                                            (lineIdAttributes
-                                                                language
-                                                                (Just navigateMsg)
-                                                                [ ( "list-group-item", True ) ]
-                                                                data
-                                                                typedValue.id
-                                                            )
-                                                            [ div [ class "lead" ]
-                                                                [ viewValueTypeLine
-                                                                    language
-                                                                    False
-                                                                    data
-                                                                    typedValue.value
-                                                                ]
-                                                            , viewStatementRatingPanel language data typedValue
-                                                            ]
+                                                        viewStatementIdRatedListGroupLine
+                                                            language
+                                                            navigateMsg
+                                                            []
+                                                            True
+                                                            data
+                                                            typedValue.id
 
                                                 Nothing ->
                                                     Nothing

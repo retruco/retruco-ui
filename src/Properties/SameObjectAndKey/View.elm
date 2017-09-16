@@ -8,8 +8,7 @@ import Html.Attributes.Aria exposing (..)
 import Http.Error
 import I18n
 import Properties.SameObjectAndKey.Types exposing (..)
-import Statements.Lines exposing (lineIdAttributes, viewStatementIdLine)
-import Statements.RatingPanels exposing (viewStatementIdRatingPanel, viewStatementRatingPanel)
+import Statements.Lines exposing (viewStatementIdRatedLine, viewStatementIdRatedListGroupLine)
 import Strings
 import Values.New.View
 import Views
@@ -32,24 +31,15 @@ view model =
                 div []
                     [ div [ class "align-items-center d-flex flex-nowrap justify-content-between" ]
                         [ div [ class "mb-3 w-100" ]
-                            [ div
-                                (lineIdAttributes
-                                    language
-                                    (Just navigateMsg)
-                                    [ ( "ml-4", True ) ]
-                                    data
-                                    model.objectId
-                                )
-                                [ div [ class "lead" ]
-                                    [ viewStatementIdLine
-                                        language
-                                        True
-                                        False
-                                        data
-                                        model.objectId
-                                    ]
-                                , viewStatementIdRatingPanel language data model.objectId
-                                ]
+                            [ viewStatementIdRatedLine
+                                div
+                                language
+                                True
+                                navigateMsg
+                                [ ( "lead", True ), ( "ml-4", True ) ]
+                                True
+                                data
+                                model.objectId
                             , let
                                 keyLabel =
                                     Dict.get model.keyId I18n.keyLabelById
@@ -79,24 +69,20 @@ view model =
                             ]
                         ]
                     , hr [] []
-                    , ul [ class "list-group" ]
+                    , div [ class "list-group" ]
                         (Array.toList propertyIds
                             |> List.filterMap
                                 (\propertyId ->
                                     case Dict.get propertyId data.properties of
                                         Just property ->
                                             Just <|
-                                                li
-                                                    (lineIdAttributes
-                                                        language
-                                                        (Just navigateMsg)
-                                                        [ ( "list-group-item", True ) ]
-                                                        data
-                                                        property.valueId
-                                                    )
-                                                    [ viewStatementIdLine language True False data property.valueId
-                                                    , viewStatementRatingPanel language data property
-                                                    ]
+                                                viewStatementIdRatedListGroupLine
+                                                    language
+                                                    navigateMsg
+                                                    []
+                                                    False
+                                                    data
+                                                    property.valueId
 
                                         Nothing ->
                                             Nothing

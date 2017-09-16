@@ -3,13 +3,13 @@ module DebateProperties.SameObject.View exposing (..)
 import Array
 import DebateProperties.New.View
 import DebateProperties.SameObject.Types exposing (..)
+import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Http.Error
 import I18n
-import Statements.Lines exposing (lineIdAttributes, viewPropertyIdLine)
-import Statements.RatingPanels exposing (viewStatementIdRatingPanel)
+import Statements.Lines exposing (viewStatementIdRatedListGroupLine)
 import Views
 
 
@@ -32,25 +32,34 @@ view model =
                         [ if Array.isEmpty debatePropertyIds then
                             p [] [ text <| I18n.translate language I18n.MissingArguments ]
                           else
-                            ul [ class "list-group" ]
+                            div [ class "list-group" ]
                                 (Array.toList debatePropertyIds
                                     |> List.map
                                         (\debatePropertyId ->
-                                            li
-                                                (lineIdAttributes
+                                            let
+                                                classList =
+                                                    case Dict.get debatePropertyId data.properties of
+                                                        Just debateProperty ->
+                                                            case debateProperty.keyId of
+                                                                "con" ->
+                                                                    [ ( "list-group-item-warning", True ) ]
+
+                                                                "pro" ->
+                                                                    [ ( "list-group-item-success", True ) ]
+
+                                                                _ ->
+                                                                    []
+
+                                                        Nothing ->
+                                                            []
+                                            in
+                                                viewStatementIdRatedListGroupLine
                                                     language
-                                                    (Just navigateMsg)
-                                                    [ ( "list-group-item", True ) ]
-                                                    data
-                                                    debatePropertyId
-                                                )
-                                                [ viewPropertyIdLine
-                                                    language
+                                                    navigateMsg
+                                                    classList
                                                     False
                                                     data
                                                     debatePropertyId
-                                                , viewStatementIdRatingPanel language data debatePropertyId
-                                                ]
                                         )
                                 )
                         ]

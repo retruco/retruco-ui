@@ -746,36 +746,36 @@ getTranslationSet translationId =
 
         DebateConLabel ->
             { emptyTranslationSet
-                | english = s "- Argument Against"
-                , french = s "- Argument contre"
+                | english = s "But"
+                , french = s "Mais"
                 , spanish = todo
             }
 
         DebateOptionLabel ->
             { emptyTranslationSet
-                | english = s "= Answer to Question"
-                , french = s "= Réponse à la question"
+                | english = s "Answer to Question"
+                , french = s "Réponse à la question"
                 , spanish = todo
             }
 
         DebateProLabel ->
             { emptyTranslationSet
-                | english = s "+ Argument For"
-                , french = s "+ Argument pour"
+                | english = s "Because"
+                , french = s "Parce que"
                 , spanish = todo
             }
 
         DebateRemarkLabel ->
             { emptyTranslationSet
-                | english = s "= Remark"
-                , french = s "= Remarque"
+                | english = s "Remark"
+                , french = s "Remarque"
                 , spanish = todo
             }
 
         DebateSourceLabel ->
             { emptyTranslationSet
-                | english = s "= Source"
-                , french = s "= Source"
+                | english = s "Source"
+                , french = s "Source"
                 , spanish = todo
             }
 

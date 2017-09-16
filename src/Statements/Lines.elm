@@ -4,45 +4,12 @@ import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
-import Html.Events exposing (onWithOptions)
 import Html.Helpers exposing (aForPath, aIfIsUrl)
 import I18n
-import Json.Decode
-import Statements.RatingPanels exposing (viewStatementIdRatingPanel)
+import Statements.Ratings exposing (viewStatementIdRatingBadges)
 import Strings
 import Types exposing (..)
 import Urls
-
-
-lineIdAttributes :
-    I18n.Language
-    -> Maybe (String -> msg)
-    -> List ( String, Bool )
-    -> DataProxy a
-    -> String
-    -> List (Attribute msg)
-lineIdAttributes language navigateMsg classItems data id =
-    [ classList
-        ([ ( "align", True )
-         , ( "align-items-center", True )
-         , ( "d-flex", True )
-         , ( "flex-nowrap", True )
-         , ( "justify-content-between", True )
-         ]
-            ++ classItems
-        )
-    ]
-        ++ case navigateMsg of
-            Just navigateMsg ->
-                [ onWithOptions
-                    "click"
-                    { stopPropagation = True, preventDefault = False }
-                    (Json.Decode.succeed (navigateMsg (Urls.languagePath language (Urls.idToPath data id))))
-                , style [ ( "cursor", "pointer" ) ]
-                ]
-
-            Nothing ->
-                []
 
 
 valueTypeToTypeLabel : I18n.Language -> ValueType -> String
@@ -89,18 +56,8 @@ viewCardLine language data card =
     text <| Strings.cardNameToString language data card
 
 
-viewPropertyIdLine : I18n.Language -> Bool -> DataProxy a -> String -> Html msg
-viewPropertyIdLine language independent data propertyId =
-    case Dict.get propertyId data.properties of
-        Just property ->
-            viewPropertyLine language independent data property
-
-        Nothing ->
-            i [ class "text-warning" ] [ text ("Missing property with ID: " ++ propertyId) ]
-
-
-viewPropertyLine : I18n.Language -> Bool -> DataProxy a -> Property -> Html msg
-viewPropertyLine language independent data property =
+viewPropertyLine : I18n.Language -> (String -> msg) -> Bool -> DataProxy a -> Property -> Html msg
+viewPropertyLine language navigateMsg independent data property =
     -- The `independent` flag indicates whether to display the object of the property along with it key and value.
     let
         keyLabel =
@@ -110,22 +67,15 @@ viewPropertyLine language independent data property =
     in
         div []
             [ if independent then
-                div
-                    (lineIdAttributes
-                        language
-                        Nothing
-                        [ ( "ml-4", True ) ]
-                        data
-                        property.objectId
-                    )
-                    [ viewStatementIdLine
-                        language
-                        True
-                        False
-                        data
-                        property.objectId
-                    , viewStatementIdRatingPanel language data property.objectId
-                    ]
+                viewStatementIdRatedLine
+                    div
+                    language
+                    True
+                    navigateMsg
+                    [ ( "ml-4", True ) ]
+                    True
+                    data
+                    property.objectId
               else
                 text ""
             , div [ class "align-items-baseline d-flex flex-nowrap" ]
@@ -146,29 +96,22 @@ viewPropertyLine language independent data property =
                         ]
                     ]
                     []
-                , span [] [ text keyLabel ]
+                , em [] [ text keyLabel ]
                 ]
-            , div
-                (lineIdAttributes
-                    language
-                    Nothing
-                    [ ( "ml-4", True ) ]
-                    data
-                    property.valueId
-                )
-                [ viewStatementIdLine
-                    language
-                    True
-                    False
-                    data
-                    property.valueId
-                , viewStatementIdRatingPanel language data property.valueId
-                ]
+            , viewStatementIdRatedLine
+                div
+                language
+                True
+                navigateMsg
+                [ ( "ml-4", True ) ]
+                True
+                data
+                property.valueId
             ]
 
 
-viewStatementIdLine : I18n.Language -> Bool -> Bool -> DataProxy a -> String -> Html msg
-viewStatementIdLine language independent showDetails data statementId =
+viewStatementIdLine : I18n.Language -> (String -> msg) -> Bool -> Bool -> DataProxy a -> String -> Html msg
+viewStatementIdLine language navigateMsg independent showDetails data statementId =
     case Dict.get statementId data.cards of
         Just card ->
             viewCardLine language data card
@@ -176,41 +119,136 @@ viewStatementIdLine language independent showDetails data statementId =
         Nothing ->
             case Dict.get statementId data.properties of
                 Just property ->
-                    viewPropertyLine language independent data property
+                    viewPropertyLine language navigateMsg independent data property
 
                 Nothing ->
                     case Dict.get statementId data.values of
                         Just typedValue ->
-                            viewValueTypeLine language showDetails data typedValue.value
+                            viewValueTypeLine language navigateMsg showDetails data typedValue.value
 
                         Nothing ->
                             i [ class "text-warning" ] [ text (I18n.translate language <| I18n.UnknownId statementId) ]
 
 
-viewValueIdLine : I18n.Language -> Bool -> DataProxy a -> String -> Html msg
-viewValueIdLine language showDetails data valueId =
+viewStatementIdRatedLine :
+    (List (Attribute msg) -> List (Html msg) -> Html msg)
+    -> I18n.Language
+    -> Bool
+    -> (String -> msg)
+    -> List ( String, Bool )
+    -> Bool
+    -> DataProxy a
+    -> String
+    -> Html msg
+viewStatementIdRatedLine element language isLink navigateMsg classItems independant data id =
+    let
+        lineViewNodes =
+            [ viewStatementIdLine
+                language
+                navigateMsg
+                independant
+                False
+                data
+                id
+            , viewStatementIdRatingBadges language data id
+            ]
+    in
+        if isLink then
+            element
+                [ classList
+                    classItems
+                ]
+                [ aForPath
+                    navigateMsg
+                    language
+                    (Urls.idToPath data id)
+                    [ classList
+                        [ ( "align", True )
+                        , ( "align-items-top", True )
+                        , ( "d-flex", True )
+                        , ( "flex-nowrap", True )
+                        , ( "justify-content-between", True )
+                        , ( "text-dark", True )
+                        ]
+                    ]
+                    lineViewNodes
+                ]
+        else
+            element
+                [ classList
+                    ([ ( "align", True )
+                     , ( "align-items-top", True )
+                     , ( "d-flex", True )
+                     , ( "flex-nowrap", True )
+                     , ( "justify-content-between", True )
+                     ]
+                        ++ classItems
+                    )
+                ]
+                lineViewNodes
+
+
+viewStatementIdRatedListGroupLine :
+    I18n.Language
+    -> (String -> msg)
+    -> List ( String, Bool )
+    -> Bool
+    -> DataProxy a
+    -> String
+    -> Html msg
+viewStatementIdRatedListGroupLine language navigateMsg classItems independant data id =
+    aForPath
+        navigateMsg
+        language
+        (Urls.idToPath data id)
+        [ classList
+            ([ ( "align", True )
+             , ( "align-items-top", True )
+             , ( "d-flex", True )
+             , ( "flex-nowrap", True )
+             , ( "justify-content-between", True )
+             , ( "lead", True )
+             , ( "list-group-item", True )
+             , ( "list-group-item-action", True )
+             ]
+                ++ classItems
+            )
+        ]
+        [ viewStatementIdLine
+            language
+            navigateMsg
+            independant
+            False
+            data
+            id
+        , viewStatementIdRatingBadges language data id
+        ]
+
+
+viewValueIdLine : I18n.Language -> (String -> msg) -> Bool -> DataProxy a -> String -> Html msg
+viewValueIdLine language navigateMsg showDetails data valueId =
     case Dict.get valueId data.values of
         Just typedValue ->
-            viewValueTypeLine language showDetails data typedValue.value
+            viewValueTypeLine language navigateMsg showDetails data typedValue.value
 
         Nothing ->
             i [ class "text-warning" ] [ text ("Missing value with ID: " ++ valueId) ]
 
 
-viewValueTypeLine : I18n.Language -> Bool -> DataProxy a -> ValueType -> Html msg
-viewValueTypeLine language showDetails data valueType =
+viewValueTypeLine : I18n.Language -> (String -> msg) -> Bool -> DataProxy a -> ValueType -> Html msg
+viewValueTypeLine language navigateMsg showDetails data valueType =
     if showDetails then
         div []
             [ i [] [ text (valueTypeToTypeLabel language valueType) ]
             , text (I18n.translate language I18n.Colon)
-            , viewValueTypeLineContent language showDetails data valueType
+            , viewValueTypeLineContent language navigateMsg showDetails data valueType
             ]
     else
-        viewValueTypeLineContent language showDetails data valueType
+        viewValueTypeLineContent language navigateMsg showDetails data valueType
 
 
-viewValueTypeLineContent : I18n.Language -> Bool -> DataProxy a -> ValueType -> Html msg
-viewValueTypeLineContent language showDetails data valueType =
+viewValueTypeLineContent : I18n.Language -> (String -> msg) -> Bool -> DataProxy a -> ValueType -> Html msg
+viewValueTypeLineContent language navigateMsg showDetails data valueType =
     case valueType of
         BooleanValue bool ->
             text (toString bool)
@@ -224,7 +262,7 @@ viewValueTypeLineContent language showDetails data valueType =
                     (\id ->
                         li
                             []
-                            [ viewStatementIdLine language True showDetails data id ]
+                            [ viewStatementIdLine language navigateMsg True showDetails data id ]
                     )
                     ids
                 )

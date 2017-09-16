@@ -61,9 +61,31 @@ viewStatementRatingToolbar language data ballotId trashPropertyId =
             [ class "d-flex toolbar"
             , role "toolbar"
             ]
-            [ div
+            [ button
+                ([ ariaPressed (ballotRating == Nothing)
+                 , classList
+                    [ ( "active", ballotRating == Nothing )
+                    , ( "btn", True )
+                    , ( "btn-outline-info", True )
+                    ]
+                 , type_ "button"
+                 ]
+                    ++ if ballotRating == Nothing then
+                        []
+                       else
+                        [ onClick <| rateMsg Nothing ]
+                )
+                [ span
+                    [ ariaHidden True
+                    , class "fa fa-close"
+                    ]
+                    []
+                , text " "
+                , text <| I18n.translate language I18n.AbstainAction
+                ]
+            , div
                 [ ariaLabel "Rating panel"
-                , class "btn-group"
+                , class "btn-group ml-3"
                 , role "group"
                 ]
                 [ button
@@ -135,29 +157,6 @@ viewStatementRatingToolbar language data ballotId trashPropertyId =
                     , text " "
                     , text <| I18n.translate language I18n.VoteMinusAction
                     ]
-                ]
-            , button
-                ([ ariaPressed (ballotRating == Nothing)
-                 , classList
-                    [ ( "active", ballotRating == Nothing )
-                    , ( "btn", True )
-                    , ( "btn-outline-info", True )
-                    , ( "ml-3", True )
-                    ]
-                 , type_ "button"
-                 ]
-                    ++ if ballotRating == Nothing then
-                        []
-                       else
-                        [ onClick <| rateMsg Nothing ]
-                )
-                [ span
-                    [ ariaHidden True
-                    , class "fa fa-close"
-                    ]
-                    []
-                , text " "
-                , text <| I18n.translate language I18n.AbstainAction
                 ]
             , let
                 trashBallotRating =

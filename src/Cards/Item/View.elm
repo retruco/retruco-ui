@@ -12,8 +12,7 @@ import Properties.SameObject.View
 import Properties.SameObjectAndKey.View
 import Properties.SameValue.View
 import Statements.Alerts exposing (viewDuplicatedByAlert, viewDuplicateOfAlert)
-import Statements.Lines exposing (lineIdAttributes, viewCardLine)
-import Statements.RatingPanels exposing (viewStatementRatingPanel)
+import Statements.Lines exposing (viewStatementIdRatedLine)
 import Statements.Toolbar.View
 import Urls
 import Views
@@ -40,22 +39,15 @@ view model =
                 case ( model.card, model.toolbarModel ) of
                     ( Just card, Just toolbarModel ) ->
                         div []
-                            [ div
-                                (lineIdAttributes
-                                    language
-                                    Nothing
-                                    [ ( "mb-3", True ) ]
-                                    data
-                                    card.id
-                                )
-                                [ h1 []
-                                    [ viewCardLine
-                                        language
-                                        data
-                                        card
-                                    ]
-                                , viewStatementRatingPanel language data card
-                                ]
+                            [ viewStatementIdRatedLine
+                                h1
+                                language
+                                False
+                                navigateMsg
+                                [ ( "h4", True ), ( "mb-3", True ) ]
+                                True
+                                data
+                                card.id
                             , viewDuplicatedByAlert
                                 language
                                 navigateMsg

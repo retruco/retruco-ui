@@ -12,8 +12,7 @@ import Properties.Item.Types exposing (..)
 import Properties.SameObject.View
 import Properties.SameObjectAndKey.View
 import Properties.SameValue.View
-import Statements.Lines exposing (lineIdAttributes, viewPropertyIdLine, viewStatementIdLine)
-import Statements.RatingPanels exposing (viewStatementIdRatingPanel, viewStatementRatingPanel)
+import Statements.Lines exposing (viewStatementIdRatedLine, viewStatementIdRatedListGroupLine)
 import Statements.Toolbar.View
 import Urls
 import Views
@@ -40,74 +39,15 @@ view model =
                 case ( model.property, model.toolbarModel ) of
                     ( Just property, Just toolbarModel ) ->
                         div []
-                            [ div
-                                (lineIdAttributes language Nothing [] data property.id)
-                                [ div [ class "mb-3 w-100" ]
-                                    [ div
-                                        (lineIdAttributes
-                                            language
-                                            (Just navigateMsg)
-                                            [ ( "ml-4", True ) ]
-                                            data
-                                            property.objectId
-                                        )
-                                        [ div [ class "lead" ]
-                                            [ viewStatementIdLine
-                                                language
-                                                True
-                                                False
-                                                data
-                                                property.objectId
-                                            ]
-                                        , viewStatementIdRatingPanel language data property.objectId
-                                        ]
-                                    , let
-                                        keyLabel =
-                                            Dict.get property.keyId I18n.keyLabelById
-                                                |> Maybe.map (I18n.translate language)
-                                                |> Maybe.withDefault property.keyId
-                                      in
-                                        div [ class "align-items-baseline d-flex flex-nowrap" ]
-                                            [ span
-                                                [ ariaHidden True
-                                                , classList
-                                                    [ ( "fa", True )
-                                                    , ( if property.keyId == "con" then
-                                                            "fa-minus"
-                                                        else if property.keyId == "pro" then
-                                                            "fa-plus"
-                                                        else
-                                                            "fa-circle"
-                                                      , True
-                                                      )
-                                                    , ( "fa-fw", True )
-                                                    , ( "mr-2", True )
-                                                    ]
-                                                ]
-                                                []
-                                            , span [ class "lead" ] [ text keyLabel ]
-                                            ]
-                                    , div
-                                        (lineIdAttributes
-                                            language
-                                            (Just navigateMsg)
-                                            [ ( "ml-4", True ) ]
-                                            data
-                                            property.valueId
-                                        )
-                                        [ div [ class "lead" ]
-                                            [ viewStatementIdLine
-                                                language
-                                                True
-                                                False
-                                                data
-                                                property.valueId
-                                            ]
-                                        , viewStatementIdRatingPanel language data property.valueId
-                                        ]
-                                    ]
-                                , viewStatementRatingPanel language data property
-                                ]
+                            [ viewStatementIdRatedLine
+                                h1
+                                language
+                                False
+                                navigateMsg
+                                [ ( "h4", True ), ( "mb-3", True ) ]
+                                True
+                                data
+                                property.id
                             , case model.similarDebatePropertyIds of
                                 Just similarDebatePropertyIds ->
                                     let
@@ -128,27 +68,16 @@ view model =
                                                             I18n.SimilarArgumentsDescription
                                                                 similarDebatePropertyCount
                                                     ]
-                                                , ul [ class "list-group" ]
+                                                , div [ class "list-group" ]
                                                     (List.map
                                                         (\similarDebatePropertyId ->
-                                                            li
-                                                                (lineIdAttributes
-                                                                    language
-                                                                    (Just navigateMsg)
-                                                                    [ ( "list-group-item", True ) ]
-                                                                    data
-                                                                    similarDebatePropertyId
-                                                                )
-                                                                [ viewPropertyIdLine
-                                                                    language
-                                                                    True
-                                                                    data
-                                                                    similarDebatePropertyId
-                                                                , viewStatementIdRatingPanel
-                                                                    language
-                                                                    data
-                                                                    similarDebatePropertyId
-                                                                ]
+                                                            viewStatementIdRatedListGroupLine
+                                                                language
+                                                                navigateMsg
+                                                                []
+                                                                True
+                                                                data
+                                                                similarDebatePropertyId
                                                         )
                                                         similarDebatePropertyIds
                                                     )

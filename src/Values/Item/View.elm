@@ -11,8 +11,7 @@ import Properties.SameObject.View
 import Properties.SameObjectAndKey.View
 import Properties.SameValue.View
 import Statements.Alerts exposing (viewDuplicatedByAlert, viewDuplicateOfAlert)
-import Statements.Lines exposing (lineIdAttributes, viewValueTypeLine)
-import Statements.RatingPanels exposing (viewStatementRatingPanel)
+import Statements.Lines exposing (viewStatementIdRatedLine, viewValueTypeLine)
 import Statements.Toolbar.View
 import Urls
 import Values.Item.Types exposing (..)
@@ -40,23 +39,15 @@ view model =
                 case ( model.typedValue, model.toolbarModel ) of
                     ( Just typedValue, Just toolbarModel ) ->
                         div []
-                            [ div
-                                (lineIdAttributes
-                                    language
-                                    Nothing
-                                    [ ( "mb-3", True ) ]
-                                    data
-                                    typedValue.id
-                                )
-                                [ h1 [ class "h4" ]
-                                    [ viewValueTypeLine
-                                        language
-                                        False
-                                        data
-                                        typedValue.value
-                                    ]
-                                , viewStatementRatingPanel language data typedValue
-                                ]
+                            [ viewStatementIdRatedLine
+                                h1
+                                language
+                                False
+                                navigateMsg
+                                [ ( "h4", True ), ( "mb-3", True ) ]
+                                True
+                                data
+                                typedValue.id
                             , viewDuplicatedByAlert
                                 language
                                 navigateMsg
@@ -149,6 +140,7 @@ view model =
                                 DetailsTab ->
                                     viewValueTypeLine
                                         language
+                                        navigateMsg
                                         True
                                         data
                                         typedValue.value

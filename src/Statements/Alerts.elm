@@ -5,8 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import I18n
-import Statements.Lines exposing (lineIdAttributes, viewStatementIdLine)
-import Statements.RatingPanels exposing (viewStatementIdRatingPanel)
+import Statements.Lines exposing (viewStatementIdRatedListGroupLine)
 import Types exposing (Argument, DataProxy, Statement)
 
 
@@ -35,25 +34,16 @@ viewDuplicatedByAlert language navigateMsg data duplicatedByPropertyIds =
                                 I18n.translate language <|
                                     I18n.DuplicatedByDescription duplicatedByPropertyCount
                             ]
-                        , ul [ class "list-group" ]
+                        , div [ class "list-group" ]
                             (List.map
                                 (\duplicatedByProperty ->
-                                    li
-                                        (lineIdAttributes
-                                            language
-                                            (Just navigateMsg)
-                                            [ ( "list-group-item", True ) ]
-                                            data
-                                            duplicatedByProperty.objectId
-                                        )
-                                        [ viewStatementIdLine
-                                            language
-                                            True
-                                            False
-                                            data
-                                            duplicatedByProperty.objectId
-                                        , viewStatementIdRatingPanel language data duplicatedByProperty.objectId
-                                        ]
+                                    viewStatementIdRatedListGroupLine
+                                        language
+                                        navigateMsg
+                                        []
+                                        True
+                                        data
+                                        duplicatedByProperty.objectId
                                 )
                                 duplicatedByProperties
                             )
@@ -90,25 +80,16 @@ viewDuplicateOfAlert language navigateMsg data duplicateOfPropertyIds =
                                 I18n.translate language <|
                                     I18n.DuplicateOfDescription duplicateOfPropertyCount
                             ]
-                        , ul [ class "list-group" ]
+                        , div [ class "list-group" ]
                             (List.map
                                 (\duplicateOfProperty ->
-                                    li
-                                        (lineIdAttributes
-                                            language
-                                            (Just navigateMsg)
-                                            [ ( "list-group-item", True ) ]
-                                            data
-                                            duplicateOfProperty.valueId
-                                        )
-                                        [ viewStatementIdLine
-                                            language
-                                            True
-                                            False
-                                            data
-                                            duplicateOfProperty.valueId
-                                        , viewStatementIdRatingPanel language data duplicateOfProperty.valueId
-                                        ]
+                                    viewStatementIdRatedListGroupLine
+                                        language
+                                        navigateMsg
+                                        [ ( "lead", True ), ( "list-group-item", True ) ]
+                                        True
+                                        data
+                                        duplicateOfProperty.valueId
                                 )
                                 duplicateOfProperties
                             )
