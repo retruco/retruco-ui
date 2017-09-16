@@ -121,7 +121,7 @@ viewStatementRatingToolbar language data ballotId trashPropertyId =
                     ]
                 , button
                     [ ariaDisabled (ballotRating == Just 0)
-                    , class "btn btn-info"
+                    , class "btn btn-secondary"
                     , disabled <| ballotRating == Just 0
                     , onClick
                         (if ballotRating == Just 0 then
