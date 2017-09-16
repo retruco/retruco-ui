@@ -54,6 +54,20 @@ viewStatementRatingToolbar language data ballotId trashPropertyId =
         rateMsg =
             (ForSelf << Rate)
 
+        trashBallotRating =
+            trashPropertyId
+                |> Maybe.andThen (\trashPropertyId -> Dict.get trashPropertyId data.properties)
+                |> Maybe.map .ballotId
+                |> Maybe.andThen (\trashBallotId -> Dict.get trashBallotId data.ballots)
+                |> Maybe.andThen
+                    (\trashBallot ->
+                        if trashBallot.deleted then
+                            Nothing
+                        else
+                            Just trashBallot
+                    )
+                |> Maybe.map .rating
+
         trashMsg =
             (ForSelf << Trash)
     in
@@ -62,12 +76,9 @@ viewStatementRatingToolbar language data ballotId trashPropertyId =
             , role "toolbar"
             ]
             [ button
-                ([ ariaPressed (ballotRating == Nothing)
-                 , classList
-                    [ ( "active", ballotRating == Nothing )
-                    , ( "btn", True )
-                    , ( "btn-outline-info", True )
-                    ]
+                ([ ariaDisabled (ballotRating == Nothing)
+                 , class "btn btn-secondary"
+                 , disabled <| ballotRating == Nothing
                  , type_ "button"
                  ]
                     ++ if ballotRating == Nothing then
@@ -89,12 +100,9 @@ viewStatementRatingToolbar language data ballotId trashPropertyId =
                 , role "group"
                 ]
                 [ button
-                    [ ariaPressed (ballotRating == Just 1)
-                    , classList
-                        [ ( "active", ballotRating == Just 1 )
-                        , ( "btn", True )
-                        , ( "btn-outline-success", True )
-                        ]
+                    [ ariaDisabled (ballotRating == Just 1)
+                    , class "btn btn-success"
+                    , disabled <| ballotRating == Just 1
                     , onClick
                         (if ballotRating == Just 1 then
                             rateMsg Nothing
@@ -112,12 +120,9 @@ viewStatementRatingToolbar language data ballotId trashPropertyId =
                     , text <| I18n.translate language I18n.VotePlusAction
                     ]
                 , button
-                    [ ariaPressed (ballotRating == Just 0)
-                    , classList
-                        [ ( "active", ballotRating == Just 0 )
-                        , ( "btn", True )
-                        , ( "btn-outline-secondary", True )
-                        ]
+                    [ ariaDisabled (ballotRating == Just 0)
+                    , class "btn btn-info"
+                    , disabled <| ballotRating == Just 0
                     , onClick
                         (if ballotRating == Just 0 then
                             rateMsg Nothing
@@ -135,12 +140,9 @@ viewStatementRatingToolbar language data ballotId trashPropertyId =
                     , text <| I18n.translate language I18n.VoteNeutralAction
                     ]
                 , button
-                    [ ariaPressed (ballotRating == Just -1)
-                    , classList
-                        [ ( "active", ballotRating == Just -1 )
-                        , ( "btn", True )
-                        , ( "btn-outline-danger", True )
-                        ]
+                    [ ariaDisabled (ballotRating == Just -1)
+                    , class "btn btn-warning"
+                    , disabled <| ballotRating == Just -1
                     , onClick
                         (if ballotRating == Just -1 then
                             rateMsg Nothing
@@ -158,195 +160,186 @@ viewStatementRatingToolbar language data ballotId trashPropertyId =
                     , text <| I18n.translate language I18n.VoteMinusAction
                     ]
                 ]
-            , let
-                trashBallotRating =
-                    trashPropertyId
-                        |> Maybe.andThen (\trashPropertyId -> Dict.get trashPropertyId data.properties)
-                        |> Maybe.map .ballotId
-                        |> Maybe.andThen (\trashBallotId -> Dict.get trashBallotId data.ballots)
-                        |> Maybe.andThen
-                            (\trashBallot ->
-                                if trashBallot.deleted then
-                                    Nothing
-                                else
-                                    Just trashBallot
-                            )
-                        |> Maybe.map .rating
-
-                buttonClass =
-                    case trashBallotRating of
-                        Just 0 ->
-                            "btn-outline-secondary"
-
-                        Just -1 ->
-                            "btn-outline-success"
-
-                        _ ->
-                            -- Just 1 or Nothing
-                            "btn-outline-danger"
-              in
-                div [ class "dropdown ml-3" ]
-                    [ button
-                        [ attribute "aria-expanded" "false"
-                        , attribute "aria-haspopup" "true"
-                        , ariaPressed (trashBallotRating /= Nothing)
-                        , classList
-                            [ ( "active", trashBallotRating /= Nothing )
-                            , ( "btn", True )
-                            , ( buttonClass, True )
-                            , ( "dropdown-toggle", True )
-                            , ( "dropdown-toggle-split", True )
-                            ]
-                        , attribute "data-toggle" "dropdown"
-                        , type_ "button"
+            , div [ class "dropdown ml-3" ]
+                [ button
+                    [ attribute "aria-expanded" "false"
+                    , attribute "aria-haspopup" "true"
+                    , class "btn btn-danger dropdown-toggle"
+                    , attribute "data-toggle" "dropdown"
+                    , type_ "button"
+                    ]
+                    [ span
+                        [ ariaHidden True
+                        , class "fa fa-trash-o"
                         ]
+                        []
+                    , text " "
+                    , text <|
+                        I18n.translate
+                            language
+                            I18n.Trash
+                    , span
+                        [ class "badge badge-light badge-pill ml-2" ]
                         [ span
                             [ ariaHidden True
-                            , class "fa fa-trash-o"
+                            , classList
+                                [ ( "fa", True )
+                                , ( case trashBallotRating of
+                                        Just 1 ->
+                                            "fa-thumbs-o-up"
+
+                                        Just 0 ->
+                                            "fa-square-o"
+
+                                        Just -1 ->
+                                            "fa-thumbs-o-down"
+
+                                        _ ->
+                                            "fa-close"
+                                  , True
+                                  )
+                                ]
+                            ]
+                            []
+                        ]
+                    , text " "
+                    ]
+                , div [ class "dropdown-menu" ]
+                    [ h5 [ class "dropdown-header" ] [ text <| I18n.translate language I18n.TrashThisItemQuestion ]
+                    , button
+                        ([ classList
+                            [ ( "dropdown-item", True )
+                            , ( "disabled", trashBallotRating == Nothing )
+                            ]
+                         , type_ "button"
+                         ]
+                            ++ if trashBallotRating == Nothing then
+                                []
+                               else
+                                [ onClick <| trashMsg <| RateTrash Nothing ]
+                        )
+                        [ i
+                            [ ariaHidden True
+                            , class
+                                (if trashBallotRating == Nothing then
+                                    "fa fa-circle fa-fw mr-3"
+                                 else
+                                    "fa fa-fw fa-circle-o mr-3"
+                                )
+                            ]
+                            []
+                        , text " "
+                        , span
+                            [ ariaHidden True
+                            , class "fa fa-close"
+                            ]
+                            []
+                        , text " "
+                        , text <| I18n.translate language I18n.AbstainAction
+                        ]
+                    , div [ class "dropdown-divider" ] []
+                    , button
+                        [ class "dropdown-item"
+                        , onClick <|
+                            trashMsg <|
+                                RateTrash <|
+                                    (if trashBallotRating == Just 1 then
+                                        Nothing
+                                     else
+                                        Just 1
+                                    )
+                        , type_ "button"
+                        ]
+                        [ i
+                            [ ariaHidden True
+                            , class
+                                (if trashBallotRating == Just 1 then
+                                    "fa fa-circle fa-fw mr-3"
+                                 else
+                                    "fa fa-fw fa-circle-o mr-3"
+                                )
+                            ]
+                            []
+                        , text " "
+                        , span
+                            [ ariaHidden True
+                            , class "fa fa-thumbs-o-up"
                             ]
                             []
                         , text " "
-                        , text <|
-                            I18n.translate
-                                language
-                                I18n.Trash
+                        , text <| I18n.translate language I18n.VotePlusAction
                         ]
-                    , div [ class "dropdown-menu" ]
-                        [ h5 [ class "dropdown-header" ] [ text <| I18n.translate language I18n.TrashThisItemQuestion ]
-                        , button
-                            [ class "dropdown-item"
-                            , onClick <|
-                                trashMsg <|
-                                    RateTrash <|
-                                        (if trashBallotRating == Just 1 then
-                                            Nothing
-                                         else
-                                            Just 1
-                                        )
-                            , type_ "button"
-                            ]
-                            [ i
-                                [ ariaHidden True
-                                , class
-                                    (if trashBallotRating == Just 1 then
-                                        "fa fa-circle fa-fw mr-3"
-                                     else
-                                        "fa fa-fw fa-circle-o mr-3"
-                                    )
-                                ]
-                                []
-                            , text " "
-                            , span
-                                [ ariaHidden True
-                                , class "fa fa-thumbs-o-up"
-                                ]
-                                []
-                            , text " "
-                            , text <| I18n.translate language I18n.VotePlusAction
-                            ]
-                        , button
-                            [ class "dropdown-item"
-                            , onClick <|
-                                trashMsg <|
-                                    RateTrash <|
-                                        (if trashBallotRating == Just 0 then
-                                            Nothing
-                                         else
-                                            Just 0
-                                        )
-                            , type_ "button"
-                            ]
-                            [ i
-                                [ ariaHidden True
-                                , class
+                    , button
+                        [ class "dropdown-item"
+                        , onClick <|
+                            trashMsg <|
+                                RateTrash <|
                                     (if trashBallotRating == Just 0 then
-                                        "fa fa-circle fa-fw mr-3"
+                                        Nothing
                                      else
-                                        "fa fa-fw fa-circle-o mr-3"
+                                        Just 0
                                     )
-                                ]
-                                []
-                            , text " "
-                            , span
-                                [ ariaHidden True
-                                , class "fa fa-square-o"
-                                ]
-                                []
-                            , text " "
-                            , text <| I18n.translate language I18n.VoteNeutralAction
-                            ]
-                        , button
-                            [ class "dropdown-item"
-                            , onClick <|
-                                trashMsg <|
-                                    RateTrash <|
-                                        (if trashBallotRating == Just -1 then
-                                            Nothing
-                                         else
-                                            Just -1
-                                        )
-                            , type_ "button"
-                            ]
-                            [ i
-                                [ ariaHidden True
-                                , class
-                                    (if trashBallotRating == Just -1 then
-                                        "fa fa-circle fa-fw mr-3"
-                                     else
-                                        "fa fa-fw fa-circle-o mr-3"
-                                    )
-                                ]
-                                []
-                            , text " "
-                            , span
-                                [ ariaHidden True
-                                , class "fa fa-thumbs-o-down"
-                                ]
-                                []
-                            , text " "
-                            , text <| I18n.translate language I18n.VoteMinusAction
-                            ]
-                        , div [ class "dropdown-divider" ] []
-                        , button
-                            ([ classList
-                                [ ( "dropdown-item", True )
-                                , ( "disabled", trashBallotRating == Nothing )
-                                ]
-                             , type_ "button"
-                             ]
-                                ++ if trashBallotRating == Nothing then
-                                    []
-                                   else
-                                    [ onClick <| trashMsg <| RateTrash Nothing ]
-                            )
-                            [ i
-                                [ ariaHidden True
-                                , class
-                                    (if trashBallotRating == Nothing then
-                                        "fa fa-circle fa-fw mr-3"
-                                     else
-                                        "fa fa-fw fa-circle-o mr-3"
-                                    )
-                                ]
-                                []
-                            , text " "
-                            , span
-                                [ ariaHidden True
-                                , class "fa fa-close"
-                                ]
-                                []
-                            , text " "
-                            , text <| I18n.translate language I18n.AbstainAction
-                            ]
-                        , div [ class "dropdown-divider" ] []
-                        , button
-                            [ class "dropdown-item"
-                            , onClick <| trashMsg DebateTrash
-                            , type_ "button"
-                            ]
-                            [ text <| I18n.translate language I18n.DebateTrashingAction ]
+                        , type_ "button"
                         ]
+                        [ i
+                            [ ariaHidden True
+                            , class
+                                (if trashBallotRating == Just 0 then
+                                    "fa fa-circle fa-fw mr-3"
+                                 else
+                                    "fa fa-fw fa-circle-o mr-3"
+                                )
+                            ]
+                            []
+                        , text " "
+                        , span
+                            [ ariaHidden True
+                            , class "fa fa-square-o"
+                            ]
+                            []
+                        , text " "
+                        , text <| I18n.translate language I18n.VoteNeutralAction
+                        ]
+                    , button
+                        [ class "dropdown-item"
+                        , onClick <|
+                            trashMsg <|
+                                RateTrash <|
+                                    (if trashBallotRating == Just -1 then
+                                        Nothing
+                                     else
+                                        Just -1
+                                    )
+                        , type_ "button"
+                        ]
+                        [ i
+                            [ ariaHidden True
+                            , class
+                                (if trashBallotRating == Just -1 then
+                                    "fa fa-circle fa-fw mr-3"
+                                 else
+                                    "fa fa-fw fa-circle-o mr-3"
+                                )
+                            ]
+                            []
+                        , text " "
+                        , span
+                            [ ariaHidden True
+                            , class "fa fa-thumbs-o-down"
+                            ]
+                            []
+                        , text " "
+                        , text <| I18n.translate language I18n.VoteMinusAction
+                        ]
+                    , div [ class "dropdown-divider" ] []
+                    , button
+                        [ class "dropdown-item"
+                        , onClick <| trashMsg DebateTrash
+                        , type_ "button"
+                        ]
+                        [ text <| I18n.translate language I18n.DebateTrashingAction ]
                     ]
+                ]
             ]
 
 
