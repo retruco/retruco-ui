@@ -24,7 +24,7 @@ view model =
                 [ text "Bring out shared positions from argumented statements" ]
             , p [ class "mb-5 mt-5" ]
                 [ text "This service is entirely made of free and open source software. For more informations and also to contribue, refer to "
-                , a [ href "https://framagit.org/retruco/retruco-ui", target "_blank" ] [ text "FramaGit" ]
+                , a [ href "https://framagit.org/retruco/retruco-ui", target "_blank" ] [ text "source code repository" ]
                 , text "."
                 ]
             ]
