@@ -74,7 +74,7 @@ viewStatementRatingBadges :
     -> { b | argumentCount : Int, id : String, ratingCount : Int, ratingSum : Int, trashed : Bool }
     -> Html msg
 viewStatementRatingBadges language data { argumentCount, id, ratingCount, ratingSum, trashed } =
-    span [ class "ml-2" ]
+    span [ class "d-flex align-items-baseline flex-nowrap ml-2" ]
         ((if trashed then
             [ span
                 [ class "badge badge-danger badge-pill mr-1"
