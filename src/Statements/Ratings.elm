@@ -5,27 +5,67 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import I18n
-import Types exposing (DataProxy)
+import Types exposing (DataProxy, Statement)
+
+
+idToStatement : DataProxy a -> String -> Maybe (Statement {})
+idToStatement data id =
+    case Dict.get id data.cards of
+        Just card ->
+            Just
+                { argumentCount = card.argumentCount
+                , ballotId = card.ballotId
+                , createdAt = card.createdAt
+                , id = card.id
+                , properties = card.properties
+                , ratingCount = card.ratingCount
+                , ratingSum = card.ratingSum
+                , trashed = card.trashed
+                , type_ = card.type_
+                }
+
+        Nothing ->
+            case Dict.get id data.properties of
+                Just property ->
+                    Just
+                        { argumentCount = property.argumentCount
+                        , ballotId = property.ballotId
+                        , createdAt = property.createdAt
+                        , id = property.id
+                        , properties = property.properties
+                        , ratingCount = property.ratingCount
+                        , ratingSum = property.ratingSum
+                        , trashed = property.trashed
+                        , type_ = property.type_
+                        }
+
+                Nothing ->
+                    case Dict.get id data.values of
+                        Just typedValue ->
+                            Just
+                                { argumentCount = typedValue.argumentCount
+                                , ballotId = typedValue.ballotId
+                                , createdAt = typedValue.createdAt
+                                , id = typedValue.id
+                                , properties = typedValue.properties
+                                , ratingCount = typedValue.ratingCount
+                                , ratingSum = typedValue.ratingSum
+                                , trashed = typedValue.trashed
+                                , type_ = typedValue.type_
+                                }
+
+                        Nothing ->
+                            Nothing
 
 
 viewStatementIdRatingBadges : I18n.Language -> DataProxy a -> String -> Html msg
-viewStatementIdRatingBadges language data statementId =
-    case Dict.get statementId data.cards of
-        Just card ->
-            viewStatementRatingBadges language data card
+viewStatementIdRatingBadges language data id =
+    case idToStatement data id of
+        Just statement ->
+            viewStatementRatingBadges language data statement
 
         Nothing ->
-            case Dict.get statementId data.properties of
-                Just property ->
-                    viewStatementRatingBadges language data property
-
-                Nothing ->
-                    case Dict.get statementId data.values of
-                        Just typedValue ->
-                            viewStatementRatingBadges language data typedValue
-
-                        Nothing ->
-                            i [ class "text-warning" ] [ text (I18n.translate language <| I18n.UnknownId statementId) ]
+            i [ class "text-warning" ] [ text (I18n.translate language <| I18n.UnknownId id) ]
 
 
 viewStatementRatingBadges :
@@ -63,7 +103,11 @@ viewStatementRatingBadges language data { argumentCount, id, ratingCount, rating
                         ]
                     ]
                     [ span
-                        [ title (toString ratingSum ++ " / " ++ I18n.translate language (I18n.CountVotes ratingCount))
+                        [ title
+                            (toString ratingSum
+                                ++ " / "
+                                ++ I18n.translate language (I18n.CountVotes ratingCount)
+                            )
                         ]
                         [ text <| toString ratingSum
                         , text " "
@@ -73,12 +117,13 @@ viewStatementRatingBadges language data { argumentCount, id, ratingCount, rating
                                 [ ( "fa", True )
                                 , ( if ratingSum > 0 then
                                         "fa-arrow-up"
+                                    else if ratingSum == 0 then
+                                        "fa-arrow-right"
                                     else
                                         "fa-arrow-down"
                                   , True
                                   )
                                 ]
-                            , title (toString ratingSum ++ " / " ++ I18n.translate language (I18n.CountVotes ratingCount))
                             ]
                             []
                         ]

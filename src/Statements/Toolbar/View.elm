@@ -75,96 +75,128 @@ viewStatementRatingToolbar language data ballotId trashPropertyId =
             [ class "d-flex toolbar"
             , role "toolbar"
             ]
-            [ button
-                ([ ariaDisabled (ballotRating == Nothing)
-                 , class "btn btn-secondary"
-                 , disabled <| ballotRating == Nothing
-                 , type_ "button"
-                 ]
-                    ++ if ballotRating == Nothing then
+            [ let
+                pressed =
+                    ballotRating == Nothing
+              in
+                button
+                    ([ ariaDisabled pressed
+                     , class <|
+                        if pressed then
+                            "btn btn-secondary"
+                        else
+                            "btn btn-outline-secondary"
+                     , disabled pressed
+                     , type_ "button"
+                     ]
+                        ++ if pressed then
+                            []
+                           else
+                            [ onClick <| rateMsg Nothing ]
+                    )
+                    [ span
+                        [ ariaHidden True
+                        , class "fa fa-close"
+                        ]
                         []
-                       else
-                        [ onClick <| rateMsg Nothing ]
-                )
-                [ span
-                    [ ariaHidden True
-                    , class "fa fa-close"
+                    , text " "
+                    , text <| I18n.translate language I18n.AbstainAction
                     ]
-                    []
-                , text " "
-                , text <| I18n.translate language I18n.AbstainAction
-                ]
             , div
                 [ ariaLabel "Rating panel"
                 , class "btn-group ml-3"
                 , role "group"
                 ]
-                [ button
-                    [ ariaDisabled (ballotRating == Just 1)
-                    , class "btn btn-success"
-                    , disabled <| ballotRating == Just 1
-                    , onClick
-                        (if ballotRating == Just 1 then
-                            rateMsg Nothing
-                         else
-                            rateMsg (Just 1)
-                        )
-                    , type_ "button"
-                    ]
-                    [ span
-                        [ ariaHidden True
-                        , class "fa fa-thumbs-o-up"
+                [ let
+                    pressed =
+                        ballotRating == Just 1
+                  in
+                    button
+                        [ ariaDisabled pressed
+                        , class <|
+                            if pressed then
+                                "btn btn-success"
+                            else
+                                "btn btn-outline-success"
+                        , disabled pressed
+                        , onClick
+                            (if pressed then
+                                rateMsg Nothing
+                             else
+                                rateMsg (Just 1)
+                            )
+                        , type_ "button"
                         ]
-                        []
-                    , text " "
-                    , text <| I18n.translate language I18n.VotePlusAction
-                    ]
-                , button
-                    [ ariaDisabled (ballotRating == Just 0)
-                    , class "btn btn-secondary"
-                    , disabled <| ballotRating == Just 0
-                    , onClick
-                        (if ballotRating == Just 0 then
-                            rateMsg Nothing
-                         else
-                            rateMsg (Just 0)
-                        )
-                    , type_ "button"
-                    ]
-                    [ span
-                        [ ariaHidden True
-                        , class "fa fa-square-o"
+                        [ span
+                            [ ariaHidden True
+                            , class "fa fa-thumbs-o-up"
+                            ]
+                            []
+                        , text " "
+                        , text <| I18n.translate language I18n.VotePlusAction
                         ]
-                        []
-                    , text " "
-                    , text <| I18n.translate language I18n.VoteNeutralAction
-                    ]
-                , button
-                    [ ariaDisabled (ballotRating == Just -1)
-                    , class "btn btn-warning"
-                    , disabled <| ballotRating == Just -1
-                    , onClick
-                        (if ballotRating == Just -1 then
-                            rateMsg Nothing
-                         else
-                            rateMsg (Just -1)
-                        )
-                    , type_ "button"
-                    ]
-                    [ span
-                        [ ariaHidden True
-                        , class "fa fa-thumbs-o-down"
+                , let
+                    pressed =
+                        ballotRating == Just 0
+                  in
+                    button
+                        [ ariaDisabled pressed
+                        , class <|
+                            if pressed then
+                                "btn btn-secondary"
+                            else
+                                "btn btn-outline-secondary"
+                        , disabled pressed
+                        , onClick
+                            (if pressed then
+                                rateMsg Nothing
+                             else
+                                rateMsg (Just 0)
+                            )
+                        , type_ "button"
                         ]
-                        []
-                    , text " "
-                    , text <| I18n.translate language I18n.VoteMinusAction
-                    ]
+                        [ span
+                            [ ariaHidden True
+                            , class "fa fa-square-o"
+                            ]
+                            []
+                        , text " "
+                        , text <| I18n.translate language I18n.VoteNeutralAction
+                        ]
+                , let
+                    pressed =
+                        ballotRating == Just -1
+                  in
+                    button
+                        [ ariaDisabled pressed
+                        , class <|
+                            if pressed then
+                                "btn btn-warning"
+                            else
+                                "btn btn-outline-warning"
+                        , disabled pressed
+                        , onClick
+                            (if pressed then
+                                rateMsg Nothing
+                             else
+                                rateMsg (Just -1)
+                            )
+                        , type_ "button"
+                        ]
+                        [ span
+                            [ ariaHidden True
+                            , class "fa fa-thumbs-o-down"
+                            ]
+                            []
+                        , text " "
+                        , text <| I18n.translate language I18n.VoteMinusAction
+                        ]
                 ]
             , div [ class "dropdown ml-3" ]
                 [ button
                     [ attribute "aria-expanded" "false"
                     , attribute "aria-haspopup" "true"
-                    , class "btn btn-danger dropdown-toggle"
+                    , class "btn btn-outline-danger dropdown-toggle"
                     , attribute "data-toggle" "dropdown"
                     , type_ "button"
                     ]
@@ -179,7 +211,23 @@ viewStatementRatingToolbar language data ballotId trashPropertyId =
                             language
                             I18n.Trash
                     , span
-                        [ class "badge badge-light badge-pill ml-2" ]
+                        [ classList
+                            [ ( "badge", True )
+                            , ( case trashBallotRating of
+                                    Just 1 ->
+                                        "badge-warning"
+
+                                    Just -1 ->
+                                        "badge-success"
+
+                                    _ ->
+                                        "badge-secondary"
+                              , True
+                              )
+                            , ( "badge-pill", True )
+                            , ( "ml-2", True )
+                            ]
+                        ]
                         [ span
                             [ ariaHidden True
                             , classList
