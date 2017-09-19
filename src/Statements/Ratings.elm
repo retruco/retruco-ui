@@ -20,6 +20,7 @@ idToStatement data id =
                 , properties = card.properties
                 , ratingCount = card.ratingCount
                 , ratingSum = card.ratingSum
+                , symbol = card.symbol
                 , trashed = card.trashed
                 , type_ = card.type_
                 }
@@ -35,6 +36,7 @@ idToStatement data id =
                         , properties = property.properties
                         , ratingCount = property.ratingCount
                         , ratingSum = property.ratingSum
+                        , symbol = property.symbol
                         , trashed = property.trashed
                         , type_ = property.type_
                         }
@@ -50,6 +52,7 @@ idToStatement data id =
                                 , properties = typedValue.properties
                                 , ratingCount = typedValue.ratingCount
                                 , ratingSum = typedValue.ratingSum
+                                , symbol = typedValue.symbol
                                 , trashed = typedValue.trashed
                                 , type_ = typedValue.type_
                                 }

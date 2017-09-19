@@ -49,6 +49,7 @@ cardDecoder =
         |: oneOf [ (field "ratingSum" int), succeed 0 ]
         |: oneOf [ (field "references" (dict (list string))), succeed Dict.empty ]
         |: oneOf [ (field "subTypeIds" (list string)), succeed [] ]
+        |: maybe (field "symbol" string)
         |: oneOf [ (field "tagIds" (list string)), succeed [] ]
         |: oneOf [ (field "trashed" bool), succeed False ]
         |: (field "type" string)
@@ -171,6 +172,7 @@ propertyDecoder =
         |: oneOf [ (field "ratingSum" int), succeed 0 ]
         |: oneOf [ (field "references" (dict (list string))), succeed Dict.empty ]
         |: oneOf [ (field "subTypeIds" (list string)), succeed [] ]
+        |: maybe (field "symbol" string)
         |: oneOf [ (field "tags" (list (dict string))), succeed [] ]
         |: oneOf [ (field "trashed" bool), succeed False ]
         |: (field "type" string)
@@ -188,7 +190,7 @@ typedValueAutocompletionDecoder =
 typedValueDecoder : Decoder TypedValue
 typedValueDecoder =
     succeed
-        (\argumentCount ballotId createdAt id properties ratingCount ratingSum schemaId trashed type_ widgetId ->
+        (\argumentCount ballotId createdAt id properties ratingCount ratingSum schemaId symbol trashed type_ widgetId ->
             { argumentCount = argumentCount
             , ballotId = ballotId
             , createdAt = createdAt
@@ -197,6 +199,7 @@ typedValueDecoder =
             , ratingCount = ratingCount
             , ratingSum = ratingSum
             , schemaId = schemaId
+            , symbol = symbol
             , trashed = trashed
             , type_ = type_
             , widgetId = widgetId
@@ -210,11 +213,12 @@ typedValueDecoder =
         |: oneOf [ (field "ratingCount" int), succeed 0 ]
         |: oneOf [ (field "ratingSum" int), succeed 0 ]
         |: (field "schemaId" string)
+        |: maybe (field "symbol" string)
         |: oneOf [ (field "trashed" bool), succeed False ]
         |: (field "type" string)
         |: oneOf [ (field "widgetId" string), succeed "" ]
         |> andThen
-            (\{ argumentCount, ballotId, createdAt, id, properties, ratingCount, ratingSum, schemaId, trashed, type_, widgetId } ->
+            (\{ argumentCount, ballotId, createdAt, id, properties, ratingCount, ratingSum, schemaId, symbol, trashed, type_, widgetId } ->
                 (field "value" (valueTypeDecoder schemaId widgetId))
                     |> map
                         (\value ->
@@ -227,6 +231,7 @@ typedValueDecoder =
                                 ratingCount
                                 ratingSum
                                 schemaId
+                                symbol
                                 trashed
                                 type_
                                 value

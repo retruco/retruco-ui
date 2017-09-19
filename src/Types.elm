@@ -35,6 +35,7 @@ type alias Card =
     , ratingSum : Int
     , references : Dict String (List String)
     , subTypeIds : List String
+    , symbol : Maybe String
     , tagIds : List String
     , trashed : Bool
     , type_ : String
@@ -164,6 +165,7 @@ type alias Property =
     , ratingSum : Int
     , references : Dict String (List String)
     , subTypeIds : List String
+    , symbol : Maybe String
     , tags : List (Dict String String)
     , trashed : Bool
     , type_ : String
@@ -181,6 +183,7 @@ type alias Statement a =
         , properties : Dict String (List String)
         , ratingCount : Int
         , ratingSum : Int
+        , symbol : Maybe String
         , trashed : Bool
         , type_ : String
     }
@@ -196,6 +199,7 @@ type alias TypedValue =
     , ratingCount : Int
     , ratingSum : Int
     , schemaId : String
+    , symbol : Maybe String
     , trashed : Bool
     , type_ : String
     , value : ValueType
