@@ -5,11 +5,14 @@ import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
+import Html.Helpers exposing (aForPath)
 import Http.Error
 import I18n
 import Properties.SameObjectAndKey.Types exposing (..)
-import Statements.Lines exposing (viewStatementIdRatedLine, viewStatementIdRatedListGroupLine)
+import Statements.Lines exposing (viewStatementIdLine, viewStatementIdRatedLine)
+import Statements.Ratings exposing (viewStatementIdRatingBadges)
 import Strings
+import Urls
 import Values.New.View
 import Views
 
@@ -76,13 +79,30 @@ view model =
                                     case Dict.get propertyId data.properties of
                                         Just property ->
                                             Just <|
-                                                viewStatementIdRatedListGroupLine
-                                                    language
+                                                aForPath
                                                     navigateMsg
-                                                    []
-                                                    False
-                                                    data
-                                                    property.valueId
+                                                    language
+                                                    (Urls.idToPath data property.id)
+                                                    [ classList
+                                                        [ ( "align", True )
+                                                        , ( "align-items-top", True )
+                                                        , ( "d-flex", True )
+                                                        , ( "flex-nowrap", True )
+                                                        , ( "justify-content-between", True )
+                                                        , ( "lead", True )
+                                                        , ( "list-group-item", True )
+                                                        , ( "list-group-item-action", True )
+                                                        ]
+                                                    ]
+                                                    [ viewStatementIdLine
+                                                        language
+                                                        navigateMsg
+                                                        True
+                                                        False
+                                                        data
+                                                        property.valueId
+                                                    , viewStatementIdRatingBadges language data property.id
+                                                    ]
 
                                         Nothing ->
                                             Nothing
