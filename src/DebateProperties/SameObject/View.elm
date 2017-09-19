@@ -48,7 +48,7 @@ view model =
                                                                     [ ( "list-group-item-success", True ) ]
 
                                                                 _ ->
-                                                                    []
+                                                                    [ ( "list-group-item-secondary", True ) ]
 
                                                         Nothing ->
                                                             []

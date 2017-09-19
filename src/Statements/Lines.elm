@@ -72,7 +72,7 @@ viewPropertyLine language navigateMsg independent data property =
                     language
                     True
                     navigateMsg
-                    [ ( "ml-4", True ) ]
+                    [ ( "bg-white", True ), ( "ml-4", True ) ]
                     True
                     data
                     property.objectId
@@ -103,7 +103,7 @@ viewPropertyLine language navigateMsg independent data property =
                 language
                 True
                 navigateMsg
-                [ ( "ml-4", True ) ]
+                [ ( "bg-white", True ), ( "ml-4", True ) ]
                 True
                 data
                 property.valueId
