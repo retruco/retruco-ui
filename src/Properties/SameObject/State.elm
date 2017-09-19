@@ -57,9 +57,16 @@ update : InternalMsg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         AddKey typedValue ->
-            -- TODO
-            -- update (LoadProperties typedValue.id) model
-            ( model, Cmd.none )
+            ( model
+            , Task.perform
+                (\_ ->
+                    ForParent <|
+                        Navigate <|
+                            Urls.languagePath model.language <|
+                                Urls.idToSameObjectAndKeyPropertiesPath model.data model.objectId typedValue.id
+                )
+                (Task.succeed ())
+            )
 
         CreateKey keyName ->
             case model.authentication of
