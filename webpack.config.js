@@ -14,7 +14,7 @@ var commonConfig = {
   output: {
     path: path.resolve(__dirname, 'dist/'),
     publicPath: '/',
-    filename: '[hash].js',
+    filename: '[hash].js'
   },
   resolve: {
     modules: ['node_modules'],
@@ -37,7 +37,6 @@ var commonConfig = {
               // limit:10000
             }
           }
-
         ]
       }
     ]
@@ -139,11 +138,11 @@ if (TARGET_ENV === 'production') {
     plugins: [
       new CopyWebpackPlugin([
         {
-          from: 'static/img/',
-          to: 'img/'
+          from: 'static/favicon.ico'
         },
         {
-          from: 'static/favicon.ico'
+          from: 'static/img/',
+          to: 'img/'
         },
         {
           from: 'static/manifest.json'
