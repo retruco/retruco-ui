@@ -1,13 +1,13 @@
-module Affirmations.Index.State exposing (..)
+module Proposals.Index.State exposing (..)
 
 import Array
-import Affirmations.Index.Types exposing (..)
 import Authenticator.Types exposing (Authentication)
 import Dict
 import Http
 import I18n
 import Navigation
 import Ports
+import Proposals.Index.Types exposing (..)
 import Requests
 import Types exposing (DataProxy, initData, mergeData)
 import Urls
@@ -160,8 +160,8 @@ urlUpdate location model =
         newModel
             ! [ cmd
               , Ports.setDocumentMetadata
-                    { description = I18n.translate language I18n.AffirmationsDescription
+                    { description = I18n.translate language I18n.ProposalsDescription
                     , imageUrl = Urls.appLogoFullUrl
-                    , title = I18n.translate language I18n.Affirmations
+                    , title = I18n.translate language I18n.Proposals
                     }
               ]

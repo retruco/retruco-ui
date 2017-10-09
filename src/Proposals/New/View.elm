@@ -1,19 +1,19 @@
-module Affirmations.New.View exposing (..)
+module Proposals.New.View exposing (..)
 
-import Affirmations.New.Types exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Html.Events exposing (..)
 import Http.Error
 import I18n
+import Proposals.New.Types exposing (..)
 import Values.New.View
 
 
 view : Model -> Html Msg
 view model =
     section []
-        [ h1 [] [ text <| I18n.translate model.language I18n.NewAffirmation ]
+        [ h1 [] [ text <| I18n.translate model.language I18n.NewProposal ]
         , viewForm I18n.Create model
         ]
 

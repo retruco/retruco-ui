@@ -1,6 +1,5 @@
-module Affirmations.Index.View exposing (..)
+module Proposals.Index.View exposing (..)
 
-import Affirmations.Index.Types exposing (..)
 import Array
 import Dict
 import Html exposing (..)
@@ -10,6 +9,7 @@ import Html.Events exposing (..)
 import Html.Helpers exposing (aForPath)
 import Http.Error
 import I18n
+import Proposals.Index.Types exposing (..)
 import Statements.Lines exposing (viewStatementIdRatedListGroupLine)
 import Views
 
@@ -53,9 +53,9 @@ view model =
                             [ aForPath
                                 navigateMsg
                                 language
-                                "/affirmations/new"
+                                "/proposals/new"
                                 [ class "btn btn-secondary", role "button" ]
-                                [ text <| I18n.translate language I18n.NewAffirmation ]
+                                [ text <| I18n.translate language I18n.NewProposal ]
                             ]
                         ]
                     ]
@@ -104,7 +104,7 @@ view model =
                                     ]
                                     [ strong []
                                         [ text <|
-                                            I18n.translate language I18n.AffirmationsRetrievalFailed
+                                            I18n.translate language I18n.ProposalsRetrievalFailed
                                                 ++ I18n.translate language I18n.Colon
                                         ]
                                     , text <| Http.Error.toString language httpError

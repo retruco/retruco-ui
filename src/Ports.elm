@@ -15,30 +15,6 @@ port storeAuthentication : Maybe User -> Cmd msg
 
 
 
--- BUBBLES
-
-
-type alias D3BubblesPopularTag =
-    { count : Float
-    , tag : String
-    , tagId : String
-    }
-
-
-port mountd3bubbles :
-    { popularTags : List D3BubblesPopularTag
-    , selectedTags : List D3BubblesPopularTag
-    }
-    -> Cmd msg
-
-
-port bubbleSelections : (D3BubblesPopularTag -> msg) -> Sub msg
-
-
-port bubbleDeselections : (D3BubblesPopularTag -> msg) -> Sub msg
-
-
-
 -- DOCUMENT METADATA
 
 

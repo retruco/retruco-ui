@@ -1,4 +1,4 @@
-module Affirmations.Index.Types exposing (..)
+module Proposals.Index.Types exposing (..)
 
 import Array exposing (Array)
 import Authenticator.Types exposing (Authentication)

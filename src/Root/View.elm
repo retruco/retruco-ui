@@ -1,11 +1,12 @@
 module Root.View exposing (..)
 
 import About.View
-import Affirmations.Index.View
-import Affirmations.New.View
 import Authenticator.View
 import Cards.Index.View
 import Cards.Item.View
+import Debates.Index.View
+import Debates.New.View
+import Debates.Routes exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onWithOptions)
@@ -13,6 +14,8 @@ import Html.Helpers exposing (aForPath)
 import I18n
 import Json.Decode
 import Properties.Item.View
+import Proposals.Index.View
+import Proposals.New.View
 import Root.Types exposing (..)
 import Routes exposing (..)
 import Urls
@@ -182,9 +185,16 @@ view model =
                                 , li [ class "nav-item" ]
                                     [ aForPath Navigate
                                         language
-                                        "/affirmations"
+                                        "/debates"
                                         [ class "nav-link" ]
-                                        [ text <| I18n.translate language I18n.Affirmations ]
+                                        [ text <| I18n.translate language I18n.Debates ]
+                                    ]
+                                , li [ class "nav-item" ]
+                                    [ aForPath Navigate
+                                        language
+                                        "/proposals"
+                                        [ class "nav-link" ]
+                                        [ text <| I18n.translate language I18n.Proposals ]
                                     ]
 
                                 -- , li [ class "nav-item" ]
@@ -225,26 +235,6 @@ view model =
                                 Nothing ->
                                     text "This should not occur: aboutModel == Nothing!"
 
-                        AffirmationsRoute childRoute ->
-                            case childRoute of
-                                AffirmationsIndexRoute ->
-                                    case model.affirmationsModel of
-                                        Just affirmationsModel ->
-                                            Affirmations.Index.View.view affirmationsModel
-                                                |> Html.map translateAffirmationsMsg
-
-                                        Nothing ->
-                                            text "This should not occur: affirmationsModel == Nothing!"
-
-                                NewAffirmationRoute ->
-                                    case model.newAffirmationModel of
-                                        Just newAffirmationModel ->
-                                            Affirmations.New.View.view newAffirmationModel
-                                                |> Html.map translateNewAffirmationMsg
-
-                                        Nothing ->
-                                            text "This should not occur: newAffirmationModel == Nothing!"
-
                         AuthenticatorRoute childRoute ->
                             Authenticator.View.view childRoute model.authenticatorModel
                                 |> Html.map translateAuthenticatorMsg
@@ -269,6 +259,26 @@ view model =
                                         Nothing ->
                                             text "This should not occur: cardsModel == Nothing!"
 
+                        DebatesRoute childRoute ->
+                            case childRoute of
+                                DebatesIndexRoute ->
+                                    case model.debatesModel of
+                                        Just debatesModel ->
+                                            Debates.Index.View.view debatesModel
+                                                |> Html.map translateDebatesMsg
+
+                                        Nothing ->
+                                            text "This should not occur: debatesModel == Nothing!"
+
+                                NewDebateRoute ->
+                                    case model.newDebateModel of
+                                        Just newDebateModel ->
+                                            Debates.New.View.view newDebateModel
+                                                |> Html.map translateNewDebateMsg
+
+                                        Nothing ->
+                                            text "This should not occur: newDebateModel == Nothing!"
+
                         -- NewCardRoute ->
                         --     NewCards.Item.View.view model.newCardModel
                         --         |> Html.map translateNewCardMsg
@@ -288,6 +298,26 @@ view model =
 
                         HomeRoute ->
                             text "Home page is currently a redirection."
+
+                        ProposalsRoute childRoute ->
+                            case childRoute of
+                                ProposalsIndexRoute ->
+                                    case model.proposalsModel of
+                                        Just proposalsModel ->
+                                            Proposals.Index.View.view proposalsModel
+                                                |> Html.map translateProposalsMsg
+
+                                        Nothing ->
+                                            text "This should not occur: proposalsModel == Nothing!"
+
+                                NewProposalRoute ->
+                                    case model.newProposalModel of
+                                        Just newProposalModel ->
+                                            Proposals.New.View.view newProposalModel
+                                                |> Html.map translateNewProposalMsg
+
+                                        Nothing ->
+                                            text "This should not occur: newProposalModel == Nothing!"
 
                         UserProfileRoute ->
                             viewNotFound language

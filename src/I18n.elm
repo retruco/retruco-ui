@@ -10,7 +10,6 @@ import Dict exposing (Dict)
 type TranslationId
     = About
     | AboutCredits
-    | AboutCreditsContent
     | AboutDescription
     | AboutLead
     | AbstainAction
@@ -26,10 +25,6 @@ type TranslationId
     | AddNew
     | AddNewItemBox
     | AddPropertyKey
-    | AffirmationRetrievalFailed
-    | Affirmations
-    | AffirmationsDescription
-    | AffirmationsRetrievalFailed
     | Arguments
     | ArgumentsAbout
     | ArgumentsRetrievalFailed
@@ -72,7 +67,11 @@ type TranslationId
     | DebateOptionLabel
     | DebateProLabel
     | DebateRemarkLabel
+    | DebateRetrievalFailed
+    | Debates
+    | DebatesDescription
     | DebateSourceLabel
+    | DebatesRetrievalFailed
     | DebateTrashingAction
     | Details
     | DuplicatedByDescription Int
@@ -134,12 +133,14 @@ type TranslationId
     | NetworkError
     | NetworkErrorExplanation
     | New
-    | NewAffirmation
-    | NewAffirmationDescription
     | NewArgument
     | NewArgumentDescription
     | NewCard
+    | NewDebate
+    | NewDebateDescription
     | NewProperty
+    | NewProposal
+    | NewProposalDescription
     | NewValue
     | NewValueDescription
     | Number
@@ -160,6 +161,10 @@ type TranslationId
     | Properties
     | PropertiesDescription
     | PropertyKeyPlaceholder
+    | ProposalRetrievalFailed
+    | Proposals
+    | ProposalsDescription
+    | ProposalsRetrievalFailed
     | RadioButtonForFollowingAutocompleter
     | ReadingSelectedImage
     | ReadMore
@@ -272,13 +277,6 @@ getTranslationSet translationId =
                 | english = s "Credits"
                 , french = s "Crédits"
                 , spanish = s "Créditos"
-            }
-
-        AboutCreditsContent ->
-            { emptyTranslationSet
-                | english = s "The bubble tags navigation system is based on "
-                , french = s "Le système de navigations des tag par bulles est basé sur la solution "
-                , spanish = todo
             }
 
         AboutDescription ->
@@ -397,34 +395,6 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Add property"
                 , french = s "Ajouter une propriété"
-                , spanish = todo
-            }
-
-        AffirmationRetrievalFailed ->
-            { emptyTranslationSet
-                | english = s "Retrieval of affirmation failed"
-                , french = s "Échec de la récupération de l'affirmation"
-                , spanish = todo
-            }
-
-        Affirmations ->
-            { emptyTranslationSet
-                | english = s "Affirmations"
-                , french = s "Affirmations"
-                , spanish = todo
-            }
-
-        AffirmationsDescription ->
-            { emptyTranslationSet
-                | english = s "List of affirmations"
-                , french = s "Liste d'affirmations"
-                , spanish = todo
-            }
-
-        AffirmationsRetrievalFailed ->
-            { emptyTranslationSet
-                | english = s "Retrieval of affirmations failed"
-                , french = s "Échec de la récupération des affirmations"
                 , spanish = todo
             }
 
@@ -772,10 +742,38 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        DebateRetrievalFailed ->
+            { emptyTranslationSet
+                | english = s "Retrieval of debate failed"
+                , french = s "Échec de la récupération du débat"
+                , spanish = todo
+            }
+
+        Debates ->
+            { emptyTranslationSet
+                | english = s "Debates"
+                , french = s "Débats"
+                , spanish = todo
+            }
+
+        DebatesDescription ->
+            { emptyTranslationSet
+                | english = s "List of debates"
+                , french = s "Liste de débats"
+                , spanish = todo
+            }
+
         DebateSourceLabel ->
             { emptyTranslationSet
                 | english = s "Source"
                 , french = s "Source"
+                , spanish = todo
+            }
+
+        DebatesRetrievalFailed ->
+            { emptyTranslationSet
+                | english = s "Retrieval of debates failed"
+                , french = s "Échec de la récupération des débats"
                 , spanish = todo
             }
 
@@ -1288,20 +1286,6 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
-        NewAffirmation ->
-            { emptyTranslationSet
-                | english = s "New Affirmation"
-                , french = s "Nouvelle affirmation"
-                , spanish = todo
-            }
-
-        NewAffirmationDescription ->
-            { emptyTranslationSet
-                | english = s "Form to enter a new affirmation"
-                , french = s "Formulaire de création d'une nouvelle affirmation"
-                , spanish = todo
-            }
-
         NewArgument ->
             { emptyTranslationSet
                 | english = s "New Argument"
@@ -1323,10 +1307,38 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        NewDebate ->
+            { emptyTranslationSet
+                | english = s "New Debate"
+                , french = s "Nouveau débat"
+                , spanish = todo
+            }
+
+        NewDebateDescription ->
+            { emptyTranslationSet
+                | english = s "Form to enter a new debate"
+                , french = s "Formulaire de création d'un nouveau débat"
+                , spanish = todo
+            }
+
         NewProperty ->
             { emptyTranslationSet
                 | english = s "New Property"
                 , french = s "Nouvelle propriété"
+                , spanish = todo
+            }
+
+        NewProposal ->
+            { emptyTranslationSet
+                | english = s "New Proposal"
+                , french = s "Nouvelle proposal"
+                , spanish = todo
+            }
+
+        NewProposalDescription ->
+            { emptyTranslationSet
+                | english = s "Form to enter a new proposal"
+                , french = s "Formulaire de création d'une nouvelle proposition"
                 , spanish = todo
             }
 
@@ -1467,6 +1479,34 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Name of a property"
                 , french = s "Nom d'une propriété"
+                , spanish = todo
+            }
+
+        ProposalRetrievalFailed ->
+            { emptyTranslationSet
+                | english = s "Retrieval of proposal failed"
+                , french = s "Échec de la récupération de la proposition"
+                , spanish = todo
+            }
+
+        Proposals ->
+            { emptyTranslationSet
+                | english = s "Proposals"
+                , french = s "Propositions"
+                , spanish = todo
+            }
+
+        ProposalsDescription ->
+            { emptyTranslationSet
+                | english = s "List of proposals"
+                , french = s "Liste de propositions"
+                , spanish = todo
+            }
+
+        ProposalsRetrievalFailed ->
+            { emptyTranslationSet
+                | english = s "Retrieval of proposals failed"
+                , french = s "Échec de la récupération des propositions"
                 , spanish = todo
             }
 

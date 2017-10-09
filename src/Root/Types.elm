@@ -1,15 +1,17 @@
 module Root.Types exposing (..)
 
 import About.Types
-import Affirmations.Index.Types
-import Affirmations.New.Types
 import Authenticator.Routes
 import Authenticator.Types exposing (Authentication)
 import Cards.Index.Types
 import Cards.Item.Types
+import Debates.Index.Types
+import Debates.New.Types
 import I18n
 import Navigation
 import Properties.Item.Types
+import Proposals.Index.Types
+import Proposals.New.Types
 import Routes
 import Types
 import Values.Index.Types
@@ -19,7 +21,6 @@ import Values.New.Types
 
 type alias Model =
     { aboutModel : Maybe About.Types.Model
-    , affirmationsModel : Maybe Affirmations.Index.Types.Model
     , authentication : Maybe Authentication
     , authenticatorCancelMsg : Maybe Msg
     , authenticatorCompletionMsgs : List Msg
@@ -27,11 +28,14 @@ type alias Model =
     , cardModel : Maybe Cards.Item.Types.Model
     , cardsModel : Maybe Cards.Index.Types.Model
     , clearModelOnUrlUpdate : Bool
+    , debatesModel : Maybe Debates.Index.Types.Model
     , location : Navigation.Location
     , navigatorLanguage : Maybe I18n.Language
-    , newAffirmationModel : Maybe Affirmations.New.Types.Model
+    , newDebateModel : Maybe Debates.New.Types.Model
+    , newProposalModel : Maybe Proposals.New.Types.Model
     , newValueModel : Maybe Values.New.Types.Model
     , propertyModel : Maybe Properties.Item.Types.Model
+    , proposalsModel : Maybe Proposals.Index.Types.Model
     , route : Routes.Route
     , signOutMsg : Maybe Msg
     , valueModel : Maybe Values.Item.Types.Model
@@ -41,22 +45,26 @@ type alias Model =
 
 type Msg
     = AboutMsg About.Types.InternalMsg
-    | AffirmationsMsg Affirmations.Index.Types.InternalMsg
-    | AffirmationUpserted Types.DataId
     | AuthenticatorMsg Authenticator.Types.InternalMsg
     | AuthenticatorTerminated Authenticator.Routes.Route (Result () (Maybe Authentication))
     | CardMsg Cards.Item.Types.InternalMsg
     | CardsMsg Cards.Index.Types.InternalMsg
     | ChangeAuthenticatorRoute Authenticator.Routes.Route
+    | DebatesMsg Debates.Index.Types.InternalMsg
+    | DebateUpserted Types.DataId
     | LocationChanged Navigation.Location
     | Navigate String
     | NavigateFromAuthenticator String
-    | NewAffirmationMsg Affirmations.New.Types.InternalMsg
+    | NewDebateMsg Debates.New.Types.InternalMsg
+    | NewProposalMsg Proposals.New.Types.InternalMsg
     | NewValueMsg Values.New.Types.InternalMsg
     | NoOp
     | PropertyMsg Properties.Item.Types.InternalMsg
+    | ProposalsMsg Proposals.Index.Types.InternalMsg
+    | ProposalUpserted Types.DataId
     | RequireSignInForCard Cards.Item.Types.InternalMsg
-    | RequireSignInForNewAffirmation Affirmations.New.Types.InternalMsg
+    | RequireSignInForNewDebate Debates.New.Types.InternalMsg
+    | RequireSignInForNewProposal Proposals.New.Types.InternalMsg
     | RequireSignInForNewValue Values.New.Types.InternalMsg
     | RequireSignInForProperty Properties.Item.Types.InternalMsg
     | RequireSignInForValue Values.Item.Types.InternalMsg
@@ -69,14 +77,6 @@ translateAboutMsg : About.Types.MsgTranslator Msg
 translateAboutMsg =
     About.Types.translateMsg
         { onInternalMsg = AboutMsg
-        , onNavigate = Navigate
-        }
-
-
-translateAffirmationsMsg : Affirmations.Index.Types.MsgTranslator Msg
-translateAffirmationsMsg =
-    Affirmations.Index.Types.translateMsg
-        { onInternalMsg = AffirmationsMsg
         , onNavigate = Navigate
         }
 
@@ -108,12 +108,29 @@ translateCardsMsg =
         }
 
 
-translateNewAffirmationMsg : Affirmations.New.Types.MsgTranslator Msg
-translateNewAffirmationMsg =
-    Affirmations.New.Types.translateMsg
-        { onInternalMsg = NewAffirmationMsg
-        , onAffirmationUpserted = AffirmationUpserted
-        , onRequireSignIn = RequireSignInForNewAffirmation
+translateDebatesMsg : Debates.Index.Types.MsgTranslator Msg
+translateDebatesMsg =
+    Debates.Index.Types.translateMsg
+        { onInternalMsg = DebatesMsg
+        , onNavigate = Navigate
+        }
+
+
+translateNewDebateMsg : Debates.New.Types.MsgTranslator Msg
+translateNewDebateMsg =
+    Debates.New.Types.translateMsg
+        { onInternalMsg = NewDebateMsg
+        , onDebateUpserted = DebateUpserted
+        , onRequireSignIn = RequireSignInForNewDebate
+        }
+
+
+translateNewProposalMsg : Proposals.New.Types.MsgTranslator Msg
+translateNewProposalMsg =
+    Proposals.New.Types.translateMsg
+        { onInternalMsg = NewProposalMsg
+        , onProposalUpserted = ProposalUpserted
+        , onRequireSignIn = RequireSignInForNewProposal
         }
 
 
@@ -132,6 +149,14 @@ translatePropertyMsg =
         { onInternalMsg = PropertyMsg
         , onNavigate = Navigate
         , onRequireSignIn = RequireSignInForProperty
+        }
+
+
+translateProposalsMsg : Proposals.Index.Types.MsgTranslator Msg
+translateProposalsMsg =
+    Proposals.Index.Types.translateMsg
+        { onInternalMsg = ProposalsMsg
+        , onNavigate = Navigate
         }
 
 

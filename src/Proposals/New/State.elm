@@ -1,12 +1,12 @@
-module Affirmations.New.State exposing (..)
+module Proposals.New.State exposing (..)
 
-import Affirmations.New.Types exposing (..)
 import Authenticator.Types exposing (Authentication)
 import Dict exposing (Dict)
 import Http
 import I18n
 import Navigation
 import Ports
+import Proposals.New.Types exposing (..)
 import Requests
 import Task
 import Types exposing (DataProxy, initDataId, mergeData)
@@ -86,7 +86,7 @@ update msg model =
                                 { mergedData | id = ballot.statementId }
                         in
                             ( { mergedModel | data = data }
-                            , Task.perform (\_ -> ForParent <| AffirmationUpserted data) (Task.succeed ())
+                            , Task.perform (\_ -> ForParent <| ProposalUpserted data) (Task.succeed ())
                             )
 
                     Nothing ->
@@ -110,8 +110,8 @@ urlUpdate location model =
     in
         ( model
         , Ports.setDocumentMetadata
-            { description = I18n.translate language I18n.NewAffirmationDescription
+            { description = I18n.translate language I18n.NewProposalDescription
             , imageUrl = Urls.appLogoFullUrl
-            , title = I18n.translate language I18n.NewAffirmation
+            , title = I18n.translate language I18n.NewProposal
             }
         )

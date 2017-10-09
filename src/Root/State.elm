@@ -1,12 +1,13 @@
 module Root.State exposing (..)
 
 import About.State
-import Affirmations.Index.State
-import Affirmations.New.State
 import Authenticator.Routes exposing (..)
 import Authenticator.State
 import Cards.Index.State
 import Cards.Item.State
+import Debates.Index.State
+import Debates.New.State
+import Debates.Routes exposing (..)
 import Decoders
 import Dom.Scroll
 import Erl
@@ -15,6 +16,8 @@ import I18n
 import Navigation
 import Ports
 import Properties.Item.State
+import Proposals.Index.State
+import Proposals.New.State
 import Root.Types exposing (..)
 import Routes exposing (..)
 import Task
@@ -42,7 +45,6 @@ init flags location =
             navigatorLanguage |> Maybe.withDefault I18n.English
     in
         { aboutModel = Nothing
-        , affirmationsModel = Nothing
         , authentication = authentication
         , authenticatorCancelMsg = Nothing
         , authenticatorCompletionMsgs = []
@@ -50,11 +52,14 @@ init flags location =
         , cardModel = Nothing
         , cardsModel = Nothing
         , clearModelOnUrlUpdate = True
+        , debatesModel = Nothing
         , location = location
         , navigatorLanguage = navigatorLanguage
-        , newAffirmationModel = Nothing
+        , newDebateModel = Nothing
+        , newProposalModel = Nothing
         , newValueModel = Nothing
         , propertyModel = Nothing
+        , proposalsModel = Nothing
         , route = Routes.I18nRouteWithoutLanguage ""
         , signOutMsg = Nothing
         , valueModel = Nothing
@@ -101,9 +106,15 @@ subscriptions model =
 
             Nothing ->
                 Nothing
-        , case model.newAffirmationModel of
-            Just newAffirmationModel ->
-                Just <| Sub.map NewAffirmationMsg (Affirmations.New.State.subscriptions newAffirmationModel)
+        , case model.newDebateModel of
+            Just newDebateModel ->
+                Just <| Sub.map NewDebateMsg (Debates.New.State.subscriptions newDebateModel)
+
+            Nothing ->
+                Nothing
+        , case model.newProposalModel of
+            Just newProposalModel ->
+                Just <| Sub.map NewProposalMsg (Proposals.New.State.subscriptions newProposalModel)
 
             Nothing ->
                 Nothing
@@ -162,23 +173,6 @@ update msg model =
 
                     Nothing ->
                         ( model, Cmd.none )
-
-            AffirmationsMsg childMsg ->
-                case model.affirmationsModel of
-                    Just affirmationsModel ->
-                        let
-                            ( updatedAffirmationsModel, childCmd ) =
-                                Affirmations.Index.State.update childMsg affirmationsModel
-                        in
-                            ( { model | affirmationsModel = Just updatedAffirmationsModel }
-                            , Cmd.map translateAffirmationsMsg childCmd
-                            )
-
-                    Nothing ->
-                        ( model, Cmd.none )
-
-            AffirmationUpserted data ->
-                update (Navigate <| Urls.languagePath language <| Urls.idToPath data data.id) model
 
             AuthenticatorMsg childMsg ->
                 let
@@ -283,6 +277,23 @@ update msg model =
                     , navigate model <| Urls.languagePath language path
                     )
 
+            DebatesMsg childMsg ->
+                case model.debatesModel of
+                    Just debatesModel ->
+                        let
+                            ( updatedDebatesModel, childCmd ) =
+                                Debates.Index.State.update childMsg debatesModel
+                        in
+                            ( { model | debatesModel = Just updatedDebatesModel }
+                            , Cmd.map translateDebatesMsg childCmd
+                            )
+
+                    Nothing ->
+                        ( model, Cmd.none )
+
+            DebateUpserted data ->
+                update (Navigate <| Urls.languagePath language <| Urls.idToPath data data.id) model
+
             LocationChanged location ->
                 urlUpdate location model
 
@@ -299,15 +310,29 @@ update msg model =
             NavigateFromAuthenticator path ->
                 ( model, navigate model path )
 
-            NewAffirmationMsg childMsg ->
-                case model.newAffirmationModel of
-                    Just newAffirmationModel ->
+            NewDebateMsg childMsg ->
+                case model.newDebateModel of
+                    Just newDebateModel ->
                         let
-                            ( updatedNewAffirmationModel, childCmd ) =
-                                Affirmations.New.State.update childMsg newAffirmationModel
+                            ( updatedNewDebateModel, childCmd ) =
+                                Debates.New.State.update childMsg newDebateModel
                         in
-                            ( { model | newAffirmationModel = Just updatedNewAffirmationModel }
-                            , Cmd.map translateNewAffirmationMsg childCmd
+                            ( { model | newDebateModel = Just updatedNewDebateModel }
+                            , Cmd.map translateNewDebateMsg childCmd
+                            )
+
+                    Nothing ->
+                        ( model, Cmd.none )
+
+            NewProposalMsg childMsg ->
+                case model.newProposalModel of
+                    Just newProposalModel ->
+                        let
+                            ( updatedNewProposalModel, childCmd ) =
+                                Proposals.New.State.update childMsg newProposalModel
+                        in
+                            ( { model | newProposalModel = Just updatedNewProposalModel }
+                            , Cmd.map translateNewProposalMsg childCmd
                             )
 
                     Nothing ->
@@ -344,11 +369,31 @@ update msg model =
                     Nothing ->
                         ( model, Cmd.none )
 
+            ProposalsMsg childMsg ->
+                case model.proposalsModel of
+                    Just proposalsModel ->
+                        let
+                            ( updatedProposalsModel, childCmd ) =
+                                Proposals.Index.State.update childMsg proposalsModel
+                        in
+                            ( { model | proposalsModel = Just updatedProposalsModel }
+                            , Cmd.map translateProposalsMsg childCmd
+                            )
+
+                    Nothing ->
+                        ( model, Cmd.none )
+
+            ProposalUpserted data ->
+                update (Navigate <| Urls.languagePath language <| Urls.idToPath data data.id) model
+
             RequireSignInForCard cardCompletionMsg ->
                 requireSignInOrUpdate <| CardMsg cardCompletionMsg
 
-            RequireSignInForNewAffirmation newAffirmationCompletionMsg ->
-                requireSignInOrUpdate <| NewAffirmationMsg newAffirmationCompletionMsg
+            RequireSignInForNewDebate newDebateCompletionMsg ->
+                requireSignInOrUpdate <| NewDebateMsg newDebateCompletionMsg
+
+            RequireSignInForNewProposal newProposalCompletionMsg ->
+                requireSignInOrUpdate <| NewProposalMsg newProposalCompletionMsg
 
             RequireSignInForNewValue newValueCompletionMsg ->
                 requireSignInOrUpdate <| NewValueMsg newValueCompletionMsg
@@ -401,13 +446,15 @@ urlUpdate location model =
             if clearSubModels then
                 { model
                     | aboutModel = Nothing
-                    , affirmationsModel = Nothing
                     , cardModel = Nothing
                     , cardsModel = Nothing
                     , clearModelOnUrlUpdate = True
-                    , newAffirmationModel = Nothing
+                    , debatesModel = Nothing
+                    , newDebateModel = Nothing
+                    , newProposalModel = Nothing
                     , newValueModel = Nothing
                     , propertyModel = Nothing
+                    , proposalsModel = Nothing
                     , valueModel = Nothing
                     , valuesModel = Nothing
                 }
@@ -438,48 +485,6 @@ urlUpdate location model =
                                         ( { cleanModel | aboutModel = Just updatedAboutModel }
                                         , Cmd.map translateAboutMsg updatedAboutCmd
                                         )
-
-                                AffirmationsRoute childRoute ->
-                                    case childRoute of
-                                        AffirmationsIndexRoute ->
-                                            let
-                                                affirmationsModel =
-                                                    Affirmations.Index.State.init model.authentication language
-
-                                                ( updatedAffirmationsModel, childCmd ) =
-                                                    Affirmations.Index.State.urlUpdate location affirmationsModel
-                                            in
-                                                ( { cleanModel | affirmationsModel = Just updatedAffirmationsModel }
-                                                , Cmd.map translateAffirmationsMsg childCmd
-                                                )
-
-                                        NewAffirmationRoute ->
-                                            let
-                                                newAffirmationModel =
-                                                    case ( model.newAffirmationModel, clearSubModels ) of
-                                                        ( Just newAffirmationModel, False ) ->
-                                                            Affirmations.New.State.setContext
-                                                                model.authentication
-                                                                language
-                                                                newAffirmationModel
-
-                                                        _ ->
-                                                            Affirmations.New.State.init
-                                                                model.authentication
-                                                                language
-
-                                                ( updatedNewAffirmationModel, updatedNewAffirmationCmd ) =
-                                                    Affirmations.New.State.urlUpdate location newAffirmationModel
-                                            in
-                                                ( { cleanModel
-                                                    | newAffirmationModel = Just updatedNewAffirmationModel
-                                                    , signOutMsg =
-                                                        Just <|
-                                                            NavigateFromAuthenticator <|
-                                                                Urls.languagePath language "/affirmations"
-                                                  }
-                                                , Cmd.map translateNewAffirmationMsg updatedNewAffirmationCmd
-                                                )
 
                                 AuthenticatorRoute authenticatorRoute ->
                                     let
@@ -547,8 +552,50 @@ urlUpdate location model =
                                                 , Cmd.map translateCardsMsg childCmd
                                                 )
 
+                                DebatesRoute childRoute ->
+                                    case childRoute of
+                                        DebatesIndexRoute ->
+                                            let
+                                                debatesModel =
+                                                    Debates.Index.State.init model.authentication language
+
+                                                ( updatedDebatesModel, childCmd ) =
+                                                    Debates.Index.State.urlUpdate location debatesModel
+                                            in
+                                                ( { cleanModel | debatesModel = Just updatedDebatesModel }
+                                                , Cmd.map translateDebatesMsg childCmd
+                                                )
+
+                                        NewDebateRoute ->
+                                            let
+                                                newDebateModel =
+                                                    case ( model.newDebateModel, clearSubModels ) of
+                                                        ( Just newDebateModel, False ) ->
+                                                            Debates.New.State.setContext
+                                                                model.authentication
+                                                                language
+                                                                newDebateModel
+
+                                                        _ ->
+                                                            Debates.New.State.init
+                                                                model.authentication
+                                                                language
+
+                                                ( updatedNewDebateModel, updatedNewDebateCmd ) =
+                                                    Debates.New.State.urlUpdate location newDebateModel
+                                            in
+                                                ( { cleanModel
+                                                    | newDebateModel = Just updatedNewDebateModel
+                                                    , signOutMsg =
+                                                        Just <|
+                                                            NavigateFromAuthenticator <|
+                                                                Urls.languagePath language "/debates"
+                                                  }
+                                                , Cmd.map translateNewDebateMsg updatedNewDebateCmd
+                                                )
+
                                 HomeRoute ->
-                                    ( cleanModel, navigate cleanModel <| Urls.languagePath language "/affirmations" )
+                                    ( cleanModel, navigate cleanModel <| Urls.languagePath language "/proposals" )
 
                                 -- NewCardRoute ->
                                 --     case model.authentication of
@@ -611,6 +658,48 @@ urlUpdate location model =
                                                       signOutMsg = Just (NavigateFromAuthenticator location.href)
                                                   }
                                                 , Cmd.map translatePropertyMsg updatedPropertyCmd
+                                                )
+
+                                ProposalsRoute childRoute ->
+                                    case childRoute of
+                                        ProposalsIndexRoute ->
+                                            let
+                                                proposalsModel =
+                                                    Proposals.Index.State.init model.authentication language
+
+                                                ( updatedProposalsModel, childCmd ) =
+                                                    Proposals.Index.State.urlUpdate location proposalsModel
+                                            in
+                                                ( { cleanModel | proposalsModel = Just updatedProposalsModel }
+                                                , Cmd.map translateProposalsMsg childCmd
+                                                )
+
+                                        NewProposalRoute ->
+                                            let
+                                                newProposalModel =
+                                                    case ( model.newProposalModel, clearSubModels ) of
+                                                        ( Just newProposalModel, False ) ->
+                                                            Proposals.New.State.setContext
+                                                                model.authentication
+                                                                language
+                                                                newProposalModel
+
+                                                        _ ->
+                                                            Proposals.New.State.init
+                                                                model.authentication
+                                                                language
+
+                                                ( updatedNewProposalModel, updatedNewProposalCmd ) =
+                                                    Proposals.New.State.urlUpdate location newProposalModel
+                                            in
+                                                ( { cleanModel
+                                                    | newProposalModel = Just updatedNewProposalModel
+                                                    , signOutMsg =
+                                                        Just <|
+                                                            NavigateFromAuthenticator <|
+                                                                Urls.languagePath language "/proposals"
+                                                  }
+                                                , Cmd.map translateNewProposalMsg updatedNewProposalCmd
                                                 )
 
                                 UserProfileRoute ->
