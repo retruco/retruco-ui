@@ -4,9 +4,6 @@ import About.View
 import Authenticator.View
 import Cards.Index.View
 import Cards.Item.View
-import Debates.Index.View
-import Debates.New.View
-import Debates.Routes exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onWithOptions)
@@ -18,6 +15,9 @@ import Proposals.Index.View
 import Proposals.New.View
 import Root.Types exposing (..)
 import Routes exposing (..)
+import Situations.Index.View
+import Situations.New.View
+import Situations.Routes exposing (..)
 import Urls
 import Values.Index.View
 import Values.Item.View
@@ -185,9 +185,9 @@ view model =
                                 , li [ class "nav-item" ]
                                     [ aForPath Navigate
                                         language
-                                        "/debates"
+                                        "/situations"
                                         [ class "nav-link" ]
-                                        [ text <| I18n.translate language I18n.Debates ]
+                                        [ text <| I18n.translate language I18n.Situations ]
                                     ]
                                 , li [ class "nav-item" ]
                                     [ aForPath Navigate
@@ -259,26 +259,6 @@ view model =
                                         Nothing ->
                                             text "This should not occur: cardsModel == Nothing!"
 
-                        DebatesRoute childRoute ->
-                            case childRoute of
-                                DebatesIndexRoute ->
-                                    case model.debatesModel of
-                                        Just debatesModel ->
-                                            Debates.Index.View.view debatesModel
-                                                |> Html.map translateDebatesMsg
-
-                                        Nothing ->
-                                            text "This should not occur: debatesModel == Nothing!"
-
-                                NewDebateRoute ->
-                                    case model.newDebateModel of
-                                        Just newDebateModel ->
-                                            Debates.New.View.view newDebateModel
-                                                |> Html.map translateNewDebateMsg
-
-                                        Nothing ->
-                                            text "This should not occur: newDebateModel == Nothing!"
-
                         -- NewCardRoute ->
                         --     NewCards.Item.View.view model.newCardModel
                         --         |> Html.map translateNewCardMsg
@@ -318,6 +298,26 @@ view model =
 
                                         Nothing ->
                                             text "This should not occur: newProposalModel == Nothing!"
+
+                        SituationsRoute childRoute ->
+                            case childRoute of
+                                SituationsIndexRoute ->
+                                    case model.situationsModel of
+                                        Just situationsModel ->
+                                            Situations.Index.View.view situationsModel
+                                                |> Html.map translateSituationsMsg
+
+                                        Nothing ->
+                                            text "This should not occur: situationsModel == Nothing!"
+
+                                NewSituationRoute ->
+                                    case model.newSituationModel of
+                                        Just newSituationModel ->
+                                            Situations.New.View.view newSituationModel
+                                                |> Html.map translateNewSituationMsg
+
+                                        Nothing ->
+                                            text "This should not occur: newSituationModel == Nothing!"
 
                         UserProfileRoute ->
                             viewNotFound language
