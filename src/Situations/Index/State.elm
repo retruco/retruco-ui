@@ -89,12 +89,13 @@ update msg model =
                 limit =
                     40
               in
-                Requests.getValues
+                Requests.getCards
                     model.authentication
                     model.searchCriteria.term
                     limit
                     offset
-                    True
+                    []
+                    [ "situation" ]
                     model.showTrashed
                     model.searchCriteria.sort
                     |> Http.send (ForSelf << Retrieved)

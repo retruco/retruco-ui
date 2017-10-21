@@ -191,16 +191,17 @@ viewStatementIdRatedLine element language isLink navigateMsg classItems independ
 viewStatementIdRatedListGroupLine :
     I18n.Language
     -> (String -> msg)
+    -> String
     -> List ( String, Bool )
     -> Bool
     -> DataProxy a
     -> String
     -> Html msg
-viewStatementIdRatedListGroupLine language navigateMsg classItems independant data id =
+viewStatementIdRatedListGroupLine language navigateMsg path classItems independant data id =
     aForPath
         navigateMsg
         language
-        (Urls.idToPath data id)
+        (Urls.idToPath data id ++ path)
         [ classList
             ([ ( "align", True )
              , ( "align-items-top", True )

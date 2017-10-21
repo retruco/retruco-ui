@@ -56,6 +56,7 @@ view model =
                                                 viewStatementIdRatedListGroupLine
                                                     language
                                                     navigateMsg
+                                                    ""
                                                     classList
                                                     False
                                                     data

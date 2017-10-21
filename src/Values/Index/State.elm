@@ -88,7 +88,7 @@ update msg model =
             ( { model | httpError = Nothing }
             , let
                 limit =
-                    10
+                    40
               in
                 Requests.getValues
                     model.authentication

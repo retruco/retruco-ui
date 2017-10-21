@@ -37,6 +37,7 @@ view model =
                                             viewStatementIdRatedListGroupLine
                                                 language
                                                 navigateMsg
+                                                ""
                                                 []
                                                 True
                                                 data

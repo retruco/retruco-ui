@@ -193,14 +193,15 @@ getCard authentication cardId =
 
 getCards :
     Maybe Authentication
-    -> String
+    -> Maybe String
     -> Int
     -> Int
     -> List String
     -> List String
     -> Bool
+    -> String
     -> Http.Request DataIdsBody
-getCards authentication term limit offset tagIds cardTypes showTrashed =
+getCards authentication term limit offset tagIds cardTypes showTrashed sort =
     Http.request
         { method = "GET"
         , headers = authenticationHeaders authentication
@@ -218,15 +219,21 @@ getCards authentication term limit offset tagIds cardTypes showTrashed =
                             Nothing
                        )
                      , ( "show", Just "values" )
+                     , ( "sort", Just sort )
                      , ( "term"
-                       , let
-                            cleanTerm =
-                                String.trim term
-                         in
-                            if String.isEmpty cleanTerm then
+                       , case term of
+                            Just term ->
+                                let
+                                    cleanTerm =
+                                        String.trim term
+                                in
+                                    if String.isEmpty cleanTerm then
+                                        Nothing
+                                    else
+                                        Just cleanTerm
+
+                            Nothing ->
                                 Nothing
-                            else
-                                Just cleanTerm
                        )
                      ]
                         ++ List.map
@@ -434,8 +441,21 @@ getValues authentication term limit offset ratedOnly showTrashed sort =
         }
 
 
-postCard : Maybe Authentication -> Dict String String -> I18n.Language -> Http.Request DataIdBody
-postCard authentication fields language =
+postCard : Authentication -> Http.Request DataIdBody
+postCard authentication =
+    Http.request
+        { method = "POST"
+        , headers = authenticationHeaders (Just authentication)
+        , url = apiUrl ++ "cards"
+        , body = Http.emptyBody
+        , expect = Http.expectJson dataIdBodyDecoder
+        , timeout = Nothing
+        , withCredentials = False
+        }
+
+
+postCardEasy : Maybe Authentication -> Dict String String -> I18n.Language -> Http.Request DataIdBody
+postCardEasy authentication fields language =
     let
         -- languageCode =
         --     I18n.languageIdFromLanguage language

@@ -5,6 +5,7 @@ import Authenticator.Routes
 import Authenticator.Types exposing (Authentication)
 import Cards.Index.Types
 import Cards.Item.Types
+import Cards.New.Types
 import I18n
 import Navigation
 import Properties.Item.Types
@@ -30,6 +31,7 @@ type alias Model =
     , clearModelOnUrlUpdate : Bool
     , location : Navigation.Location
     , navigatorLanguage : Maybe I18n.Language
+    , newCardModel : Maybe Cards.New.Types.Model
     , newProposalModel : Maybe Proposals.New.Types.Model
     , newSituationModel : Maybe Situations.New.Types.Model
     , newValueModel : Maybe Values.New.Types.Model
@@ -49,10 +51,12 @@ type Msg
     | AuthenticatorTerminated Authenticator.Routes.Route (Result () (Maybe Authentication))
     | CardMsg Cards.Item.Types.InternalMsg
     | CardsMsg Cards.Index.Types.InternalMsg
+    | CardUpserted Types.DataId
     | ChangeAuthenticatorRoute Authenticator.Routes.Route
     | LocationChanged Navigation.Location
     | Navigate String
     | NavigateFromAuthenticator String
+    | NewCardMsg Cards.New.Types.InternalMsg
     | NewProposalMsg Proposals.New.Types.InternalMsg
     | NewSituationMsg Situations.New.Types.InternalMsg
     | NewValueMsg Values.New.Types.InternalMsg
@@ -61,6 +65,7 @@ type Msg
     | ProposalsMsg Proposals.Index.Types.InternalMsg
     | ProposalUpserted Types.DataId
     | RequireSignInForCard Cards.Item.Types.InternalMsg
+    | RequireSignInForNewCard Cards.New.Types.InternalMsg
     | RequireSignInForNewProposal Proposals.New.Types.InternalMsg
     | RequireSignInForNewSituation Situations.New.Types.InternalMsg
     | RequireSignInForNewValue Values.New.Types.InternalMsg
@@ -105,6 +110,15 @@ translateCardsMsg =
     Cards.Index.Types.translateMsg
         { onInternalMsg = CardsMsg
         , onNavigate = Navigate
+        }
+
+
+translateNewCardMsg : Cards.New.Types.MsgTranslator Msg
+translateNewCardMsg =
+    Cards.New.Types.translateMsg
+        { onCardUpserted = CardUpserted
+        , onInternalMsg = NewCardMsg
+        , onRequireSignIn = RequireSignInForNewCard
         }
 
 

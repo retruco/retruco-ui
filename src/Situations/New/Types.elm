@@ -1,11 +1,11 @@
 module Situations.New.Types exposing (..)
 
 import Authenticator.Types exposing (Authentication)
+import Cards.New.Types
 import Dict exposing (Dict)
 import Http
 import I18n
 import Types exposing (..)
-import Values.New.Types
 
 
 type ExternalMsg
@@ -18,9 +18,9 @@ type alias FormErrors =
 
 
 type InternalMsg
-    = NewValueMsg Values.New.Types.InternalMsg
+    = NewCardMsg Cards.New.Types.InternalMsg
     | Submit
-    | Rated (Result Http.Error DataIdBody)
+    | TypePropertyUpserted (Result Http.Error DataIdBody)
     | Upserted DataId
 
 
@@ -28,8 +28,9 @@ type alias Model =
     { authentication : Maybe Authentication
     , data : DataId
     , httpError : Maybe Http.Error
+    , id : String
     , language : I18n.Language
-    , newValueModel : Values.New.Types.Model
+    , newCardModel : Cards.New.Types.Model
     }
 
 
@@ -62,15 +63,15 @@ translateMsg { onInternalMsg, onRequireSignIn, onSituationUpserted } msg =
             onInternalMsg internalMsg
 
 
-translateNewValueMsg : Values.New.Types.MsgTranslator Msg
-translateNewValueMsg =
-    Values.New.Types.translateMsg
-        { onInternalMsg = ForSelf << NewValueMsg
+translateNewCardMsg : Cards.New.Types.MsgTranslator Msg
+translateNewCardMsg =
+    Cards.New.Types.translateMsg
+        { onCardUpserted = ForSelf << Upserted
+        , onInternalMsg = ForSelf << NewCardMsg
         , onRequireSignIn =
-            \newValueMsg ->
-                if newValueMsg == Values.New.Types.Submit then
+            \newCardMsg ->
+                if newCardMsg == Cards.New.Types.Submit then
                     ForParent <| RequireSignIn Submit
                 else
-                    ForParent <| RequireSignIn <| NewValueMsg newValueMsg
-        , onValueUpserted = ForSelf << Upserted
+                    ForParent <| RequireSignIn <| NewCardMsg newCardMsg
         }

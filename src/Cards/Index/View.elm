@@ -10,29 +10,8 @@ import Html.Events exposing (..)
 import Html.Helpers exposing (aForPath, aIfIsUrl)
 import Http.Error
 import I18n
-import Json.Decode
-import Statements.Lines exposing (viewCardIdLine)
+import Statements.Lines exposing (viewStatementIdRatedListGroupLine)
 import Views
-
-
-searchSortLabelCouples : List ( String, I18n.TranslationId )
-searchSortLabelCouples =
-    [ ( "old", I18n.OldSortLabel )
-    , ( "recent", I18n.RecentSortLabel )
-    ]
-
-
-searchSorts : List String
-searchSorts =
-    List.map (\( item, label ) -> item) searchSortLabelCouples
-
-
-decodeSearchSort : String -> Json.Decode.Decoder String
-decodeSearchSort value =
-    if List.member value searchSorts then
-        Json.Decode.succeed value
-    else
-        Json.Decode.fail ("Unknown search sort: " ++ value)
 
 
 view : Model -> Html Msg
@@ -43,13 +22,16 @@ view model =
 
         language =
             model.language
+
+        navigateMsg =
+            ForParent << Navigate
     in
         div []
             ([ nav
                 [ class "bg-light navbar navbar-expand-sm navbar-light" ]
                 [ div [ class "navbar-collapse" ]
                     [ Html.form [ class "form-inline mr-auto", onSubmit (ForSelf Submit) ]
-                        [ viewInlineSearchSort
+                        [ Views.viewInlineSearchSort
                             language
                             model.searchSort
                             (Dict.get "searchSort" model.errors)
@@ -69,7 +51,7 @@ view model =
                     , ul [ class "navbar-nav" ]
                         [ li [ class "nav-item" ]
                             [ aForPath
-                                (ForParent << Navigate)
+                                navigateMsg
                                 language
                                 "/cards/new"
                                 [ class "btn btn-secondary", role "button" ]
@@ -85,12 +67,14 @@ view model =
                             (Array.toList ids
                                 |> List.map
                                     (\cardId ->
-                                        aForPath
-                                            (ForParent << Navigate)
+                                        viewStatementIdRatedListGroupLine
                                             language
-                                            ("/cards/" ++ cardId)
-                                            [ class "list-group-item list-group-item-action" ]
-                                            [ viewCardIdLine language data cardId ]
+                                            navigateMsg
+                                            ""
+                                            []
+                                            True
+                                            data
+                                            cardId
                                     )
                             )
                         , if Array.length ids < model.count then
@@ -124,54 +108,4 @@ view model =
                                 [ div [ class "text-center" ]
                                     [ Views.viewLoading language ]
                                 ]
-            )
-
-
-viewInlineSearchSort : I18n.Language -> String -> Maybe String -> (String -> msg) -> Html msg
-viewInlineSearchSort language searchSort errorMaybe searchSortChanged =
-    let
-        ( errorClass, errorAttributes, errorBlock ) =
-            case errorMaybe of
-                Just error ->
-                    ( " has-danger"
-                    , [ ariaDescribedby "search-sort-error" ]
-                    , [ div
-                            [ class "form-control-feedback"
-                            , id "search-sort-error"
-                            ]
-                            [ text error ]
-                      ]
-                    )
-
-                Nothing ->
-                    ( "", [], [] )
-    in
-        div [ class ("form-group" ++ errorClass) ]
-            ([ label [ class "sr-only", for "search-sort" ] [ text "Type" ]
-             , select
-                ([ class "form-control"
-                 , id "search-sort"
-                 , on "change" (Json.Decode.map searchSortChanged (targetValue |> Json.Decode.andThen decodeSearchSort))
-                 ]
-                    ++ errorAttributes
-                )
-                (searchSortLabelCouples
-                    |> List.map
-                        (\( symbol, labelI18n ) ->
-                            ( symbol
-                            , I18n.translate language labelI18n
-                            )
-                        )
-                    |> List.sortBy (\( symbol, label ) -> label)
-                    |> List.map
-                        (\( symbol, label ) ->
-                            option
-                                [ selected (symbol == searchSort)
-                                , value symbol
-                                ]
-                                [ text label ]
-                        )
-                )
-             ]
-                ++ errorBlock
             )

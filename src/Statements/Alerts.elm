@@ -40,6 +40,7 @@ viewDuplicatedByAlert language navigateMsg data duplicatedByPropertyIds =
                                     viewStatementIdRatedListGroupLine
                                         language
                                         navigateMsg
+                                        ""
                                         []
                                         True
                                         data
@@ -86,6 +87,7 @@ viewDuplicateOfAlert language navigateMsg data duplicateOfPropertyIds =
                                     viewStatementIdRatedListGroupLine
                                         language
                                         navigateMsg
+                                        ""
                                         [ ( "lead", True ), ( "list-group-item", True ) ]
                                         True
                                         data

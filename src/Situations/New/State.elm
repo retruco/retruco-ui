@@ -1,18 +1,17 @@
 module Situations.New.State exposing (..)
 
-import Situations.New.Types exposing (..)
 import Authenticator.Types exposing (Authentication)
-import Dict exposing (Dict)
+import Cards.New.State
+import Cards.New.Types
 import Http
 import I18n
 import Navigation
 import Ports
 import Requests
+import Situations.New.Types exposing (..)
 import Task
 import Types exposing (DataProxy, initDataId, mergeData)
 import Urls
-import Values.New.State
-import Values.New.Types
 
 
 init : Maybe Authentication -> I18n.Language -> Model
@@ -20,8 +19,9 @@ init authentication language =
     { authentication = authentication
     , data = initDataId
     , httpError = Nothing
+    , id = ""
     , language = language
-    , newValueModel = Values.New.State.init authentication language [ "TextField" ]
+    , newCardModel = Cards.New.State.init authentication language
     }
 
 
@@ -33,7 +33,7 @@ mergeModelData data model =
     in
         { model
             | data = mergedData
-            , newValueModel = Values.New.State.mergeModelData mergedData model.newValueModel
+            , newCardModel = Cards.New.State.mergeModelData mergedData model.newCardModel
         }
 
 
@@ -42,63 +42,61 @@ setContext authentication language model =
     { model
         | authentication = authentication
         , language = language
-        , newValueModel = Values.New.State.setContext authentication language model.newValueModel
+        , newCardModel = Cards.New.State.setContext authentication language model.newCardModel
     }
 
 
 subscriptions : Model -> Sub InternalMsg
 subscriptions model =
-    Sub.map NewValueMsg (Values.New.State.subscriptions model.newValueModel)
+    Sub.map NewCardMsg (Cards.New.State.subscriptions model.newCardModel)
 
 
 update : InternalMsg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NewValueMsg childMsg ->
+        NewCardMsg childMsg ->
             let
-                ( newValueModel, childCmd ) =
-                    model.newValueModel
-                        |> Values.New.State.setContext model.authentication model.language
-                        |> Values.New.State.update childMsg
+                ( newCardModel, childCmd ) =
+                    model.newCardModel
+                        |> Cards.New.State.setContext model.authentication model.language
+                        |> Cards.New.State.update childMsg
             in
-                ( { model | newValueModel = newValueModel }
-                , Cmd.map translateNewValueMsg childCmd
+                ( { model | newCardModel = newCardModel }
+                , Cmd.map translateNewCardMsg childCmd
                 )
 
-        Rated (Err httpError) ->
+        Submit ->
+            { model
+                | httpError = Nothing
+                , id = ""
+            }
+                |> update (NewCardMsg Cards.New.Types.Submit)
+
+        TypePropertyUpserted (Err httpError) ->
             ( { model | httpError = Just httpError }, Cmd.none )
 
-        Rated (Ok body) ->
+        TypePropertyUpserted (Ok body) ->
             let
                 mergedModel =
                     mergeModelData body.data model
 
-                ballot =
-                    Dict.get body.data.id mergedModel.data.ballots
+                mergedData =
+                    mergedModel.data
+
+                data =
+                    { mergedData | id = model.id }
             in
-                case ballot of
-                    Just ballot ->
-                        let
-                            mergedData =
-                                mergedModel.data
-
-                            data =
-                                { mergedData | id = ballot.statementId }
-                        in
-                            ( { mergedModel | data = data }
-                            , Task.perform (\_ -> ForParent <| SituationUpserted data) (Task.succeed ())
-                            )
-
-                    Nothing ->
-                        ( mergedModel, Cmd.none )
-
-        Submit ->
-            update (NewValueMsg Values.New.Types.Submit) model
+                ( { mergedModel | data = data }
+                , Task.perform (\_ -> ForParent <| SituationUpserted data) (Task.succeed ())
+                )
 
         Upserted data ->
-            ( { model | data = mergeData data model.data }
-            , Requests.rateStatement model.authentication data.id 1
-                |> Http.send (ForSelf << Rated)
+            ( { model
+                | data = mergeData data model.data
+                , id = data.id
+              }
+            , Requests.postProperty model.authentication data.id "type" "situation" (Just 1)
+                |> Http.send (ForSelf << TypePropertyUpserted)
             )
 
 

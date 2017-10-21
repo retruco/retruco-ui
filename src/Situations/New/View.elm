@@ -1,5 +1,6 @@
 module Situations.New.View exposing (..)
 
+import Cards.New.View
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
@@ -7,7 +8,6 @@ import Html.Events exposing (..)
 import Http.Error
 import I18n
 import Situations.New.Types exposing (..)
-import Values.New.View
 
 
 view : Model -> Html Msg
@@ -36,7 +36,7 @@ viewForm submitButtonI18n model =
                         ]
                         [ strong []
                             [ text <|
-                                I18n.translate language I18n.ValueCreationFailed
+                                I18n.translate language I18n.CardCreationFailed
                                     ++ I18n.translate language I18n.Colon
                             ]
                         , text <| Http.Error.toString language httpError
@@ -49,7 +49,7 @@ viewForm submitButtonI18n model =
                 ++ viewFormControls model
                 ++ [ button
                         [ class "btn btn-primary"
-                        , disabled (model.newValueModel.field == Nothing)
+                        , disabled (model.newCardModel.nameField == Nothing)
                         , type_ "submit"
                         ]
                         [ text (I18n.translate language submitButtonI18n) ]
@@ -59,5 +59,5 @@ viewForm submitButtonI18n model =
 
 viewFormControls : Model -> List (Html Msg)
 viewFormControls model =
-    Values.New.View.viewFormControls model.newValueModel
-        |> List.map (Html.map translateNewValueMsg)
+    Cards.New.View.viewFormControls model.newCardModel
+        |> List.map (Html.map translateNewCardMsg)

@@ -44,6 +44,7 @@ type TranslationId
     | BooleanField
     | Cancel
     | Card
+    | CardCreationFailed
     | CardIdField
     | CardPlaceholder
     | CardRetrievalFailed
@@ -123,6 +124,7 @@ type TranslationId
     | LoadingMenu
     | MissingArguments
     | MissingDescription
+    | MissingName
     | MissingProperties
     | MissingValue
     | MoreButton
@@ -132,6 +134,7 @@ type TranslationId
     | NewArgument
     | NewArgumentDescription
     | NewCard
+    | NewCardDescription
     | NewProperty
     | NewProposal
     | NewProposalDescription
@@ -524,6 +527,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Card"
                 , french = s "Fiche"
+                , spanish = todo
+            }
+
+        CardCreationFailed ->
+            { emptyTranslationSet
+                | english = s "Card creation failed"
+                , french = s "Échec de la création de la fiche"
                 , spanish = todo
             }
 
@@ -1216,6 +1226,13 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        MissingName ->
+            { emptyTranslationSet
+                | english = s "Missing name"
+                , french = s "Nom manquant"
+                , spanish = todo
+            }
+
         MissingProperties ->
             { emptyTranslationSet
                 | english = s "No properties. Let's be the first to add one!"
@@ -1276,6 +1293,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "New Card"
                 , french = s "Nouvelle fiche"
+                , spanish = todo
+            }
+
+        NewCardDescription ->
+            { emptyTranslationSet
+                | english = s "Form to enter a new card"
+                , french = s "Formulaire de création d'une nouvelle fiche"
                 , spanish = todo
             }
 

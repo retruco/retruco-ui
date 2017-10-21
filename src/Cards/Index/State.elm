@@ -23,10 +23,10 @@ init authentication language =
     , ids = Nothing
     , language = language
     , searchCriteria =
-        { sort = "recent"
+        { sort = "trending"
         , term = Nothing
         }
-    , searchSort = "recent"
+    , searchSort = "trending"
     , searchTerm = ""
     , showTrashed = False
     }
@@ -88,17 +88,18 @@ update msg model =
             ( { model | httpError = Nothing }
             , let
                 limit =
-                    10
+                    40
               in
                 -- TODO: Handle sort order.
                 Requests.getCards
                     model.authentication
-                    (Maybe.withDefault "" model.searchCriteria.term)
+                    model.searchCriteria.term
                     limit
                     offset
                     []
                     []
                     model.showTrashed
+                    model.searchCriteria.sort
                     |> Http.send (ForSelf << Retrieved)
             )
 

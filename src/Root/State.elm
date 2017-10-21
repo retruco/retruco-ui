@@ -5,6 +5,7 @@ import Authenticator.Routes exposing (..)
 import Authenticator.State
 import Cards.Index.State
 import Cards.Item.State
+import Cards.New.State
 import Decoders
 import Dom.Scroll
 import Erl
@@ -54,6 +55,7 @@ init flags location =
         , clearModelOnUrlUpdate = True
         , location = location
         , navigatorLanguage = navigatorLanguage
+        , newCardModel = Nothing
         , newProposalModel = Nothing
         , newSituationModel = Nothing
         , newValueModel = Nothing
@@ -103,6 +105,12 @@ subscriptions model =
         [ case model.cardModel of
             Just cardModel ->
                 Just <| Sub.map CardMsg (Cards.Item.State.subscriptions cardModel)
+
+            Nothing ->
+                Nothing
+        , case model.newCardModel of
+            Just newCardModel ->
+                Just <| Sub.map NewCardMsg (Cards.New.State.subscriptions newCardModel)
 
             Nothing ->
                 Nothing
@@ -251,6 +259,9 @@ update msg model =
                     Nothing ->
                         ( model, Cmd.none )
 
+            CardUpserted data ->
+                update (Navigate <| Urls.languagePath language <| Urls.idToPath data data.id) model
+
             ChangeAuthenticatorRoute authenticatorRoute ->
                 let
                     path =
@@ -292,6 +303,20 @@ update msg model =
 
             NavigateFromAuthenticator path ->
                 ( model, navigate model path )
+
+            NewCardMsg childMsg ->
+                case model.newCardModel of
+                    Just newCardModel ->
+                        let
+                            ( updatedNewCardModel, childCmd ) =
+                                Cards.New.State.update childMsg newCardModel
+                        in
+                            ( { model | newCardModel = Just updatedNewCardModel }
+                            , Cmd.map translateNewCardMsg childCmd
+                            )
+
+                    Nothing ->
+                        ( model, Cmd.none )
 
             NewProposalMsg childMsg ->
                 case model.newProposalModel of
@@ -372,6 +397,9 @@ update msg model =
             RequireSignInForCard cardCompletionMsg ->
                 requireSignInOrUpdate <| CardMsg cardCompletionMsg
 
+            RequireSignInForNewCard newCardCompletionMsg ->
+                requireSignInOrUpdate <| NewCardMsg newCardCompletionMsg
+
             RequireSignInForNewProposal newProposalCompletionMsg ->
                 requireSignInOrUpdate <| NewProposalMsg newProposalCompletionMsg
 
@@ -449,6 +477,7 @@ urlUpdate location model =
                     , cardModel = Nothing
                     , cardsModel = Nothing
                     , clearModelOnUrlUpdate = True
+                    , newCardModel = Nothing
                     , newProposalModel = Nothing
                     , newSituationModel = Nothing
                     , newValueModel = Nothing
@@ -552,31 +581,37 @@ urlUpdate location model =
                                                 , Cmd.map translateCardsMsg childCmd
                                                 )
 
+                                        NewCardRoute ->
+                                            let
+                                                newCardModel =
+                                                    case ( model.newCardModel, clearSubModels ) of
+                                                        ( Just newCardModel, False ) ->
+                                                            Cards.New.State.setContext
+                                                                model.authentication
+                                                                language
+                                                                newCardModel
+
+                                                        _ ->
+                                                            Cards.New.State.init
+                                                                model.authentication
+                                                                language
+
+                                                ( updatedNewCardModel, updatedNewCardCmd ) =
+                                                    Cards.New.State.urlUpdate location newCardModel
+                                            in
+                                                ( { cleanModel
+                                                    | newCardModel = Just updatedNewCardModel
+                                                    , signOutMsg =
+                                                        Just <|
+                                                            NavigateFromAuthenticator <|
+                                                                Urls.languagePath language "/cards"
+                                                  }
+                                                , Cmd.map translateNewCardMsg updatedNewCardCmd
+                                                )
+
                                 HomeRoute ->
                                     ( cleanModel, navigate cleanModel <| Urls.languagePath language "/proposals" )
 
-                                -- NewCardRoute ->
-                                --     case model.authentication of
-                                --         Just _ ->
-                                --             let
-                                --                 ( newCardModel, childCmd ) =
-                                --                     NewCards.Item.State.urlUpdate
-                                --                         model.authentication
-                                --                         language
-                                --                         location
-                                --                         model.newCardModel
-                                --             in
-                                --                 ( { cleanModel
-                                --                     | newCardModel = newCardModel
-                                --                     , signOutMsg =
-                                --                         Just <|
-                                --                             NavigateFromAuthenticator <|
-                                --                                 Urls.languagePath language "/cards"
-                                --                   }
-                                --                 , Cmd.map translateNewCardMsg childCmd
-                                --                 )
-                                --         Nothing ->
-                                --             requireSignIn language location Nothing cleanModel
                                 NotFoundRoute _ ->
                                     ( cleanModel
                                     , Ports.setDocumentMetadata

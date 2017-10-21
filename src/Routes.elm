@@ -13,10 +13,7 @@ import Values.Item.Routes
 type CardsRoute
     = CardRoute String Cards.Item.Routes.Route
     | CardsIndexRoute
-
-
-
--- | NewCardRoute
+    | NewCardRoute
 
 
 type LocalizedRoute
@@ -66,8 +63,7 @@ cardsRouteParser : Parser (CardsRoute -> a) a
 cardsRouteParser =
     oneOf
         [ map CardsIndexRoute top
-
-        -- , map NewCardRoute (s "new")
+        , map NewCardRoute (s "new")
         , map CardRoute (idParser </> cardRouteParser)
         ]
 

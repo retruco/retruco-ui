@@ -66,21 +66,16 @@ view model =
                         [ div []
                             [ div [ class "list-group" ]
                                 (Array.toList ids
-                                    |> List.filterMap
-                                        (\valueId ->
-                                            case Dict.get valueId data.values of
-                                                Just typedValue ->
-                                                    Just <|
-                                                        viewStatementIdRatedListGroupLine
-                                                            language
-                                                            navigateMsg
-                                                            []
-                                                            True
-                                                            data
-                                                            typedValue.id
-
-                                                Nothing ->
-                                                    Nothing
+                                    |> List.map
+                                        (\cardId ->
+                                            viewStatementIdRatedListGroupLine
+                                                language
+                                                navigateMsg
+                                                "/situations"
+                                                []
+                                                True
+                                                data
+                                                cardId
                                         )
                                 )
                             ]

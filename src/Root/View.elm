@@ -4,6 +4,7 @@ import About.View
 import Authenticator.View
 import Cards.Index.View
 import Cards.Item.View
+import Cards.New.View
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onWithOptions)
@@ -259,9 +260,18 @@ view model =
                                         Nothing ->
                                             text "This should not occur: cardsModel == Nothing!"
 
-                        -- NewCardRoute ->
-                        --     NewCards.Item.View.view model.newCardModel
-                        --         |> Html.map translateNewCardMsg
+                                NewCardRoute ->
+                                    case model.newCardModel of
+                                        Just newCardModel ->
+                                            Cards.New.View.view newCardModel
+                                                |> Html.map translateNewCardMsg
+
+                                        Nothing ->
+                                            text "This should not occur: newCardModel == Nothing!"
+
+                        HomeRoute ->
+                            text "Home page is currently a redirection."
+
                         NotFoundRoute _ ->
                             viewNotFound language
 
@@ -275,9 +285,6 @@ view model =
 
                                         Nothing ->
                                             text "This should not occur: propertyModel == Nothing!"
-
-                        HomeRoute ->
-                            text "Home page is currently a redirection."
 
                         ProposalsRoute childRoute ->
                             case childRoute of
