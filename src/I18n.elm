@@ -301,7 +301,7 @@ getTranslationSet translationId =
 
         AccountCreationFailed ->
             { emptyTranslationSet
-                | english = s "Account création failed"
+                | english = s "Account creation failed"
                 , french = s "Échec de la création du compte"
                 , spanish = todo
             }
