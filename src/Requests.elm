@@ -470,7 +470,7 @@ postCardEasy authentication fields language =
                         , ( "Download", Encode.string "schema:uri" )
                         , ( "Logo", Encode.string "schema:uri" )
                         , ( "Name", Encode.string "schema:string" )
-                        , ( "Types", Encode.string "schema:value-id" )
+                        , ( "Type", Encode.string "schema:value-id" )
                         , ( "Website", Encode.string "schema:uri" )
                         ]
                   )
@@ -479,7 +479,7 @@ postCardEasy authentication fields language =
                     , ( "Download", Encode.string )
                     , ( "Logo", Encode.string )
                     , ( "Name", Encode.string )
-                    , ( "Types", Encode.string )
+                    , ( "Type", Encode.string )
                     , ( "Website", Encode.string )
                     ]
                         |> List.filterMap
