@@ -18,7 +18,7 @@ import Urls
 
 view : Model (Statement b) -> Html Msg
 view model =
-    div [ class "d-flex justify-content-between" ]
+    div [ class "align-items-start d-flex justify-content-between" ]
         [ viewStatementRatingToolbar
             model.language
             model.data
