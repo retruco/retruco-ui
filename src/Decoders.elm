@@ -285,6 +285,12 @@ valueTypeDecoder schemaId widgetId =
                 ( "schema:uri", _ ) ->
                     string |> map UrlValue
 
+                ( "schema:uri-reference", "widget:image" ) ->
+                    string |> map ImagePathValue
+
+                ( "schema:uri-reference", _ ) ->
+                    string |> map UrlValue
+
                 ( _, _ ) ->
                     fail ("TODO Unsupported schemaId \"" ++ schemaId ++ "\" & widgetId \"" ++ widgetId ++ "\"")
     in

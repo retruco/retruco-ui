@@ -235,7 +235,7 @@ schemaIdsAndWidgetIds fieldType languageId =
             ( [ "schema:card-id" ], [] )
 
         "ImageField" ->
-            ( [ "schema:uri" ], [ "widget:image" ] )
+            ( [ "schema:uri-reference" ], [ "widget:image" ] )
 
         "InputEmailField" ->
             ( [ "schema:email" ], [] )

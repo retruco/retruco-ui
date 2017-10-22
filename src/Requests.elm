@@ -468,7 +468,7 @@ postCardEasy authentication fields language =
                   , Encode.object
                         [ ( "Description", Encode.string "schema:string" )
                         , ( "Download", Encode.string "schema:uri" )
-                        , ( "Logo", Encode.string "schema:uri" )
+                        , ( "Logo", Encode.string "schema:uri-reference" )
                         , ( "Name", Encode.string "schema:string" )
                         , ( "Type", Encode.string "schema:value-id" )
                         , ( "Website", Encode.string "schema:uri" )
@@ -488,7 +488,11 @@ postCardEasy authentication fields language =
                             )
                         |> Encode.object
                   )
-                , ( "widgets", Encode.object [] )
+                , ( "widgets"
+                  , Encode.object
+                        [ ( "Logo", Encode.string "widget:image" )
+                        ]
+                  )
                 ]
                 |> Http.jsonBody
     in
@@ -592,7 +596,7 @@ postValue authentication field =
                             ( "schema:string", "widget:input-text", Encode.string string )
 
                 ImageField string ->
-                    ( "schema:uri", "widget:image", Encode.string string )
+                    ( "schema:uri-reference", "widget:image", Encode.string string )
 
                 InputEmailField string ->
                     ( "schema:email", "widget:input-email", Encode.string string )
