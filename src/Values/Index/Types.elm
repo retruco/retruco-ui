@@ -27,7 +27,7 @@ type InternalMsg
 type alias Model =
     { authentication : Maybe Authentication
     , count : Int
-    , data : DataProxy {}
+    , data : Data
     , errors : FormErrors
     , httpError : Maybe Http.Error
     , ids : Maybe (Array String)

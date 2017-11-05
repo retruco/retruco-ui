@@ -7,7 +7,7 @@ import Types exposing (..)
 
 
 type ExternalMsg
-    = DataUpdated (DataProxy {})
+    = DataUpdated Data
     | Navigate String
     | RequireSignIn InternalMsg
 
@@ -29,7 +29,7 @@ type InternalMsg
 
 type alias Model statementType =
     { authentication : Maybe Authentication
-    , data : DataProxy {}
+    , data : Data
     , httpError : Maybe Http.Error
     , language : I18n.Language
     , statement : statementType
@@ -44,7 +44,7 @@ type Msg
 
 
 type alias MsgTranslation parentMsg =
-    { onDataUpdated : DataProxy {} -> parentMsg
+    { onDataUpdated : Data -> parentMsg
     , onInternalMsg : InternalMsg -> parentMsg
     , onNavigate : String -> parentMsg
     , onRequireSignIn : InternalMsg -> parentMsg

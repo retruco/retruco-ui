@@ -14,7 +14,7 @@ import Types exposing (..)
 import Urls
 
 
-init : Maybe Authentication -> I18n.Language -> DataProxy {} -> Statement b -> Model (Statement b)
+init : Maybe Authentication -> I18n.Language -> Data -> Statement b -> Model (Statement b)
 init authentication language data statement =
     { authentication = authentication
     , data = data
@@ -34,7 +34,7 @@ setContext authentication language model =
     }
 
 
-setModelData : DataProxy {} -> Statement b -> Model (Statement b) -> Model (Statement b)
+setModelData : Data -> Statement b -> Model (Statement b) -> Model (Statement b)
 setModelData data statement model =
     -- Note: setModelData is used when the content of a stetement changes. It must not be used when the statement (aka
     -- its id) changes.

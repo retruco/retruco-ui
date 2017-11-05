@@ -17,7 +17,7 @@ type ExternalMsg
 
 
 type InternalMsg
-    = DataUpdated (DataProxy {})
+    = DataUpdated Data
     | DebatePropertiesMsg DebateProperties.SameObject.Types.InternalMsg
     | DuplicatedByRetrieved (Result Http.Error DataIdsBody)
     | DuplicateOfRetrieved (Result Http.Error DataIdsBody)
@@ -32,7 +32,7 @@ type InternalMsg
 type alias Model =
     { activeTab : Tab
     , authentication : Maybe Authentication
-    , data : DataProxy {}
+    , data : Data
     , duplicatedByPropertyIds : Maybe (List String)
     , duplicateOfPropertyIds : Maybe (List String)
     , httpError : Maybe Http.Error

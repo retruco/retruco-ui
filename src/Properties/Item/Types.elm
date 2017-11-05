@@ -17,7 +17,7 @@ type ExternalMsg
 
 
 type InternalMsg
-    = DataUpdated (DataProxy {})
+    = DataUpdated Data
     | DebatePropertiesMsg DebateProperties.SameObject.Types.InternalMsg
     | PropertiesAsValueMsg Properties.SameValue.Types.InternalMsg
     | PropertiesMsg Properties.SameObject.Types.InternalMsg
@@ -31,7 +31,7 @@ type InternalMsg
 type alias Model =
     { activeTab : Tab
     , authentication : Maybe Authentication
-    , data : DataProxy {}
+    , data : Data
     , httpError : Maybe Http.Error
     , id : String
     , language : I18n.Language

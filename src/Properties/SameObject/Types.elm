@@ -25,7 +25,7 @@ type InternalMsg
 
 type alias Model =
     { authentication : Maybe Authentication
-    , data : DataProxy {}
+    , data : Data
     , httpError : Maybe Http.Error
     , keysAutocompleteModel : Properties.KeysAutocomplete.Types.Model
     , language : I18n.Language

@@ -22,7 +22,7 @@ type InternalMsg
 
 type alias Model =
     { authentication : Maybe Authentication
-    , data : DataProxy {}
+    , data : Data
     , debatePropertyIds : Maybe (Array String)
     , httpError : Maybe Http.Error
     , language : I18n.Language

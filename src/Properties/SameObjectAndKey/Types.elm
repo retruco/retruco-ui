@@ -23,7 +23,7 @@ type InternalMsg
 
 type alias Model =
     { authentication : Maybe Authentication
-    , data : DataProxy {}
+    , data : Data
     , httpError : Maybe Http.Error
     , keyId : String
     , language : I18n.Language

@@ -18,7 +18,7 @@ type ExternalMsg
 
 type InternalMsg
     = CardRetrieved (Result Http.Error DataIdBody)
-    | DataUpdated (DataProxy {})
+    | DataUpdated Data
     | DebatePropertiesMsg DebateProperties.SameObject.Types.InternalMsg
     | DuplicatedByRetrieved (Result Http.Error DataIdsBody)
     | DuplicateOfRetrieved (Result Http.Error DataIdsBody)
@@ -33,7 +33,7 @@ type alias Model =
     { activeTab : Tab
     , authentication : Maybe Authentication
     , card : Maybe Card
-    , data : DataProxy {}
+    , data : Data
     , duplicatedByPropertyIds : Maybe (List String)
     , duplicateOfPropertyIds : Maybe (List String)
     , id : String

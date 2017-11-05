@@ -64,6 +64,10 @@ type alias Collection =
     }
 
 
+type alias Data =
+    DataProxy {}
+
+
 type alias DataId =
     { ballots : Dict String Ballot
     , cards : Dict String Card
@@ -242,7 +246,7 @@ type ValueType
     | WrongValue String String
 
 
-initData : DataProxy {}
+initData : Data
 initData =
     { ballots = Dict.empty
     , cards = Dict.empty
