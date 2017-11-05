@@ -15,6 +15,7 @@ import Properties.SameObject.State
 import Properties.SameObjectAndKey.State
 import Properties.SameValue.State
 import Requests
+import Situations.Item.State
 import Statements.Toolbar.State
 import Statements.Toolbar.Types
 import Types exposing (..)
@@ -56,11 +57,14 @@ mergeModelData data model =
 
                     PropertiesAsValueTab propertiesAsValueModel ->
                         PropertiesAsValueTab <|
-                            Properties.SameValue.State.mergeModelData mergedData
-                                propertiesAsValueModel
+                            Properties.SameValue.State.mergeModelData mergedData propertiesAsValueModel
 
                     PropertiesTab propertiesModel ->
                         PropertiesTab <| Properties.SameObject.State.mergeModelData mergedData propertiesModel
+
+                    SituationTab situationModel ->
+                        SituationTab <|
+                            Situations.Item.State.mergeModelData mergedData situationModel
 
                     _ ->
                         model.activeTab
@@ -107,12 +111,14 @@ setContext authentication language model =
 
                 PropertiesAsValueTab propertiesAsValueModel ->
                     PropertiesAsValueTab <|
-                        Properties.SameValue.State.setContext authentication
-                            language
-                            propertiesAsValueModel
+                        Properties.SameValue.State.setContext authentication language propertiesAsValueModel
 
                 PropertiesTab propertiesModel ->
                     PropertiesTab <| Properties.SameObject.State.setContext authentication language propertiesModel
+
+                SituationTab situationModel ->
+                    SituationTab <|
+                        Situations.Item.State.setContext authentication language situationModel
 
                 _ ->
                     model.activeTab
@@ -150,6 +156,9 @@ subscriptions model =
 
             PropertiesTab propertiesModel ->
                 Just <| Sub.map PropertiesMsg (Properties.SameObject.State.subscriptions propertiesModel)
+
+            SituationTab situationModel ->
+                Just <| Sub.map SituationMsg (Situations.Item.State.subscriptions situationModel)
 
             _ ->
                 Nothing
@@ -316,6 +325,20 @@ update msg model =
                 Nothing ->
                     ( model, Cmd.none )
 
+        SituationMsg childMsg ->
+            case model.activeTab of
+                SituationTab situationModel ->
+                    let
+                        ( updatedSituationModel, childCmd ) =
+                            Situations.Item.State.update childMsg situationModel
+                    in
+                        ( { model | activeTab = SituationTab updatedSituationModel }
+                        , Cmd.map translateSituationMsg childCmd
+                        )
+
+                _ ->
+                    ( model, Cmd.none )
+
         ToolbarMsg childMsg ->
             case model.toolbarModel of
                 Just toolbarModel ->
@@ -412,4 +435,19 @@ urlUpdate location route model =
                     { updatedModel | sameKeyPropertiesModel = Just updatedSameObjectAndKeyPropertiesModel }
                         ! [ updatedCmd
                           , Cmd.map translateSameKeyPropertiesMsg updatedSameObjectAndKeyPropertiesCmd
+                          ]
+
+            SituationRoute ->
+                let
+                    situationModel =
+                        Situations.Item.State.init authentication language id
+
+                    ( updatedSituationModel, updatedSituationCmd ) =
+                        Situations.Item.State.urlUpdate location situationModel
+                in
+                    { updatedModel
+                        | activeTab = SituationTab updatedSituationModel
+                    }
+                        ! [ updatedCmd
+                          , Cmd.map translateSituationMsg updatedSituationCmd
                           ]

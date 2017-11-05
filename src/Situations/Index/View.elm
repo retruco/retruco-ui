@@ -71,7 +71,7 @@ view model =
                                             viewStatementIdRatedListGroupLine
                                                 language
                                                 navigateMsg
-                                                "/situations"
+                                                "/situation"
                                                 []
                                                 True
                                                 data

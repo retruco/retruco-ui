@@ -53,6 +53,7 @@ type Msg
     | CardsMsg Cards.Index.Types.InternalMsg
     | CardUpserted Types.DataId
     | ChangeAuthenticatorRoute Authenticator.Routes.Route
+    | GraphqlInited
     | LocationChanged Navigation.Location
     | Navigate String
     | NavigateFromAuthenticator String
@@ -60,7 +61,6 @@ type Msg
     | NewProposalMsg Proposals.New.Types.InternalMsg
     | NewSituationMsg Situations.New.Types.InternalMsg
     | NewValueMsg Values.New.Types.InternalMsg
-    | NoOp
     | PropertyMsg Properties.Item.Types.InternalMsg
     | ProposalsMsg Proposals.Index.Types.InternalMsg
     | ProposalUpserted Types.DataId
@@ -71,6 +71,7 @@ type Msg
     | RequireSignInForNewValue Values.New.Types.InternalMsg
     | RequireSignInForProperty Properties.Item.Types.InternalMsg
     | RequireSignInForValue Values.Item.Types.InternalMsg
+    | ScrolledToTop
     | SituationsMsg Situations.Index.Types.InternalMsg
     | SituationUpserted Types.DataId
     | ValueMsg Values.Item.Types.InternalMsg

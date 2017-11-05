@@ -19,7 +19,6 @@ type alias FormErrors =
 
 type InternalMsg
     = NewCardMsg Cards.New.Types.InternalMsg
-    | Submit
     | TypePropertyUpserted (Result Http.Error DataIdBody)
     | Upserted DataId
 
@@ -68,10 +67,5 @@ translateNewCardMsg =
     Cards.New.Types.translateMsg
         { onCardUpserted = ForSelf << Upserted
         , onInternalMsg = ForSelf << NewCardMsg
-        , onRequireSignIn =
-            \newCardMsg ->
-                if newCardMsg == Cards.New.Types.Submit then
-                    ForParent <| RequireSignIn Submit
-                else
-                    ForParent <| RequireSignIn <| NewCardMsg newCardMsg
+        , onRequireSignIn = ForParent << RequireSignIn << NewCardMsg
         }

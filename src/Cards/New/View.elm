@@ -17,12 +17,12 @@ view : Model -> Html Msg
 view model =
     section []
         [ h1 [] [ text <| I18n.translate model.language I18n.NewCard ]
-        , viewForm I18n.Create model
+        , viewForm I18n.Create I18n.CardCreationFailed model
         ]
 
 
-viewForm : I18n.TranslationId -> Model -> Html Msg
-viewForm submitButtonI18n model =
+viewForm : I18n.TranslationId -> I18n.TranslationId -> Model -> Html Msg
+viewForm submitButtonI18n creationFailedI18n model =
     let
         language =
             model.language
@@ -39,7 +39,7 @@ viewForm submitButtonI18n model =
                         ]
                         [ strong []
                             [ text <|
-                                I18n.translate language I18n.CardCreationFailed
+                                I18n.translate language creationFailedI18n
                                     ++ I18n.translate language I18n.Colon
                             ]
                         , text <| Http.Error.toString language httpError

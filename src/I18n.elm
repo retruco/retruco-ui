@@ -140,6 +140,8 @@ type TranslationId
     | NewProposalDescription
     | NewSituation
     | NewSituationDescription
+    | NewSuggestion
+    | NewSuggestionDescription
     | NewValue
     | NewValueDescription
     | Number
@@ -160,6 +162,7 @@ type TranslationId
     | Properties
     | PropertiesDescription
     | PropertyKeyPlaceholder
+    | ProposalCreationFailed
     | ProposalRetrievalFailed
     | Proposals
     | ProposalsDescription
@@ -207,10 +210,12 @@ type TranslationId
     | SimilarArgumentsDescription Int
     | SimilarArgumentsTitle Int
     | SituationRetrievalFailed
+    | Situation
     | Situations
     | SituationsDescription
     | SituationsRetrievalFailed
     | String
+    | SuggestionCreationFailed
     | Suggestions
     | Tags
     | TextField
@@ -1338,6 +1343,20 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        NewSuggestion ->
+            { emptyTranslationSet
+                | english = s "New Suggestion"
+                , french = s "Nouvelle suggestion"
+                , spanish = todo
+            }
+
+        NewSuggestionDescription ->
+            { emptyTranslationSet
+                | english = s "Form to enter a new suggestion"
+                , french = s "Formulaire de création d'une nouvelle suggestion"
+                , spanish = todo
+            }
+
         NewValue ->
             { emptyTranslationSet
                 | english = s "New Value"
@@ -1475,6 +1494,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Name of a property"
                 , french = s "Nom d'une propriété"
+                , spanish = todo
+            }
+
+        ProposalCreationFailed ->
+            { emptyTranslationSet
+                | english = s "Proposal creation failed"
+                , french = s "Échec de la création de la proposition"
                 , spanish = todo
             }
 
@@ -1836,6 +1862,13 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        Situation ->
+            { emptyTranslationSet
+                | english = s "Situation"
+                , french = s "Situation"
+                , spanish = todo
+            }
+
         SituationRetrievalFailed ->
             { emptyTranslationSet
                 | english = s "Retrieval of situation failed"
@@ -1868,6 +1901,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "String"
                 , french = s "Chaîne de caractères"
+                , spanish = todo
+            }
+
+        SuggestionCreationFailed ->
+            { emptyTranslationSet
+                | english = s "Suggestion creation failed"
+                , french = s "Échec de la création de la suggestion"
                 , spanish = todo
             }
 

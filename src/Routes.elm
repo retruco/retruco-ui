@@ -55,6 +55,7 @@ cardRouteParser =
         [ map Cards.Item.Routes.PropertiesRoute top
         , map Cards.Item.Routes.DebatePropertiesRoute (s "arguments")
         , map Cards.Item.Routes.SameObjectAndKeyPropertiesRoute (s "properties" </> idParser)
+        , map Cards.Item.Routes.SituationRoute (s "situation")
         , map Cards.Item.Routes.PropertiesAsValueRoute (s "uses")
         ]
 

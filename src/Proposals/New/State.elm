@@ -92,9 +92,6 @@ update msg model =
                     Nothing ->
                         ( mergedModel, Cmd.none )
 
-        Submit ->
-            update (NewValueMsg Values.New.Types.Submit) model
-
         Upserted data ->
             ( { model | data = mergeData data model.data }
             , Requests.rateStatement model.authentication data.id 1

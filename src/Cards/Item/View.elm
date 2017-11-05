@@ -11,6 +11,7 @@ import I18n
 import Properties.SameObject.View
 import Properties.SameObjectAndKey.View
 import Properties.SameValue.View
+import Situations.Item.View
 import Statements.Alerts exposing (viewDuplicatedByAlert, viewDuplicateOfAlert)
 import Statements.Lines exposing (viewStatementIdRatedLine)
 import Statements.Toolbar.View
@@ -62,64 +63,89 @@ view model =
                                 |> Html.map translateToolbarMsg
                             , hr [] []
                             , ul [ class "nav nav-tabs" ]
-                                [ li [ class "nav-item" ]
-                                    [ aForPath
-                                        navigateMsg
-                                        language
-                                        (Urls.idToDebatePropertiesPath data card.id)
-                                        [ classList
-                                            [ ( "active"
-                                              , case model.activeTab of
-                                                    DebatePropertiesTab _ ->
-                                                        True
+                                ((if List.member "situation" card.subTypeIds then
+                                    [ li [ class "nav-item" ]
+                                        [ aForPath
+                                            navigateMsg
+                                            language
+                                            (Urls.idToSituationPath data card.id)
+                                            [ classList
+                                                [ ( "active"
+                                                  , case model.activeTab of
+                                                        SituationTab _ ->
+                                                            True
 
-                                                    _ ->
-                                                        False
-                                              )
-                                            , ( "nav-link", True )
+                                                        _ ->
+                                                            False
+                                                  )
+                                                , ( "nav-link", True )
+                                                ]
                                             ]
+                                            [ text <| I18n.translate language I18n.Situation ]
                                         ]
-                                        [ text <| I18n.translate language I18n.Arguments ]
                                     ]
-                                , li [ class "nav-item" ]
-                                    [ aForPath
-                                        navigateMsg
-                                        language
-                                        (Urls.idToPropertiesPath data card.id)
-                                        [ classList
-                                            [ ( "active"
-                                              , case model.activeTab of
-                                                    PropertiesTab _ ->
-                                                        True
+                                  else
+                                    []
+                                 )
+                                    ++ [ li [ class "nav-item" ]
+                                            [ aForPath
+                                                navigateMsg
+                                                language
+                                                (Urls.idToDebatePropertiesPath data card.id)
+                                                [ classList
+                                                    [ ( "active"
+                                                      , case model.activeTab of
+                                                            DebatePropertiesTab _ ->
+                                                                True
 
-                                                    _ ->
-                                                        False
-                                              )
-                                            , ( "nav-link", True )
+                                                            _ ->
+                                                                False
+                                                      )
+                                                    , ( "nav-link", True )
+                                                    ]
+                                                ]
+                                                [ text <| I18n.translate language I18n.Arguments ]
                                             ]
-                                        ]
-                                        [ text <| I18n.translate language I18n.Properties ]
-                                    ]
-                                , li [ class "nav-item" ]
-                                    [ aForPath
-                                        navigateMsg
-                                        language
-                                        (Urls.idToPropertiesAsValuePath data card.id)
-                                        [ classList
-                                            [ ( "active"
-                                              , case model.activeTab of
-                                                    PropertiesAsValueTab _ ->
-                                                        True
+                                       , li [ class "nav-item" ]
+                                            [ aForPath
+                                                navigateMsg
+                                                language
+                                                (Urls.idToPropertiesPath data card.id)
+                                                [ classList
+                                                    [ ( "active"
+                                                      , case model.activeTab of
+                                                            PropertiesTab _ ->
+                                                                True
 
-                                                    _ ->
-                                                        False
-                                              )
-                                            , ( "nav-link", True )
+                                                            _ ->
+                                                                False
+                                                      )
+                                                    , ( "nav-link", True )
+                                                    ]
+                                                ]
+                                                [ text <| I18n.translate language I18n.Properties ]
                                             ]
-                                        ]
-                                        [ text <| I18n.translate language I18n.Uses ]
-                                    ]
-                                ]
+                                       , li [ class "nav-item" ]
+                                            [ aForPath
+                                                navigateMsg
+                                                language
+                                                (Urls.idToPropertiesAsValuePath data card.id)
+                                                [ classList
+                                                    [ ( "active"
+                                                      , case model.activeTab of
+                                                            PropertiesAsValueTab _ ->
+                                                                True
+
+                                                            _ ->
+                                                                False
+                                                      )
+                                                    , ( "nav-link", True )
+                                                    ]
+                                                ]
+                                                [ text <| I18n.translate language I18n.Uses ]
+                                            ]
+                                       ]
+                                )
                             , case model.activeTab of
                                 DebatePropertiesTab debatePropertiesModel ->
                                     DebateProperties.SameObject.View.view debatePropertiesModel
@@ -135,6 +161,10 @@ view model =
                                 PropertiesTab propertiesModel ->
                                     Properties.SameObject.View.view propertiesModel
                                         |> Html.map translatePropertiesMsg
+
+                                SituationTab situationModel ->
+                                    Situations.Item.View.view situationModel
+                                        |> Html.map translateSituationMsg
                             ]
 
                     ( _, _ ) ->

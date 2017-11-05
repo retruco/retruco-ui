@@ -7,6 +7,7 @@ import I18n
 import Properties.SameObject.Types
 import Properties.SameObjectAndKey.Types
 import Properties.SameValue.Types
+import Situations.Item.Types
 import Statements.Toolbar.Types
 import Types exposing (..)
 
@@ -26,6 +27,7 @@ type InternalMsg
     | PropertiesMsg Properties.SameObject.Types.InternalMsg
     | Retrieve
     | SameKeyPropertiesMsg Properties.SameObjectAndKey.Types.InternalMsg
+    | SituationMsg Situations.Item.Types.InternalMsg
     | ToolbarMsg Statements.Toolbar.Types.InternalMsg
 
 
@@ -66,6 +68,7 @@ type Tab
     | NoTab
     | PropertiesAsValueTab Properties.SameValue.Types.Model
     | PropertiesTab Properties.SameObject.Types.Model
+    | SituationTab Situations.Item.Types.Model
 
 
 translateDebatePropertiesMsg : DebateProperties.SameObject.Types.MsgTranslator Msg
@@ -114,6 +117,15 @@ translateSameKeyPropertiesMsg =
         { onInternalMsg = ForSelf << SameKeyPropertiesMsg
         , onNavigate = ForParent << Navigate
         , onRequireSignIn = ForParent << RequireSignIn << SameKeyPropertiesMsg
+        }
+
+
+translateSituationMsg : Situations.Item.Types.MsgTranslator Msg
+translateSituationMsg =
+    Situations.Item.Types.translateMsg
+        { onInternalMsg = ForSelf << SituationMsg
+        , onNavigate = ForParent << Navigate
+        , onRequireSignIn = ForParent << RequireSignIn << SituationMsg
         }
 
 

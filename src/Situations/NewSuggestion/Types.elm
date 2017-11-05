@@ -1,15 +1,15 @@
-module Proposals.New.Types exposing (..)
+module Situations.NewSuggestion.Types exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import Dict exposing (Dict)
 import Http
 import I18n
+import Proposals.New.Types
 import Types exposing (..)
-import Values.New.Types
 
 
 type ExternalMsg
-    = ProposalUpserted DataId
+    = SuggestionUpserted DataId
     | RequireSignIn InternalMsg
 
 
@@ -18,9 +18,9 @@ type alias FormErrors =
 
 
 type InternalMsg
-    = NewValueMsg Values.New.Types.InternalMsg
-    | Rated (Result Http.Error DataIdBody)
-    | Upserted DataId
+    = NewProposalMsg Proposals.New.Types.InternalMsg
+    | Upserted (Result Http.Error DataIdBody)
+    | ProposalUpserted DataId
 
 
 type alias Model =
@@ -28,7 +28,8 @@ type alias Model =
     , data : DataId
     , httpError : Maybe Http.Error
     , language : I18n.Language
-    , newValueModel : Values.New.Types.Model
+    , newProposalModel : Proposals.New.Types.Model
+    , objectId : String -- Situation ID
     }
 
 
@@ -39,7 +40,7 @@ type Msg
 
 type alias MsgTranslation parentMsg =
     { onInternalMsg : InternalMsg -> parentMsg
-    , onProposalUpserted : DataId -> parentMsg
+    , onSuggestionUpserted : DataId -> parentMsg
     , onRequireSignIn : InternalMsg -> parentMsg
     }
 
@@ -49,22 +50,22 @@ type alias MsgTranslator parentMsg =
 
 
 translateMsg : MsgTranslation parentMsg -> MsgTranslator parentMsg
-translateMsg { onProposalUpserted, onInternalMsg, onRequireSignIn } msg =
+translateMsg { onInternalMsg, onRequireSignIn, onSuggestionUpserted } msg =
     case msg of
-        ForParent (ProposalUpserted data) ->
-            onProposalUpserted data
-
         ForParent (RequireSignIn completionMsg) ->
             onRequireSignIn completionMsg
+
+        ForParent (SuggestionUpserted data) ->
+            onSuggestionUpserted data
 
         ForSelf internalMsg ->
             onInternalMsg internalMsg
 
 
-translateNewValueMsg : Values.New.Types.MsgTranslator Msg
-translateNewValueMsg =
-    Values.New.Types.translateMsg
-        { onInternalMsg = ForSelf << NewValueMsg
-        , onRequireSignIn = ForParent << RequireSignIn << NewValueMsg
-        , onValueUpserted = ForSelf << Upserted
+translateNewProposalMsg : Proposals.New.Types.MsgTranslator Msg
+translateNewProposalMsg =
+    Proposals.New.Types.translateMsg
+        { onInternalMsg = ForSelf << NewProposalMsg
+        , onProposalUpserted = ForSelf << ProposalUpserted
+        , onRequireSignIn = ForParent << RequireSignIn << NewProposalMsg
         }

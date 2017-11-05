@@ -31,3 +31,8 @@ imagePathKeyIds =
 nameKeyIds : List String
 nameKeyIds =
     [ "name" ]
+
+
+situationKeyIds : List String
+situationKeyIds =
+    [ "discussion", "suggestion" ]

@@ -190,6 +190,12 @@ type alias Statement a =
     }
 
 
+type StatementWrapper
+    = CardWrapper Card
+    | PropertyWrapper Property
+    | TypedValueWrapper TypedValue
+
+
 type alias TypedValue =
     { argumentCount : Int
     , -- TODO Use Maybe
@@ -244,6 +250,25 @@ type ValueType
     | StringValue String
     | UrlValue String
     | WrongValue String String
+
+
+addToData : StatementWrapper -> DataProxy a -> DataProxy a
+addToData statementWrapper data =
+    case statementWrapper of
+        CardWrapper card ->
+            { data
+                | cards = Dict.insert card.id card data.cards
+            }
+
+        PropertyWrapper property ->
+            { data
+                | properties = Dict.insert property.id property data.properties
+            }
+
+        TypedValueWrapper typedValue ->
+            { data
+                | values = Dict.insert typedValue.id typedValue data.values
+            }
 
 
 initData : Data

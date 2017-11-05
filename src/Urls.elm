@@ -109,6 +109,11 @@ idToPropertiesPath data id =
                 "/properties"
 
 
+idToSituationPath : DataProxy a -> String -> String
+idToSituationPath data id =
+    (idToPath data id) ++ "/situation"
+
+
 idToSameObjectAndKeyPropertiesPath : DataProxy a -> String -> String -> String
 idToSameObjectAndKeyPropertiesPath data id keyId =
     (idToPath data id) ++ "/properties/" ++ keyId

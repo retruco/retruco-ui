@@ -64,7 +64,10 @@ view model =
                                             let
                                                 keyProperties =
                                                     properties
-                                                        |> List.filter (\property -> property.keyId == keyId)
+                                                        |> List.filter
+                                                            (\property ->
+                                                                (property.keyId == keyId) && (property.ratingSum > 0)
+                                                            )
                                                         |> List.sortBy
                                                             (\property -> ( property.ratingSum, property.createdAt ))
                                                         |> List.reverse

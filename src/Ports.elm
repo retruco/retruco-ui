@@ -3,6 +3,7 @@ port module Ports exposing (..)
 import Configuration
 import I18n
 import Images
+import Json.Encode
 import Strings
 import Types exposing (..)
 import Urls
@@ -50,6 +51,49 @@ setDocumentMetadataForStatementId language data statementId =
 
 
 port setDocumentMetatags : DocumentMetatags -> Cmd msg
+
+
+
+-- GRAPHQL
+
+
+type alias GraphqlInitArguments =
+    { httpUrl : String
+    , wsUrl : String
+    }
+
+
+type alias GraphqlPropertyUpsertedArguments =
+    { keyIds : List String
+    , objectIds : List String
+    , valueIds : List String
+    }
+
+
+port graphqlInit : GraphqlInitArguments -> Cmd msg
+
+
+port graphqlSubscribeToPropertyUpserted : GraphqlPropertyUpsertedArguments -> Cmd msg
+
+
+port propertyUpserted : (Json.Encode.Value -> msg) -> Sub msg
+
+
+initGraphql : Cmd msg
+initGraphql =
+    graphqlInit
+        { httpUrl = Configuration.apiUrl ++ "graphql"
+        , wsUrl = "ws" ++ (String.dropLeft 4 Configuration.apiUrl) ++ "subscriptions"
+        }
+
+
+subscribeToPropertyUpserted : List String -> List String -> List String -> Cmd msg
+subscribeToPropertyUpserted objectIds keyIds valueIds =
+    graphqlSubscribeToPropertyUpserted
+        { keyIds = keyIds
+        , objectIds = objectIds
+        , valueIds = valueIds
+        }
 
 
 

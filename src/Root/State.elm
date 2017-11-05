@@ -44,30 +44,35 @@ init flags location =
 
         language =
             navigatorLanguage |> Maybe.withDefault I18n.English
+
+        model =
+            { aboutModel = Nothing
+            , authentication = authentication
+            , authenticatorCancelMsg = Nothing
+            , authenticatorCompletionMsgs = []
+            , authenticatorModel = Authenticator.State.init
+            , cardModel = Nothing
+            , cardsModel = Nothing
+            , clearModelOnUrlUpdate = True
+            , location = location
+            , navigatorLanguage = navigatorLanguage
+            , newCardModel = Nothing
+            , newProposalModel = Nothing
+            , newSituationModel = Nothing
+            , newValueModel = Nothing
+            , propertyModel = Nothing
+            , proposalsModel = Nothing
+            , route = Routes.I18nRouteWithoutLanguage ""
+            , signOutMsg = Nothing
+            , situationsModel = Nothing
+            , valueModel = Nothing
+            , valuesModel = Nothing
+            }
     in
-        { aboutModel = Nothing
-        , authentication = authentication
-        , authenticatorCancelMsg = Nothing
-        , authenticatorCompletionMsgs = []
-        , authenticatorModel = Authenticator.State.init
-        , cardModel = Nothing
-        , cardsModel = Nothing
-        , clearModelOnUrlUpdate = True
-        , location = location
-        , navigatorLanguage = navigatorLanguage
-        , newCardModel = Nothing
-        , newProposalModel = Nothing
-        , newSituationModel = Nothing
-        , newValueModel = Nothing
-        , propertyModel = Nothing
-        , proposalsModel = Nothing
-        , route = Routes.I18nRouteWithoutLanguage ""
-        , signOutMsg = Nothing
-        , situationsModel = Nothing
-        , valueModel = Nothing
-        , valuesModel = Nothing
-        }
-            |> update (LocationChanged location)
+        model
+            ! [ Ports.initGraphql
+              , Task.perform (\_ -> LocationChanged location) (Task.succeed ())
+              ]
 
 
 navigate : Model -> String -> Cmd msg
@@ -288,6 +293,9 @@ update msg model =
                     , navigate model <| Urls.languagePath language path
                     )
 
+            GraphqlInited ->
+                ( model, Cmd.none )
+
             LocationChanged location ->
                 urlUpdate location model
 
@@ -360,9 +368,6 @@ update msg model =
                     Nothing ->
                         ( model, Cmd.none )
 
-            NoOp ->
-                ( model, Cmd.none )
-
             PropertyMsg childMsg ->
                 case model.propertyModel of
                     Just propertyModel ->
@@ -414,6 +419,9 @@ update msg model =
 
             RequireSignInForValue valueCompletionMsg ->
                 requireSignInOrUpdate <| ValueMsg valueCompletionMsg
+
+            ScrolledToTop ->
+                ( model, Cmd.none )
 
             SituationsMsg childMsg ->
                 case model.situationsModel of
@@ -843,7 +851,7 @@ urlUpdate location model =
                                 Debug.crash ("Dom.Scroll.toTop \"html-element\": " ++ toString err)
 
                             Ok _ ->
-                                NoOp
+                                ScrolledToTop
                     )
                     (Dom.Scroll.toTop "html-element")
               , cmd

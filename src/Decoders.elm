@@ -135,6 +135,20 @@ dataIdsDecoder =
             )
 
 
+graphqlPropertyDecoder : Decoder DataId
+graphqlPropertyDecoder =
+    map2
+        (\property typedValue ->
+            { initDataId
+                | id = property.id
+                , properties = Dict.singleton property.id property
+            }
+                |> addToData typedValue
+        )
+        propertyDecoder
+        (field "value" statementWrapperDecoder)
+
+
 messageBodyDecoder : Decoder String
 messageBodyDecoder =
     (field "data" string)
@@ -175,6 +189,34 @@ propertyDecoder =
         |: oneOf [ (field "trashed" bool), succeed False ]
         |: (field "type" string)
         |: (field "valueId" string)
+
+
+statementWrapperDecoder : Decoder StatementWrapper
+statementWrapperDecoder =
+    field "type" string
+        |> andThen statementWrapperDecoderFromType
+
+
+statementWrapperDecoderFromType : String -> Decoder StatementWrapper
+statementWrapperDecoderFromType type_ =
+    case type_ of
+        "Card" ->
+            cardDecoder
+                |> andThen (succeed << CardWrapper)
+
+        "Property" ->
+            propertyDecoder
+                |> andThen (succeed << PropertyWrapper)
+
+        "Value" ->
+            typedValueDecoder
+                |> andThen (succeed << TypedValueWrapper)
+
+        _ ->
+            fail <|
+                "Trying to decode StatementWrapper, but type "
+                    ++ toString type_
+                    ++ " is not supported."
 
 
 typedValueAutocompletionDecoder : Decoder TypedValueAutocompletion

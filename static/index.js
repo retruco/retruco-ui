@@ -1,3 +1,11 @@
+import { InMemoryCache, IntrospectionFragmentMatcher } from 'apollo-cache-inmemory';
+import { ApolloClient } from 'apollo-client';
+import { ApolloLink } from 'apollo-link';
+import { HttpLink } from 'apollo-link-http';
+import { WebSocketLink } from 'apollo-link-ws';
+import { getOperationAST } from 'graphql';
+import gql from 'graphql-tag';
+
 
 // pull in desired CSS/SASS files
 // Note: index.scss is already imported by bootstrap-loader (see .bootstraprc).
@@ -63,6 +71,129 @@ main.ports.fileSelected.subscribe(function (id) {
 
   // Connect our FileReader with the file that was selected in our `input` node.
   reader.readAsDataURL(file);
+});
+
+
+// GraphQL
+// Cf https://medium.com/@michaelcbrook/how-to-get-apollo-2-0-working-with-graphql-subscriptions-321388be030c
+let graphqlClient = null
+// Cf https://www.apollographql.com/docs/react/recipes/fragment-matching.html
+const introspectionQueryResultData = {
+  "__schema": {
+    "types": [
+      {
+        "kind": "INTERFACE",
+        "name": "Statement",
+        "possibleTypes": [
+          {
+            "name": "User"
+          },
+          {
+            "name": "Property"
+          },
+          {
+            "name": "Card"
+          },
+          {
+            "name": "Value"
+          }
+        ]
+      }
+    ]
+  }
+}
+// TODO: Add "properties" field in fragment, after renaming it to validProperties or something like that.
+const propertyFragment = gql`
+  fragment PropertyFragment on Property {
+    argumentCount
+    ballotId
+    createdAt
+    id
+    keyId
+    objectId
+    ratingCount
+    ratingSum
+    trashed
+    type
+    valueId
+  }
+`
+const statementFragment = gql`
+  fragment StatementFragment on Statement {
+    argumentCount
+    ballotId
+    createdAt
+    id
+    ratingCount
+    ratingSum
+    trashed
+    type
+    ... on Property {
+      keyId
+      objectId
+      valueId
+    }
+    ... on Value {
+      schemaId
+      value
+      widgetId
+    }
+  }
+`
+
+main.ports.graphqlInit.subscribe(function ({httpUrl, wsUrl}) {
+  const link = ApolloLink.split(
+    operation => {
+      const operationAST = getOperationAST(operation.query, operation.operationName);
+      return !!operationAST && operationAST.operation === 'subscription';
+    },
+    new WebSocketLink({
+      uri: wsUrl,
+      options: {
+        reconnect: true, //auto-reconnect
+        // // carry login state (should use secure websockets (wss) when using this)
+        // connectionParams: {
+        //   authToken: localStorage.getItem("Meteor.loginToken")
+        // }
+      }
+    }),
+    new HttpLink({ uri: httpUrl })
+  );
+  // Finally, create your ApolloClient instance with the modified network interface
+  const fragmentMatcher = new IntrospectionFragmentMatcher({
+    introspectionQueryResultData
+  });
+  graphqlClient = new ApolloClient({
+    cache: new InMemoryCache({ fragmentMatcher }),
+    link: link
+  });
+});
+
+main.ports.graphqlSubscribeToPropertyUpserted.subscribe(function ({objectIds, keyIds, valueIds}) {
+  graphqlClient.subscribe({
+    query: gql`
+      subscription onPropertyUpserted ($objectIds: [String!], $keyIds: [String!], $valueIds: [String!]) {
+        propertyUpserted (objectIds: $objectIds, keyIds: $keyIds, valueIds: $valueIds) {
+          ...PropertyFragment
+          value {
+            ...StatementFragment
+          }
+        }
+      }
+      ${propertyFragment}
+      ${statementFragment}
+    `,
+    variables: {
+      keyIds,
+      objectIds,
+      valueIds,
+    }
+  }).subscribe({
+    next (data) {
+      // Notify your application with the new arrived data
+      main.ports.propertyUpserted.send(data.propertyUpserted);
+    }
+  });
 });
 
 

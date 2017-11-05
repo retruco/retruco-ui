@@ -65,13 +65,6 @@ update msg model =
                 , Cmd.map translateNewCardMsg childCmd
                 )
 
-        Submit ->
-            { model
-                | httpError = Nothing
-                , id = ""
-            }
-                |> update (NewCardMsg Cards.New.Types.Submit)
-
         TypePropertyUpserted (Err httpError) ->
             ( { model | httpError = Just httpError }, Cmd.none )
 
