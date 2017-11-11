@@ -29,7 +29,7 @@ import Views exposing (..)
 view : Model -> Html Msg
 view model =
     case model.route of
-        I18nRouteWithLanguage language embed localizedRoute ->
+        I18nRouteWithLanguage embed language localizedRoute ->
             let
                 languageNavItem =
                     li [ class "dropdown nav-item" ]

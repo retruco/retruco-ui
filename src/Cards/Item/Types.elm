@@ -38,6 +38,7 @@ type alias Model =
     , data : Data
     , duplicatedByPropertyIds : Maybe (List String)
     , duplicateOfPropertyIds : Maybe (List String)
+    , embed : Bool
     , id : String
     , httpError : Maybe Http.Error
     , language : I18n.Language

@@ -22,14 +22,15 @@ import Types exposing (..)
 import Urls
 
 
-init : Maybe Authentication -> I18n.Language -> String -> Model
-init authentication language id =
+init : Maybe Authentication -> Bool -> I18n.Language -> String -> Model
+init authentication embed language id =
     { activeTab = NoTab
     , authentication = authentication
     , card = Nothing
     , data = initData
     , duplicatedByPropertyIds = Nothing
     , duplicateOfPropertyIds = Nothing
+    , embed = embed
     , httpError = Nothing
     , id = id
     , language = language

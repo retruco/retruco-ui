@@ -156,13 +156,13 @@ subscriptions model =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
-        ( language, embed ) =
+        ( embed, language ) =
             case model.route of
-                I18nRouteWithLanguage language embed _ ->
-                    ( language, embed )
+                I18nRouteWithLanguage embed language _ ->
+                    ( embed, language )
 
                 _ ->
-                    ( I18n.English, False )
+                    ( False, I18n.English )
 
         requireSignInOrUpdate : Msg -> ( Model, Cmd Msg )
         requireSignInOrUpdate completionMsg =
@@ -502,7 +502,7 @@ urlUpdate location model =
 
         ( newModel, cmd ) =
             case parseLocation location of
-                Just ((I18nRouteWithLanguage language embed localizedRoute) as route) ->
+                Just ((I18nRouteWithLanguage embed language localizedRoute) as route) ->
                     let
                         ( localizedModel, localizedCmd ) =
                             case localizedRoute of
@@ -563,7 +563,7 @@ urlUpdate location model =
                                         CardRoute cardId cardRoute ->
                                             let
                                                 cardModel =
-                                                    Cards.Item.State.init model.authentication language cardId
+                                                    Cards.Item.State.init model.authentication embed language cardId
 
                                                 ( updatedCardModel, updatedCardCmd ) =
                                                     Cards.Item.State.urlUpdate
