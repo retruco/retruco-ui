@@ -2,12 +2,12 @@ module Cards.Item.Types exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import DebateProperties.SameObject.Types
+import Discussions.Item.Types
 import Http
 import I18n
 import Properties.SameObject.Types
 import Properties.SameObjectAndKey.Types
 import Properties.SameValue.Types
-import Situations.Item.Types
 import Statements.Toolbar.Types
 import Types exposing (..)
 
@@ -21,13 +21,13 @@ type InternalMsg
     = CardRetrieved (Result Http.Error DataIdBody)
     | DataUpdated Data
     | DebatePropertiesMsg DebateProperties.SameObject.Types.InternalMsg
+    | DiscussionMsg Discussions.Item.Types.InternalMsg
     | DuplicatedByRetrieved (Result Http.Error DataIdsBody)
     | DuplicateOfRetrieved (Result Http.Error DataIdsBody)
     | PropertiesAsValueMsg Properties.SameValue.Types.InternalMsg
     | PropertiesMsg Properties.SameObject.Types.InternalMsg
     | Retrieve
     | SameKeyPropertiesMsg Properties.SameObjectAndKey.Types.InternalMsg
-    | SituationMsg Situations.Item.Types.InternalMsg
     | ToolbarMsg Statements.Toolbar.Types.InternalMsg
 
 
@@ -65,10 +65,10 @@ type alias MsgTranslator parentMsg =
 
 type Tab
     = DebatePropertiesTab DebateProperties.SameObject.Types.Model
+    | DiscussionTab Discussions.Item.Types.Model
     | NoTab
     | PropertiesAsValueTab Properties.SameValue.Types.Model
     | PropertiesTab Properties.SameObject.Types.Model
-    | SituationTab Situations.Item.Types.Model
 
 
 translateDebatePropertiesMsg : DebateProperties.SameObject.Types.MsgTranslator Msg
@@ -77,6 +77,15 @@ translateDebatePropertiesMsg =
         { onInternalMsg = ForSelf << DebatePropertiesMsg
         , onNavigate = ForParent << Navigate
         , onRequireSignIn = ForParent << RequireSignIn << DebatePropertiesMsg
+        }
+
+
+translateDiscussionMsg : Discussions.Item.Types.MsgTranslator Msg
+translateDiscussionMsg =
+    Discussions.Item.Types.translateMsg
+        { onInternalMsg = ForSelf << DiscussionMsg
+        , onNavigate = ForParent << Navigate
+        , onRequireSignIn = ForParent << RequireSignIn << DiscussionMsg
         }
 
 
@@ -117,15 +126,6 @@ translateSameKeyPropertiesMsg =
         { onInternalMsg = ForSelf << SameKeyPropertiesMsg
         , onNavigate = ForParent << Navigate
         , onRequireSignIn = ForParent << RequireSignIn << SameKeyPropertiesMsg
-        }
-
-
-translateSituationMsg : Situations.Item.Types.MsgTranslator Msg
-translateSituationMsg =
-    Situations.Item.Types.translateMsg
-        { onInternalMsg = ForSelf << SituationMsg
-        , onNavigate = ForParent << Navigate
-        , onRequireSignIn = ForParent << RequireSignIn << SituationMsg
         }
 
 

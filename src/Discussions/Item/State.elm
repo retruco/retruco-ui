@@ -1,11 +1,11 @@
-module Situations.Item.State exposing (..)
+module Discussions.Item.State exposing (..)
 
 import Array
 import Authenticator.Types exposing (Authentication)
-import Constants exposing (situationKeyIds)
+import Constants exposing (discussionKeyIds)
 import Decoders
-import Situations.Item.Types exposing (..)
-import Situations.NewSuggestion.State
+import Discussions.Item.Types exposing (..)
+import Discussions.NewSuggestion.State
 import Http
 import I18n
 import Json.Decode
@@ -20,12 +20,12 @@ init : Maybe Authentication -> I18n.Language -> String -> Model
 init authentication language objectId =
     { authentication = authentication
     , data = initData
+    , discussionPropertyIds = Nothing
     , httpError = Nothing
     , language = language
-    , newSuggestionModel = Situations.NewSuggestion.State.init authentication language objectId
+    , newSuggestionModel = Discussions.NewSuggestion.State.init authentication language objectId
     , objectId = objectId
     , showTrashed = False
-    , situationPropertyIds = Nothing
     }
 
 
@@ -37,7 +37,7 @@ mergeModelData data model =
     in
         { model
             | data = mergedData
-            , newSuggestionModel = Situations.NewSuggestion.State.mergeModelData mergedData model.newSuggestionModel
+            , newSuggestionModel = Discussions.NewSuggestion.State.mergeModelData mergedData model.newSuggestionModel
         }
 
 
@@ -47,7 +47,7 @@ setContext authentication language model =
         | authentication = authentication
         , language = language
         , newSuggestionModel =
-            Situations.NewSuggestion.State.setContext
+            Discussions.NewSuggestion.State.setContext
                 authentication
                 language
                 model.newSuggestionModel
@@ -57,7 +57,7 @@ setContext authentication language model =
 subscriptions : Model -> Sub InternalMsg
 subscriptions model =
     Sub.batch
-        [ Sub.map NewSuggestionMsg (Situations.NewSuggestion.State.subscriptions model.newSuggestionModel)
+        [ Sub.map NewSuggestionMsg (Discussions.NewSuggestion.State.subscriptions model.newSuggestionModel)
         , Ports.propertyUpserted PropertyUpserted
         ]
 
@@ -68,7 +68,7 @@ update msg model =
         NewSuggestionMsg childMsg ->
             let
                 ( updatedNewSuggestionModel, childCmd ) =
-                    Situations.NewSuggestion.State.update childMsg model.newSuggestionModel
+                    Discussions.NewSuggestion.State.update childMsg model.newSuggestionModel
             in
                 ( { model | newSuggestionModel = updatedNewSuggestionModel }
                 , Cmd.map translateNewSuggestionMsg childCmd
@@ -95,13 +95,13 @@ update msg model =
                             data.id
                     in
                         ( { mergedModel
-                            | situationPropertyIds =
-                                case model.situationPropertyIds of
-                                    Just situationPropertyIds ->
-                                        if List.member propertyId <| Array.toList situationPropertyIds then
-                                            Just situationPropertyIds
+                            | discussionPropertyIds =
+                                case model.discussionPropertyIds of
+                                    Just discussionPropertyIds ->
+                                        if List.member propertyId <| Array.toList discussionPropertyIds then
+                                            Just discussionPropertyIds
                                         else
-                                            Just <| Array.append (Array.fromList [ propertyId ]) situationPropertyIds
+                                            Just <| Array.append (Array.fromList [ propertyId ]) discussionPropertyIds
 
                                     Nothing ->
                                         Just <| Array.fromList [ propertyId ]
@@ -111,10 +111,10 @@ update msg model =
 
         Retrieve ->
             ( { model
-                | situationPropertyIds = Nothing
+                | discussionPropertyIds = Nothing
                 , httpError = Nothing
               }
-            , Requests.getProperties model.authentication model.showTrashed [ model.objectId ] situationKeyIds []
+            , Requests.getProperties model.authentication model.showTrashed [ model.objectId ] discussionKeyIds []
                 |> Http.send (ForSelf << Retrieved)
             )
 
@@ -134,9 +134,9 @@ update msg model =
                     model.language
             in
                 { mergedModel
-                    | situationPropertyIds = Just data.ids
+                    | discussionPropertyIds = Just data.ids
                 }
-                    ! [ Ports.subscribeToPropertyUpserted [ model.objectId ] situationKeyIds []
+                    ! [ Ports.subscribeToPropertyUpserted [ model.objectId ] discussionKeyIds []
                       , Ports.setDocumentMetadata
                             { description = I18n.translate language I18n.PropertiesDescription
                             , imageUrl = Urls.appLogoFullUrl

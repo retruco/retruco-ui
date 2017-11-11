@@ -1,4 +1,4 @@
-module Situations.New.Types exposing (..)
+module Discussions.New.Types exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import Cards.New.Types
@@ -9,8 +9,8 @@ import Types exposing (..)
 
 
 type ExternalMsg
-    = RequireSignIn InternalMsg
-    | SituationUpserted DataId
+    = DiscussionUpserted DataId
+    | RequireSignIn InternalMsg
 
 
 type alias FormErrors =
@@ -39,9 +39,9 @@ type Msg
 
 
 type alias MsgTranslation parentMsg =
-    { onInternalMsg : InternalMsg -> parentMsg
+    { onDiscussionUpserted : DataId -> parentMsg
+    , onInternalMsg : InternalMsg -> parentMsg
     , onRequireSignIn : InternalMsg -> parentMsg
-    , onSituationUpserted : DataId -> parentMsg
     }
 
 
@@ -50,13 +50,13 @@ type alias MsgTranslator parentMsg =
 
 
 translateMsg : MsgTranslation parentMsg -> MsgTranslator parentMsg
-translateMsg { onInternalMsg, onRequireSignIn, onSituationUpserted } msg =
+translateMsg { onDiscussionUpserted, onInternalMsg, onRequireSignIn } msg =
     case msg of
+        ForParent (DiscussionUpserted data) ->
+            onDiscussionUpserted data
+
         ForParent (RequireSignIn completionMsg) ->
             onRequireSignIn completionMsg
-
-        ForParent (SituationUpserted data) ->
-            onSituationUpserted data
 
         ForSelf internalMsg ->
             onInternalMsg internalMsg

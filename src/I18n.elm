@@ -71,6 +71,11 @@ type TranslationId
     | DebateSourceLabel
     | DebateTrashingAction
     | Details
+    | DiscussionRetrievalFailed
+    | Discussion
+    | Discussions
+    | DiscussionsDescription
+    | DiscussionsRetrievalFailed
     | DuplicatedByDescription Int
     | DuplicatedByTitle Int
     | DuplicateOfDescription Int
@@ -135,11 +140,11 @@ type TranslationId
     | NewArgumentDescription
     | NewCard
     | NewCardDescription
+    | NewDiscussion
+    | NewDiscussionDescription
     | NewProperty
     | NewProposal
     | NewProposalDescription
-    | NewSituation
-    | NewSituationDescription
     | NewSuggestion
     | NewSuggestionDescription
     | NewValue
@@ -209,11 +214,6 @@ type TranslationId
     | SignUpTitle
     | SimilarArgumentsDescription Int
     | SimilarArgumentsTitle Int
-    | SituationRetrievalFailed
-    | Situation
-    | Situations
-    | SituationsDescription
-    | SituationsRetrievalFailed
     | String
     | SuggestionCreationFailed
     | Suggestions
@@ -778,6 +778,41 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        Discussion ->
+            { emptyTranslationSet
+                | english = s "Discussion"
+                , french = s "Discussion"
+                , spanish = todo
+            }
+
+        DiscussionRetrievalFailed ->
+            { emptyTranslationSet
+                | english = s "Retrieval of discussion failed"
+                , french = s "Échec de la récupération de la discussion"
+                , spanish = todo
+            }
+
+        Discussions ->
+            { emptyTranslationSet
+                | english = s "Discussions"
+                , french = s "Discussions"
+                , spanish = todo
+            }
+
+        DiscussionsDescription ->
+            { emptyTranslationSet
+                | english = s "List of discussions"
+                , french = s "Liste de discussions"
+                , spanish = todo
+            }
+
+        DiscussionsRetrievalFailed ->
+            { emptyTranslationSet
+                | english = s "Retrieval of discussions failed"
+                , french = s "Échec de la récupération des discussions"
+                , spanish = todo
+            }
+
         DuplicatedByDescription count ->
             { emptyTranslationSet
                 | english =
@@ -1308,6 +1343,20 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        NewDiscussion ->
+            { emptyTranslationSet
+                | english = s "New Discussion"
+                , french = s "Nouvelle discussion"
+                , spanish = todo
+            }
+
+        NewDiscussionDescription ->
+            { emptyTranslationSet
+                | english = s "Form to enter a new discussion"
+                , french = s "Formulaire de création d'une nouvelle discussion"
+                , spanish = todo
+            }
+
         NewProperty ->
             { emptyTranslationSet
                 | english = s "New Property"
@@ -1326,20 +1375,6 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Form to enter a new proposal"
                 , french = s "Formulaire de création d'une nouvelle proposition"
-                , spanish = todo
-            }
-
-        NewSituation ->
-            { emptyTranslationSet
-                | english = s "New Situation"
-                , french = s "Nouvelle situation"
-                , spanish = todo
-            }
-
-        NewSituationDescription ->
-            { emptyTranslationSet
-                | english = s "Form to enter a new situation"
-                , french = s "Formulaire de création d'une nouvelle situation"
                 , spanish = todo
             }
 
@@ -1859,41 +1894,6 @@ getTranslationSet translationId =
 
                         _ ->
                             s ((toString count) ++ " arguments similaires")
-                , spanish = todo
-            }
-
-        Situation ->
-            { emptyTranslationSet
-                | english = s "Situation"
-                , french = s "Situation"
-                , spanish = todo
-            }
-
-        SituationRetrievalFailed ->
-            { emptyTranslationSet
-                | english = s "Retrieval of situation failed"
-                , french = s "Échec de la récupération de la situation"
-                , spanish = todo
-            }
-
-        Situations ->
-            { emptyTranslationSet
-                | english = s "Situations"
-                , french = s "Situations"
-                , spanish = todo
-            }
-
-        SituationsDescription ->
-            { emptyTranslationSet
-                | english = s "List of situations"
-                , french = s "Liste de situations"
-                , spanish = todo
-            }
-
-        SituationsRetrievalFailed ->
-            { emptyTranslationSet
-                | english = s "Retrieval of situations failed"
-                , french = s "Échec de la récupération des situations"
                 , spanish = todo
             }
 

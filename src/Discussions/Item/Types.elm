@@ -1,8 +1,8 @@
-module Situations.Item.Types exposing (..)
+module Discussions.Item.Types exposing (..)
 
 import Array exposing (Array)
 import Authenticator.Types exposing (Authentication)
-import Situations.NewSuggestion.Types
+import Discussions.NewSuggestion.Types
 import Http
 import I18n
 import Json.Encode
@@ -15,7 +15,7 @@ type ExternalMsg
 
 
 type InternalMsg
-    = NewSuggestionMsg Situations.NewSuggestion.Types.InternalMsg
+    = NewSuggestionMsg Discussions.NewSuggestion.Types.InternalMsg
     | PropertyUpserted Json.Encode.Value
     | Retrieve
     | Retrieved (Result Http.Error DataIdsBody)
@@ -25,12 +25,12 @@ type InternalMsg
 type alias Model =
     { authentication : Maybe Authentication
     , data : Data
+    , discussionPropertyIds : Maybe (Array String)
     , httpError : Maybe Http.Error
     , language : I18n.Language
-    , newSuggestionModel : Situations.NewSuggestion.Types.Model
+    , newSuggestionModel : Discussions.NewSuggestion.Types.Model
     , objectId : String
     , showTrashed : Bool
-    , situationPropertyIds : Maybe (Array String)
     }
 
 
@@ -63,9 +63,9 @@ translateMsg { onInternalMsg, onNavigate, onRequireSignIn } msg =
             onInternalMsg internalMsg
 
 
-translateNewSuggestionMsg : Situations.NewSuggestion.Types.MsgTranslator Msg
+translateNewSuggestionMsg : Discussions.NewSuggestion.Types.MsgTranslator Msg
 translateNewSuggestionMsg =
-    Situations.NewSuggestion.Types.translateMsg
+    Discussions.NewSuggestion.Types.translateMsg
         { onInternalMsg = ForSelf << NewSuggestionMsg
         , onRequireSignIn = ForParent << RequireSignIn << NewSuggestionMsg
         , onSuggestionUpserted = ForSelf << SuggestionUpserted

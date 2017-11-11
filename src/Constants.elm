@@ -8,6 +8,11 @@ debateKeyIds =
     [ "con", "option", "pro", "remark", "source" ]
 
 
+discussionKeyIds : List String
+discussionKeyIds =
+    [ "discussion", "suggestion" ]
+
+
 duplicateOfKeyId : String
 duplicateOfKeyId =
     "duplicate-of"
@@ -31,8 +36,3 @@ imagePathKeyIds =
 nameKeyIds : List String
 nameKeyIds =
     [ "name" ]
-
-
-situationKeyIds : List String
-situationKeyIds =
-    [ "discussion", "suggestion" ]

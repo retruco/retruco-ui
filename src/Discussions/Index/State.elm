@@ -1,14 +1,14 @@
-module Situations.Index.State exposing (..)
+module Discussions.Index.State exposing (..)
 
 import Array
 import Authenticator.Types exposing (Authentication)
 import Dict
+import Discussions.Index.Types exposing (..)
 import Http
 import I18n
 import Navigation
 import Ports
 import Requests
-import Situations.Index.Types exposing (..)
 import Types exposing (DataProxy, initData, mergeData)
 import Urls
 
@@ -95,7 +95,7 @@ update msg model =
                     limit
                     offset
                     []
-                    [ "situation" ]
+                    [ "discussion" ]
                     model.showTrashed
                     model.searchCriteria.sort
                     |> Http.send (ForSelf << Retrieved)
@@ -161,8 +161,8 @@ urlUpdate location model =
         newModel
             ! [ cmd
               , Ports.setDocumentMetadata
-                    { description = I18n.translate language I18n.SituationsDescription
+                    { description = I18n.translate language I18n.DiscussionsDescription
                     , imageUrl = Urls.appLogoFullUrl
-                    , title = I18n.translate language I18n.Situations
+                    , title = I18n.translate language I18n.Discussions
                     }
               ]

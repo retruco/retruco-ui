@@ -1,4 +1,4 @@
-module Situations.NewSuggestion.Types exposing (..)
+module Discussions.NewSuggestion.Types exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import Dict exposing (Dict)
@@ -29,7 +29,7 @@ type alias Model =
     , httpError : Maybe Http.Error
     , language : I18n.Language
     , newProposalModel : Proposals.New.Types.Model
-    , objectId : String -- Situation ID
+    , objectId : String -- Discussion ID
     }
 
 

@@ -1,7 +1,8 @@
-module Situations.Index.View exposing (..)
+module Discussions.Index.View exposing (..)
 
 import Array
 import Dict
+import Discussions.Index.Types exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
@@ -9,7 +10,6 @@ import Html.Events exposing (..)
 import Html.Helpers exposing (aForPath)
 import Http.Error
 import I18n
-import Situations.Index.Types exposing (..)
 import Statements.Lines exposing (viewStatementIdRatedListGroupLine)
 import Views
 
@@ -53,9 +53,9 @@ view model =
                             [ aForPath
                                 navigateMsg
                                 language
-                                "/situations/new"
+                                "/discussions/new"
                                 [ class "btn btn-secondary", role "button" ]
-                                [ text <| I18n.translate language I18n.NewSituation ]
+                                [ text <| I18n.translate language I18n.NewDiscussion ]
                             ]
                         ]
                     ]
@@ -71,7 +71,7 @@ view model =
                                             viewStatementIdRatedListGroupLine
                                                 language
                                                 navigateMsg
-                                                "/situation"
+                                                "/discussion"
                                                 []
                                                 True
                                                 data
@@ -99,7 +99,7 @@ view model =
                                     ]
                                     [ strong []
                                         [ text <|
-                                            I18n.translate language I18n.SituationsRetrievalFailed
+                                            I18n.translate language I18n.DiscussionsRetrievalFailed
                                                 ++ I18n.translate language I18n.Colon
                                         ]
                                     , text <| Http.Error.toString language httpError

@@ -2,6 +2,7 @@ module Cards.Item.View exposing (..)
 
 import Cards.Item.Types exposing (..)
 import DebateProperties.SameObject.View
+import Discussions.Item.View
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
@@ -11,7 +12,6 @@ import I18n
 import Properties.SameObject.View
 import Properties.SameObjectAndKey.View
 import Properties.SameValue.View
-import Situations.Item.View
 import Statements.Alerts exposing (viewDuplicatedByAlert, viewDuplicateOfAlert)
 import Statements.Lines exposing (viewStatementIdRatedLine)
 import Statements.Toolbar.View
@@ -63,16 +63,16 @@ view model =
                                 |> Html.map translateToolbarMsg
                             , hr [] []
                             , ul [ class "nav nav-tabs" ]
-                                ((if List.member "situation" card.subTypeIds then
+                                ((if List.member "discussion" card.subTypeIds then
                                     [ li [ class "nav-item" ]
                                         [ aForPath
                                             navigateMsg
                                             language
-                                            (Urls.idToSituationPath data card.id)
+                                            (Urls.idToDiscussionPath data card.id)
                                             [ classList
                                                 [ ( "active"
                                                   , case model.activeTab of
-                                                        SituationTab _ ->
+                                                        DiscussionTab _ ->
                                                             True
 
                                                         _ ->
@@ -81,7 +81,7 @@ view model =
                                                 , ( "nav-link", True )
                                                 ]
                                             ]
-                                            [ text <| I18n.translate language I18n.Situation ]
+                                            [ text <| I18n.translate language I18n.Discussion ]
                                         ]
                                     ]
                                   else
@@ -151,6 +151,10 @@ view model =
                                     DebateProperties.SameObject.View.view debatePropertiesModel
                                         |> Html.map translateDebatePropertiesMsg
 
+                                DiscussionTab discussionModel ->
+                                    Discussions.Item.View.view discussionModel
+                                        |> Html.map translateDiscussionMsg
+
                                 NoTab ->
                                     text ""
 
@@ -161,10 +165,6 @@ view model =
                                 PropertiesTab propertiesModel ->
                                     Properties.SameObject.View.view propertiesModel
                                         |> Html.map translatePropertiesMsg
-
-                                SituationTab situationModel ->
-                                    Situations.Item.View.view situationModel
-                                        |> Html.map translateSituationMsg
                             ]
 
                     ( _, _ ) ->

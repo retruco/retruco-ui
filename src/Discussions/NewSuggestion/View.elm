@@ -1,9 +1,9 @@
-module Situations.NewSuggestion.View exposing (..)
+module Discussions.NewSuggestion.View exposing (..)
 
+import Discussions.NewSuggestion.Types exposing (..)
 import Html exposing (..)
 import I18n
 import Proposals.New.View
-import Situations.NewSuggestion.Types exposing (..)
 
 
 view : Model -> Html Msg

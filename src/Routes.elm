@@ -2,10 +2,10 @@ module Routes exposing (..)
 
 import Authenticator.Routes
 import Cards.Item.Routes
+import Discussions.Routes
 import I18n
 import Navigation
 import Properties.Item.Routes
-import Situations.Routes
 import UrlParser exposing ((</>), map, oneOf, parsePath, Parser, remaining, s, string, top)
 import Values.Item.Routes
 
@@ -18,13 +18,13 @@ type CardsRoute
 
 type LocalizedRoute
     = AboutRoute
-    | ProposalsRoute ProposalsRoute
     | AuthenticatorRoute Authenticator.Routes.Route
     | CardsRoute CardsRoute
+    | DiscussionsRoute Discussions.Routes.Route
     | HomeRoute
     | NotFoundRoute (List String)
     | PropertiesRoute PropertiesRoute
-    | SituationsRoute Situations.Routes.Route
+    | ProposalsRoute ProposalsRoute
     | UserProfileRoute
     | ValuesRoute ValuesRoute
 
@@ -54,8 +54,8 @@ cardRouteParser =
     oneOf
         [ map Cards.Item.Routes.PropertiesRoute top
         , map Cards.Item.Routes.DebatePropertiesRoute (s "arguments")
+        , map Cards.Item.Routes.DiscussionRoute (s "discussion")
         , map Cards.Item.Routes.SameObjectAndKeyPropertiesRoute (s "properties" </> idParser)
-        , map Cards.Item.Routes.SituationRoute (s "situation")
         , map Cards.Item.Routes.PropertiesAsValueRoute (s "uses")
         ]
 
@@ -66,6 +66,14 @@ cardsRouteParser =
         [ map CardsIndexRoute top
         , map NewCardRoute (s "new")
         , map CardRoute (idParser </> cardRouteParser)
+        ]
+
+
+discussionsRouteParser : Parser (Discussions.Routes.Route -> a) a
+discussionsRouteParser =
+    oneOf
+        [ map Discussions.Routes.DiscussionsIndexRoute top
+        , map Discussions.Routes.NewDiscussionRoute (s "new")
         ]
 
 
@@ -80,6 +88,7 @@ localizedRouteParser =
         [ map HomeRoute top
         , map AboutRoute (s "about")
         , map CardsRoute (s "cards" </> cardsRouteParser)
+        , map DiscussionsRoute (s "discussions" </> discussionsRouteParser)
         , map UserProfileRoute (s "profile")
         , map PropertiesRoute (s "properties" </> propertiesRouteParser)
         , map ProposalsRoute (s "proposals" </> proposalsRouteParser)
@@ -87,7 +96,6 @@ localizedRouteParser =
         , map (AuthenticatorRoute Authenticator.Routes.SignInRoute) (s "sign_in")
         , map (AuthenticatorRoute Authenticator.Routes.SignOutRoute) (s "sign_out")
         , map (AuthenticatorRoute Authenticator.Routes.SignUpRoute) (s "sign_up")
-        , map SituationsRoute (s "situations" </> situationsRouteParser)
         , map
             (AuthenticatorRoute << Authenticator.Routes.ActivateRoute)
             (s "users" </> idParser </> s "activate")
@@ -153,14 +161,6 @@ routeParser =
                 , I18n.Spanish
                 ]
         )
-
-
-situationsRouteParser : Parser (Situations.Routes.Route -> a) a
-situationsRouteParser =
-    oneOf
-        [ map Situations.Routes.SituationsIndexRoute top
-        , map Situations.Routes.NewSituationRoute (s "new")
-        ]
 
 
 valueRouteParser : Parser (Values.Item.Routes.Route -> a) a

@@ -6,14 +6,14 @@ import Authenticator.Types exposing (Authentication)
 import Cards.Index.Types
 import Cards.Item.Types
 import Cards.New.Types
+import Discussions.Index.Types
+import Discussions.New.Types
 import I18n
 import Navigation
 import Properties.Item.Types
 import Proposals.Index.Types
 import Proposals.New.Types
 import Routes
-import Situations.Index.Types
-import Situations.New.Types
 import Types
 import Values.Index.Types
 import Values.Item.Types
@@ -29,17 +29,17 @@ type alias Model =
     , cardModel : Maybe Cards.Item.Types.Model
     , cardsModel : Maybe Cards.Index.Types.Model
     , clearModelOnUrlUpdate : Bool
+    , discussionsModel : Maybe Discussions.Index.Types.Model
     , location : Navigation.Location
     , navigatorLanguage : Maybe I18n.Language
     , newCardModel : Maybe Cards.New.Types.Model
+    , newDiscussionModel : Maybe Discussions.New.Types.Model
     , newProposalModel : Maybe Proposals.New.Types.Model
-    , newSituationModel : Maybe Situations.New.Types.Model
     , newValueModel : Maybe Values.New.Types.Model
     , propertyModel : Maybe Properties.Item.Types.Model
     , proposalsModel : Maybe Proposals.Index.Types.Model
     , route : Routes.Route
     , signOutMsg : Maybe Msg
-    , situationsModel : Maybe Situations.Index.Types.Model
     , valueModel : Maybe Values.Item.Types.Model
     , valuesModel : Maybe Values.Index.Types.Model
     }
@@ -53,27 +53,27 @@ type Msg
     | CardsMsg Cards.Index.Types.InternalMsg
     | CardUpserted Types.DataId
     | ChangeAuthenticatorRoute Authenticator.Routes.Route
+    | DiscussionsMsg Discussions.Index.Types.InternalMsg
+    | DiscussionUpserted Types.DataId
     | GraphqlInited
     | LocationChanged Navigation.Location
     | Navigate String
     | NavigateFromAuthenticator String
     | NewCardMsg Cards.New.Types.InternalMsg
+    | NewDiscussionMsg Discussions.New.Types.InternalMsg
     | NewProposalMsg Proposals.New.Types.InternalMsg
-    | NewSituationMsg Situations.New.Types.InternalMsg
     | NewValueMsg Values.New.Types.InternalMsg
     | PropertyMsg Properties.Item.Types.InternalMsg
     | ProposalsMsg Proposals.Index.Types.InternalMsg
     | ProposalUpserted Types.DataId
     | RequireSignInForCard Cards.Item.Types.InternalMsg
     | RequireSignInForNewCard Cards.New.Types.InternalMsg
+    | RequireSignInForNewDiscussion Discussions.New.Types.InternalMsg
     | RequireSignInForNewProposal Proposals.New.Types.InternalMsg
-    | RequireSignInForNewSituation Situations.New.Types.InternalMsg
     | RequireSignInForNewValue Values.New.Types.InternalMsg
     | RequireSignInForProperty Properties.Item.Types.InternalMsg
     | RequireSignInForValue Values.Item.Types.InternalMsg
     | ScrolledToTop
-    | SituationsMsg Situations.Index.Types.InternalMsg
-    | SituationUpserted Types.DataId
     | ValueMsg Values.Item.Types.InternalMsg
     | ValuesMsg Values.Index.Types.InternalMsg
     | ValueUpserted Types.DataId
@@ -114,6 +114,14 @@ translateCardsMsg =
         }
 
 
+translateDiscussionsMsg : Discussions.Index.Types.MsgTranslator Msg
+translateDiscussionsMsg =
+    Discussions.Index.Types.translateMsg
+        { onInternalMsg = DiscussionsMsg
+        , onNavigate = Navigate
+        }
+
+
 translateNewCardMsg : Cards.New.Types.MsgTranslator Msg
 translateNewCardMsg =
     Cards.New.Types.translateMsg
@@ -123,21 +131,21 @@ translateNewCardMsg =
         }
 
 
+translateNewDiscussionMsg : Discussions.New.Types.MsgTranslator Msg
+translateNewDiscussionMsg =
+    Discussions.New.Types.translateMsg
+        { onDiscussionUpserted = DiscussionUpserted
+        , onInternalMsg = NewDiscussionMsg
+        , onRequireSignIn = RequireSignInForNewDiscussion
+        }
+
+
 translateNewProposalMsg : Proposals.New.Types.MsgTranslator Msg
 translateNewProposalMsg =
     Proposals.New.Types.translateMsg
         { onInternalMsg = NewProposalMsg
         , onProposalUpserted = ProposalUpserted
         , onRequireSignIn = RequireSignInForNewProposal
-        }
-
-
-translateNewSituationMsg : Situations.New.Types.MsgTranslator Msg
-translateNewSituationMsg =
-    Situations.New.Types.translateMsg
-        { onInternalMsg = NewSituationMsg
-        , onRequireSignIn = RequireSignInForNewSituation
-        , onSituationUpserted = SituationUpserted
         }
 
 
@@ -163,14 +171,6 @@ translateProposalsMsg : Proposals.Index.Types.MsgTranslator Msg
 translateProposalsMsg =
     Proposals.Index.Types.translateMsg
         { onInternalMsg = ProposalsMsg
-        , onNavigate = Navigate
-        }
-
-
-translateSituationsMsg : Situations.Index.Types.MsgTranslator Msg
-translateSituationsMsg =
-    Situations.Index.Types.translateMsg
-        { onInternalMsg = SituationsMsg
         , onNavigate = Navigate
         }
 

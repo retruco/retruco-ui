@@ -5,6 +5,9 @@ import Authenticator.View
 import Cards.Index.View
 import Cards.Item.View
 import Cards.New.View
+import Discussions.Index.View
+import Discussions.New.View
+import Discussions.Routes exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onWithOptions)
@@ -16,9 +19,6 @@ import Proposals.Index.View
 import Proposals.New.View
 import Root.Types exposing (..)
 import Routes exposing (..)
-import Situations.Index.View
-import Situations.New.View
-import Situations.Routes exposing (..)
 import Urls
 import Values.Index.View
 import Values.Item.View
@@ -188,9 +188,9 @@ view model =
                                     , li [ class "nav-item" ]
                                         [ aForPath Navigate
                                             language
-                                            "/situations"
+                                            "/discussions"
                                             [ class "nav-link" ]
-                                            [ text <| I18n.translate language I18n.Situations ]
+                                            [ text <| I18n.translate language I18n.Discussions ]
                                         ]
                                     , li [ class "nav-item" ]
                                         [ aForPath Navigate
@@ -273,6 +273,26 @@ view model =
                                                 Nothing ->
                                                     text "This should not occur: newCardModel == Nothing!"
 
+                                DiscussionsRoute childRoute ->
+                                    case childRoute of
+                                        DiscussionsIndexRoute ->
+                                            case model.discussionsModel of
+                                                Just discussionsModel ->
+                                                    Discussions.Index.View.view discussionsModel
+                                                        |> Html.map translateDiscussionsMsg
+
+                                                Nothing ->
+                                                    text "This should not occur: discussionsModel == Nothing!"
+
+                                        NewDiscussionRoute ->
+                                            case model.newDiscussionModel of
+                                                Just newDiscussionModel ->
+                                                    Discussions.New.View.view newDiscussionModel
+                                                        |> Html.map translateNewDiscussionMsg
+
+                                                Nothing ->
+                                                    text "This should not occur: newDiscussionModel == Nothing!"
+
                                 HomeRoute ->
                                     text "Home page is currently a redirection."
 
@@ -309,26 +329,6 @@ view model =
 
                                                 Nothing ->
                                                     text "This should not occur: newProposalModel == Nothing!"
-
-                                SituationsRoute childRoute ->
-                                    case childRoute of
-                                        SituationsIndexRoute ->
-                                            case model.situationsModel of
-                                                Just situationsModel ->
-                                                    Situations.Index.View.view situationsModel
-                                                        |> Html.map translateSituationsMsg
-
-                                                Nothing ->
-                                                    text "This should not occur: situationsModel == Nothing!"
-
-                                        NewSituationRoute ->
-                                            case model.newSituationModel of
-                                                Just newSituationModel ->
-                                                    Situations.New.View.view newSituationModel
-                                                        |> Html.map translateNewSituationMsg
-
-                                                Nothing ->
-                                                    text "This should not occur: newSituationModel == Nothing!"
 
                                 UserProfileRoute ->
                                     viewNotFound language

@@ -1,4 +1,4 @@
-module Situations.Index.Types exposing (..)
+module Discussions.Index.Types exposing (..)
 
 import Array exposing (Array)
 import Authenticator.Types exposing (Authentication)

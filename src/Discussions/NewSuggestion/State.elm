@@ -1,13 +1,13 @@
-module Situations.NewSuggestion.State exposing (..)
+module Discussions.NewSuggestion.State exposing (..)
 
 import Authenticator.Types exposing (Authentication)
+import Discussions.NewSuggestion.Types exposing (..)
 import Http
 import I18n
 import Navigation
 import Ports
 import Proposals.New.State
 import Requests
-import Situations.NewSuggestion.Types exposing (..)
 import Task
 import Types exposing (DataProxy, initDataId, mergeData)
 import Urls

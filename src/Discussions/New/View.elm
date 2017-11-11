@@ -1,15 +1,15 @@
-module Situations.New.View exposing (..)
+module Discussions.New.View exposing (..)
 
 import Cards.New.View
+import Discussions.New.Types exposing (..)
 import Html exposing (..)
 import I18n
-import Situations.New.Types exposing (..)
 
 
 view : Model -> Html Msg
 view model =
     section []
-        [ h1 [] [ text <| I18n.translate model.language I18n.NewSituation ]
+        [ h1 [] [ text <| I18n.translate model.language I18n.NewDiscussion ]
         , viewForm I18n.Create I18n.CardCreationFailed model
         ]
 

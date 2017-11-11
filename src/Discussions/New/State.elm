@@ -1,14 +1,14 @@
-module Situations.New.State exposing (..)
+module Discussions.New.State exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import Cards.New.State
 import Cards.New.Types
+import Discussions.New.Types exposing (..)
 import Http
 import I18n
 import Navigation
 import Ports
 import Requests
-import Situations.New.Types exposing (..)
 import Task
 import Types exposing (DataProxy, initDataId, mergeData)
 import Urls
@@ -80,7 +80,7 @@ update msg model =
                     { mergedData | id = model.id }
             in
                 ( { mergedModel | data = data }
-                , Task.perform (\_ -> ForParent <| SituationUpserted data) (Task.succeed ())
+                , Task.perform (\_ -> ForParent <| DiscussionUpserted data) (Task.succeed ())
                 )
 
         Upserted data ->
@@ -88,7 +88,7 @@ update msg model =
                 | data = mergeData data model.data
                 , id = data.id
               }
-            , Requests.postProperty model.authentication data.id "type" "situation" (Just 1)
+            , Requests.postProperty model.authentication data.id "type" "discussion" (Just 1)
                 |> Http.send (ForSelf << TypePropertyUpserted)
             )
 
@@ -101,8 +101,8 @@ urlUpdate location model =
     in
         ( model
         , Ports.setDocumentMetadata
-            { description = I18n.translate language I18n.NewSituationDescription
+            { description = I18n.translate language I18n.NewDiscussionDescription
             , imageUrl = Urls.appLogoFullUrl
-            , title = I18n.translate language I18n.NewSituation
+            , title = I18n.translate language I18n.NewDiscussion
             }
         )

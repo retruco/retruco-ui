@@ -1,14 +1,14 @@
-module Situations.Item.View exposing (..)
+module Discussions.Item.View exposing (..)
 
 import Array
 import Dict
+import Discussions.Item.Types exposing (..)
+import Discussions.NewSuggestion.View
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Http.Error
 import I18n
-import Situations.Item.Types exposing (..)
-import Situations.NewSuggestion.View
 import Statements.Lines exposing (viewStatementIdRatedListGroupLine)
 import Views
 
@@ -25,22 +25,22 @@ view model =
         navigateMsg =
             ForParent << Navigate
     in
-        case model.situationPropertyIds of
-            Just situationPropertyIds ->
+        case model.discussionPropertyIds of
+            Just discussionPropertyIds ->
                 div []
                     [ div []
-                        [ if Array.isEmpty situationPropertyIds then
+                        [ if Array.isEmpty discussionPropertyIds then
                             p [] [ text <| I18n.translate language I18n.MissingArguments ]
                           else
                             div [ class "list-group" ]
-                                (Array.toList situationPropertyIds
+                                (Array.toList discussionPropertyIds
                                     |> List.map
-                                        (\situationPropertyId ->
+                                        (\discussionPropertyId ->
                                             let
                                                 classList =
-                                                    case Dict.get situationPropertyId data.properties of
-                                                        Just situationProperty ->
-                                                            case situationProperty.keyId of
+                                                    case Dict.get discussionPropertyId data.properties of
+                                                        Just discussionProperty ->
+                                                            case discussionProperty.keyId of
                                                                 "con" ->
                                                                     [ ( "list-group-item-warning", True ) ]
 
@@ -60,12 +60,12 @@ view model =
                                                     classList
                                                     False
                                                     data
-                                                    situationPropertyId
+                                                    discussionPropertyId
                                         )
                                 )
                         ]
                     , hr [] []
-                    , Situations.NewSuggestion.View.view model.newSuggestionModel
+                    , Discussions.NewSuggestion.View.view model.newSuggestionModel
                         |> Html.map translateNewSuggestionMsg
                     ]
 
