@@ -3,7 +3,7 @@ module Discussions.Item.View exposing (..)
 import Array
 import Dict
 import Discussions.Item.Types exposing (..)
-import Discussions.NewSuggestion.View
+import Discussions.NewIntervention.View
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
@@ -65,8 +65,8 @@ view model =
                                 )
                         ]
                     , hr [] []
-                    , Discussions.NewSuggestion.View.view model.newSuggestionModel
-                        |> Html.map translateNewSuggestionMsg
+                    , Discussions.NewIntervention.View.view model.newInterventionModel
+                        |> Html.map translateNewInterventionMsg
                     ]
 
             Nothing ->

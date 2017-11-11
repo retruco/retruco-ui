@@ -1,4 +1,4 @@
-module Discussions.NewSuggestion.Types exposing (..)
+module Discussions.NewIntervention.Types exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import Dict exposing (Dict)
@@ -9,7 +9,7 @@ import Types exposing (..)
 
 
 type ExternalMsg
-    = SuggestionUpserted DataId
+    = InterventionUpserted DataId
     | RequireSignIn InternalMsg
 
 
@@ -40,7 +40,7 @@ type Msg
 
 type alias MsgTranslation parentMsg =
     { onInternalMsg : InternalMsg -> parentMsg
-    , onSuggestionUpserted : DataId -> parentMsg
+    , onInterventionUpserted : DataId -> parentMsg
     , onRequireSignIn : InternalMsg -> parentMsg
     }
 
@@ -50,13 +50,13 @@ type alias MsgTranslator parentMsg =
 
 
 translateMsg : MsgTranslation parentMsg -> MsgTranslator parentMsg
-translateMsg { onInternalMsg, onRequireSignIn, onSuggestionUpserted } msg =
+translateMsg { onInternalMsg, onInterventionUpserted, onRequireSignIn } msg =
     case msg of
+        ForParent (InterventionUpserted data) ->
+            onInterventionUpserted data
+
         ForParent (RequireSignIn completionMsg) ->
             onRequireSignIn completionMsg
-
-        ForParent (SuggestionUpserted data) ->
-            onSuggestionUpserted data
 
         ForSelf internalMsg ->
             onInternalMsg internalMsg

@@ -122,6 +122,7 @@ type TranslationId
     | InputEmailField
     | InputNumberField
     | InputUrlField
+    | InterventionCreationFailed
     | InvalidNumber
     | Language Language
     | LanguageWord
@@ -142,11 +143,11 @@ type TranslationId
     | NewCardDescription
     | NewDiscussion
     | NewDiscussionDescription
+    | NewIntervention
+    | NewInterventionDescription
     | NewProperty
     | NewProposal
     | NewProposalDescription
-    | NewSuggestion
-    | NewSuggestionDescription
     | NewValue
     | NewValueDescription
     | Number
@@ -215,7 +216,6 @@ type TranslationId
     | SimilarArgumentsDescription Int
     | SimilarArgumentsTitle Int
     | String
-    | SuggestionCreationFailed
     | Suggestions
     | Tags
     | TextField
@@ -1201,6 +1201,13 @@ getTranslationSet translationId =
         InputUrlField ->
             getTranslationSet Url
 
+        InterventionCreationFailed ->
+            { emptyTranslationSet
+                | english = s "Intervention creation failed"
+                , french = s "Échec de la création de l'intervention"
+                , spanish = todo
+            }
+
         InvalidNumber ->
             { emptyTranslationSet
                 | english = s "Not a valid number"
@@ -1357,6 +1364,20 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        NewIntervention ->
+            { emptyTranslationSet
+                | english = s "New Intervention"
+                , french = s "Nouvelle intervention"
+                , spanish = todo
+            }
+
+        NewInterventionDescription ->
+            { emptyTranslationSet
+                | english = s "Form to enter a new intervention"
+                , french = s "Formulaire de création d'une nouvelle intervention"
+                , spanish = todo
+            }
+
         NewProperty ->
             { emptyTranslationSet
                 | english = s "New Property"
@@ -1375,20 +1396,6 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Form to enter a new proposal"
                 , french = s "Formulaire de création d'une nouvelle proposition"
-                , spanish = todo
-            }
-
-        NewSuggestion ->
-            { emptyTranslationSet
-                | english = s "New Suggestion"
-                , french = s "Nouvelle suggestion"
-                , spanish = todo
-            }
-
-        NewSuggestionDescription ->
-            { emptyTranslationSet
-                | english = s "Form to enter a new suggestion"
-                , french = s "Formulaire de création d'une nouvelle suggestion"
                 , spanish = todo
             }
 
@@ -1901,13 +1908,6 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "String"
                 , french = s "Chaîne de caractères"
-                , spanish = todo
-            }
-
-        SuggestionCreationFailed ->
-            { emptyTranslationSet
-                | english = s "Suggestion creation failed"
-                , french = s "Échec de la création de la suggestion"
                 , spanish = todo
             }
 

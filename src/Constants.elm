@@ -10,7 +10,7 @@ debateKeyIds =
 
 discussionKeyIds : List String
 discussionKeyIds =
-    [ "discussion", "suggestion" ]
+    [ "discussion", "intervention" ]
 
 
 duplicateOfKeyId : String

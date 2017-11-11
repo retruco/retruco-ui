@@ -5,7 +5,7 @@ import Authenticator.Types exposing (Authentication)
 import Constants exposing (discussionKeyIds)
 import Decoders
 import Discussions.Item.Types exposing (..)
-import Discussions.NewSuggestion.State
+import Discussions.NewIntervention.State
 import Http
 import I18n
 import Json.Decode
@@ -23,7 +23,7 @@ init authentication language objectId =
     , discussionPropertyIds = Nothing
     , httpError = Nothing
     , language = language
-    , newSuggestionModel = Discussions.NewSuggestion.State.init authentication language objectId
+    , newInterventionModel = Discussions.NewIntervention.State.init authentication language objectId
     , objectId = objectId
     , showTrashed = False
     }
@@ -37,7 +37,7 @@ mergeModelData data model =
     in
         { model
             | data = mergedData
-            , newSuggestionModel = Discussions.NewSuggestion.State.mergeModelData mergedData model.newSuggestionModel
+            , newInterventionModel = Discussions.NewIntervention.State.mergeModelData mergedData model.newInterventionModel
         }
 
 
@@ -46,18 +46,18 @@ setContext authentication language model =
     { model
         | authentication = authentication
         , language = language
-        , newSuggestionModel =
-            Discussions.NewSuggestion.State.setContext
+        , newInterventionModel =
+            Discussions.NewIntervention.State.setContext
                 authentication
                 language
-                model.newSuggestionModel
+                model.newInterventionModel
     }
 
 
 subscriptions : Model -> Sub InternalMsg
 subscriptions model =
     Sub.batch
-        [ Sub.map NewSuggestionMsg (Discussions.NewSuggestion.State.subscriptions model.newSuggestionModel)
+        [ Sub.map NewInterventionMsg (Discussions.NewIntervention.State.subscriptions model.newInterventionModel)
         , Ports.propertyUpserted PropertyUpserted
         ]
 
@@ -65,13 +65,16 @@ subscriptions model =
 update : InternalMsg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NewSuggestionMsg childMsg ->
+        InterventionUpserted data ->
+            ( model, Cmd.none )
+
+        NewInterventionMsg childMsg ->
             let
-                ( updatedNewSuggestionModel, childCmd ) =
-                    Discussions.NewSuggestion.State.update childMsg model.newSuggestionModel
+                ( updatedNewInterventionModel, childCmd ) =
+                    Discussions.NewIntervention.State.update childMsg model.newInterventionModel
             in
-                ( { model | newSuggestionModel = updatedNewSuggestionModel }
-                , Cmd.map translateNewSuggestionMsg childCmd
+                ( { model | newInterventionModel = updatedNewInterventionModel }
+                , Cmd.map translateNewInterventionMsg childCmd
                 )
 
         PropertyUpserted propertyJson ->
@@ -143,9 +146,6 @@ update msg model =
                             , title = I18n.translate language I18n.Properties
                             }
                       ]
-
-        SuggestionUpserted data ->
-            ( model, Cmd.none )
 
 
 urlUpdate : Navigation.Location -> Model -> ( Model, Cmd Msg )

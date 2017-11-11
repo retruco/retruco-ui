@@ -2,7 +2,7 @@ module Discussions.Item.Types exposing (..)
 
 import Array exposing (Array)
 import Authenticator.Types exposing (Authentication)
-import Discussions.NewSuggestion.Types
+import Discussions.NewIntervention.Types
 import Http
 import I18n
 import Json.Encode
@@ -15,11 +15,11 @@ type ExternalMsg
 
 
 type InternalMsg
-    = NewSuggestionMsg Discussions.NewSuggestion.Types.InternalMsg
+    = InterventionUpserted Types.DataId
+    | NewInterventionMsg Discussions.NewIntervention.Types.InternalMsg
     | PropertyUpserted Json.Encode.Value
     | Retrieve
     | Retrieved (Result Http.Error DataIdsBody)
-    | SuggestionUpserted Types.DataId
 
 
 type alias Model =
@@ -28,7 +28,7 @@ type alias Model =
     , discussionPropertyIds : Maybe (Array String)
     , httpError : Maybe Http.Error
     , language : I18n.Language
-    , newSuggestionModel : Discussions.NewSuggestion.Types.Model
+    , newInterventionModel : Discussions.NewIntervention.Types.Model
     , objectId : String
     , showTrashed : Bool
     }
@@ -63,10 +63,10 @@ translateMsg { onInternalMsg, onNavigate, onRequireSignIn } msg =
             onInternalMsg internalMsg
 
 
-translateNewSuggestionMsg : Discussions.NewSuggestion.Types.MsgTranslator Msg
-translateNewSuggestionMsg =
-    Discussions.NewSuggestion.Types.translateMsg
-        { onInternalMsg = ForSelf << NewSuggestionMsg
-        , onRequireSignIn = ForParent << RequireSignIn << NewSuggestionMsg
-        , onSuggestionUpserted = ForSelf << SuggestionUpserted
+translateNewInterventionMsg : Discussions.NewIntervention.Types.MsgTranslator Msg
+translateNewInterventionMsg =
+    Discussions.NewIntervention.Types.translateMsg
+        { onInternalMsg = ForSelf << NewInterventionMsg
+        , onInterventionUpserted = ForSelf << InterventionUpserted
+        , onRequireSignIn = ForParent << RequireSignIn << NewInterventionMsg
         }
