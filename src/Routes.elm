@@ -144,7 +144,7 @@ routeParser =
             (\language ->
                 map
                     (I18nRouteWithLanguage language True)
-                    (s (I18n.languageIdFromLanguage language) </> s "embed" </> localizedRouteParser)
+                    (s "embed" </> s (I18n.languageIdFromLanguage language) </> localizedRouteParser)
             )
             [ I18n.English
             , I18n.French
