@@ -156,13 +156,13 @@ subscriptions model =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
-        language =
+        ( language, embed ) =
             case model.route of
-                I18nRouteWithLanguage language _ ->
-                    language
+                I18nRouteWithLanguage language embed _ ->
+                    ( language, embed )
 
                 _ ->
-                    I18n.English
+                    ( I18n.English, False )
 
         requireSignInOrUpdate : Msg -> ( Model, Cmd Msg )
         requireSignInOrUpdate completionMsg =
@@ -502,7 +502,7 @@ urlUpdate location model =
 
         ( newModel, cmd ) =
             case parseLocation location of
-                Just ((I18nRouteWithLanguage language localizedRoute) as route) ->
+                Just ((I18nRouteWithLanguage language embed localizedRoute) as route) ->
                     let
                         ( localizedModel, localizedCmd ) =
                             case localizedRoute of

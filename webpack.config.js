@@ -106,7 +106,14 @@ if (TARGET_ENV === 'development') {
           use: ['style-loader', 'css-loader', 'postcss-loader', 'sass-loader']
         }
       ]
-    }
+    },
+    plugins: [
+      new CopyWebpackPlugin([
+        {
+          from: 'node_modules/iframe-resizer/js/iframeResizer.contentWindow.min.js'
+        }
+      ])
+    ]
   });
 }
 
@@ -137,6 +144,9 @@ if (TARGET_ENV === 'production') {
     },
     plugins: [
       new CopyWebpackPlugin([
+        {
+          from: 'node_modules/iframe-resizer/js/iframeResizer.contentWindow.min.js'
+        },
         {
           from: 'static/favicon.ico'
         },

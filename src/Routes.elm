@@ -39,7 +39,7 @@ type ProposalsRoute
 
 
 type Route
-    = I18nRouteWithLanguage I18n.Language LocalizedRoute
+    = I18nRouteWithLanguage I18n.Language Bool LocalizedRoute
     | I18nRouteWithoutLanguage String
 
 
@@ -134,12 +134,24 @@ routeParser =
     oneOf
         (List.map
             (\language ->
-                map (I18nRouteWithLanguage language) (s (I18n.languageIdFromLanguage language) </> localizedRouteParser)
+                map
+                    (I18nRouteWithLanguage language True)
+                    (s (I18n.languageIdFromLanguage language) </> s "embed" </> localizedRouteParser)
             )
             [ I18n.English
             , I18n.French
             , I18n.Spanish
             ]
+            ++ List.map
+                (\language ->
+                    map
+                        (I18nRouteWithLanguage language False)
+                        (s (I18n.languageIdFromLanguage language) </> localizedRouteParser)
+                )
+                [ I18n.English
+                , I18n.French
+                , I18n.Spanish
+                ]
         )
 
 
