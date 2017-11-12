@@ -1,9 +1,9 @@
-module Discussions.NewIntervention.State exposing (..)
+module Ideas.New.State exposing (..)
 
 import Authenticator.Types exposing (Authentication)
-import Discussions.NewIntervention.Types exposing (..)
 import Http
 import I18n
+import Ideas.New.Types exposing (..)
 import Navigation
 import Ports
 import Proposals.New.State
@@ -66,7 +66,7 @@ update msg model =
 
         ProposalUpserted data ->
             ( { model | data = mergeData data model.data }
-            , Requests.postProperty model.authentication model.objectId "intervention" data.id (Just 1)
+            , Requests.postProperty model.authentication model.objectId "idea" data.id (Just 1)
                 |> Http.send (ForSelf << Upserted)
             )
 
@@ -85,7 +85,7 @@ update msg model =
                     { mergedData | id = body.data.id }
             in
                 ( mergedModel
-                , Task.perform (\_ -> ForParent <| InterventionUpserted data) (Task.succeed ())
+                , Task.perform (\_ -> ForParent <| IdeaUpserted data) (Task.succeed ())
                 )
 
 
@@ -97,8 +97,8 @@ urlUpdate location model =
     in
         ( model
         , Ports.setDocumentMetadata
-            { description = I18n.translate language I18n.NewInterventionDescription
+            { description = I18n.translate language I18n.NewIdeaDescription
             , imageUrl = Urls.appLogoFullUrl
-            , title = I18n.translate language I18n.NewIntervention
+            , title = I18n.translate language I18n.NewIdea
             }
         )

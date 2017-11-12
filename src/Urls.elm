@@ -77,6 +77,16 @@ idToDiscussionPath data id =
     (idToPath data id) ++ "/discussion"
 
 
+idToIdeasPath : DataProxy a -> String -> String
+idToIdeasPath data id =
+    (idToDiscussionPath data id) ++ "/ideas"
+
+
+idToInterventionsPath : DataProxy a -> String -> String
+idToInterventionsPath data id =
+    idToDiscussionPath data id
+
+
 idToPath : DataProxy a -> String -> String
 idToPath data id =
     case Dict.get id data.cards of
@@ -112,6 +122,11 @@ idToPropertiesPath data id =
 
             Nothing ->
                 "/properties"
+
+
+idToQuestionsPath : DataProxy a -> String -> String
+idToQuestionsPath data id =
+    (idToDiscussionPath data id) ++ "/questions"
 
 
 idToSameObjectAndKeyPropertiesPath : DataProxy a -> String -> String -> String

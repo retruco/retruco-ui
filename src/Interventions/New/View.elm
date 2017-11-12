@@ -1,8 +1,8 @@
-module Discussions.NewIntervention.View exposing (..)
+module Interventions.New.View exposing (..)
 
-import Discussions.NewIntervention.Types exposing (..)
 import Html exposing (..)
 import I18n
+import Interventions.New.Types exposing (..)
 import Proposals.New.View
 
 

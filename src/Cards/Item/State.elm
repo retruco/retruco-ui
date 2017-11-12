@@ -395,13 +395,13 @@ urlUpdate location route model =
                           , Cmd.map translateDebatePropertiesMsg updatedDebatePropertiesCmd
                           ]
 
-            DiscussionRoute ->
+            DiscussionRoute discussionRoute ->
                 let
                     discussionModel =
                         Discussions.Item.State.init authentication language id
 
                     ( updatedDiscussionModel, updatedDiscussionCmd ) =
-                        Discussions.Item.State.urlUpdate location discussionModel
+                        Discussions.Item.State.urlUpdate location discussionRoute discussionModel
                 in
                     { updatedModel
                         | activeTab = DiscussionTab updatedDiscussionModel

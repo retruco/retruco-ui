@@ -1,11 +1,11 @@
 module Discussions.Item.Types exposing (..)
 
-import Array exposing (Array)
 import Authenticator.Types exposing (Authentication)
-import Discussions.NewIntervention.Types
 import Http
 import I18n
-import Json.Encode
+import Ideas.Index.Types
+import Interventions.Index.Types
+import Questions.Index.Types
 import Types exposing (..)
 
 
@@ -15,20 +15,20 @@ type ExternalMsg
 
 
 type InternalMsg
-    = InterventionUpserted Types.DataId
-    | NewInterventionMsg Discussions.NewIntervention.Types.InternalMsg
-    | PropertyUpserted Json.Encode.Value
-    | Retrieve
-    | Retrieved (Result Http.Error DataIdsBody)
+    = IdeasMsg Ideas.Index.Types.InternalMsg
+    | InterventionsMsg Interventions.Index.Types.InternalMsg
+    | QuestionsMsg Questions.Index.Types.InternalMsg
+
+
+
+-- | TrashMsg Trash.Index.Types.InternalMsg
 
 
 type alias Model =
-    { authentication : Maybe Authentication
+    { activeTab : Tab
+    , authentication : Maybe Authentication
     , data : Data
-    , discussionPropertyIds : Maybe (Array String)
-    , httpError : Maybe Http.Error
     , language : I18n.Language
-    , newInterventionModel : Discussions.NewIntervention.Types.Model
     , objectId : String
     , showTrashed : Bool
     }
@@ -50,6 +50,35 @@ type alias MsgTranslator parentMsg =
     Msg -> parentMsg
 
 
+type Tab
+    = IdeasTab Ideas.Index.Types.Model
+    | InterventionsTab Interventions.Index.Types.Model
+    | NoTab
+    | QuestionsTab Questions.Index.Types.Model
+
+
+
+-- | TrashTab Trash.Index.Types.Model
+
+
+translateIdeasMsg : Ideas.Index.Types.MsgTranslator Msg
+translateIdeasMsg =
+    Ideas.Index.Types.translateMsg
+        { onInternalMsg = ForSelf << IdeasMsg
+        , onNavigate = ForParent << Navigate
+        , onRequireSignIn = ForParent << RequireSignIn << IdeasMsg
+        }
+
+
+translateInterventionsMsg : Interventions.Index.Types.MsgTranslator Msg
+translateInterventionsMsg =
+    Interventions.Index.Types.translateMsg
+        { onInternalMsg = ForSelf << InterventionsMsg
+        , onNavigate = ForParent << Navigate
+        , onRequireSignIn = ForParent << RequireSignIn << InterventionsMsg
+        }
+
+
 translateMsg : MsgTranslation parentMsg -> MsgTranslator parentMsg
 translateMsg { onInternalMsg, onNavigate, onRequireSignIn } msg =
     case msg of
@@ -63,10 +92,10 @@ translateMsg { onInternalMsg, onNavigate, onRequireSignIn } msg =
             onInternalMsg internalMsg
 
 
-translateNewInterventionMsg : Discussions.NewIntervention.Types.MsgTranslator Msg
-translateNewInterventionMsg =
-    Discussions.NewIntervention.Types.translateMsg
-        { onInternalMsg = ForSelf << NewInterventionMsg
-        , onInterventionUpserted = ForSelf << InterventionUpserted
-        , onRequireSignIn = ForParent << RequireSignIn << NewInterventionMsg
+translateQuestionsMsg : Questions.Index.Types.MsgTranslator Msg
+translateQuestionsMsg =
+    Questions.Index.Types.translateMsg
+        { onInternalMsg = ForSelf << QuestionsMsg
+        , onNavigate = ForParent << Navigate
+        , onRequireSignIn = ForParent << RequireSignIn << QuestionsMsg
         }

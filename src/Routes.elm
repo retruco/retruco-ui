@@ -2,6 +2,7 @@ module Routes exposing (..)
 
 import Authenticator.Routes
 import Cards.Item.Routes
+import Discussions.Item.Routes
 import Discussions.Routes
 import I18n
 import Navigation
@@ -54,7 +55,7 @@ cardRouteParser =
     oneOf
         [ map Cards.Item.Routes.PropertiesRoute top
         , map Cards.Item.Routes.DebatePropertiesRoute (s "arguments")
-        , map Cards.Item.Routes.DiscussionRoute (s "discussion")
+        , map Cards.Item.Routes.DiscussionRoute (s "discussion" </> discussionRouteParser)
         , map Cards.Item.Routes.SameObjectAndKeyPropertiesRoute (s "properties" </> idParser)
         , map Cards.Item.Routes.PropertiesAsValueRoute (s "uses")
         ]
@@ -66,6 +67,15 @@ cardsRouteParser =
         [ map CardsIndexRoute top
         , map NewCardRoute (s "new")
         , map CardRoute (idParser </> cardRouteParser)
+        ]
+
+
+discussionRouteParser : Parser (Discussions.Item.Routes.Route -> a) a
+discussionRouteParser =
+    oneOf
+        [ map Discussions.Item.Routes.InterventionsRoute top
+        , map Discussions.Item.Routes.IdeasRoute (s "ideas")
+        , map Discussions.Item.Routes.QuestionsRoute (s "questions")
         ]
 
 

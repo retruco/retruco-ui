@@ -3,13 +3,17 @@ module Discussions.Item.View exposing (..)
 import Array
 import Dict
 import Discussions.Item.Types exposing (..)
-import Discussions.NewIntervention.View
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
+import Html.Helpers exposing (aForPath)
 import Http.Error
 import I18n
+import Ideas.Index.View
+import Interventions.Index.View
+import Questions.Index.View
 import Statements.Lines exposing (viewStatementIdRatedListGroupLine)
+import Urls
 import Views
 
 
@@ -25,65 +29,79 @@ view model =
         navigateMsg =
             ForParent << Navigate
     in
-        case model.discussionPropertyIds of
-            Just discussionPropertyIds ->
-                div []
-                    [ div []
-                        [ if Array.isEmpty discussionPropertyIds then
-                            p [] [ text <| I18n.translate language I18n.MissingArguments ]
-                          else
-                            div [ class "list-group" ]
-                                (Array.toList discussionPropertyIds
-                                    |> List.map
-                                        (\discussionPropertyId ->
-                                            let
-                                                classList =
-                                                    case Dict.get discussionPropertyId data.properties of
-                                                        Just discussionProperty ->
-                                                            case discussionProperty.keyId of
-                                                                "con" ->
-                                                                    [ ( "list-group-item-warning", True ) ]
+        div []
+            [ ul [ class "nav nav-tabs" ]
+                [ li [ class "nav-item" ]
+                    [ aForPath
+                        navigateMsg
+                        language
+                        (Urls.idToInterventionsPath data model.objectId)
+                        [ classList
+                            [ ( "active"
+                              , case model.activeTab of
+                                    InterventionsTab _ ->
+                                        True
 
-                                                                "pro" ->
-                                                                    [ ( "list-group-item-success", True ) ]
-
-                                                                _ ->
-                                                                    [ ( "list-group-item-secondary", True ) ]
-
-                                                        Nothing ->
-                                                            []
-                                            in
-                                                viewStatementIdRatedListGroupLine
-                                                    language
-                                                    navigateMsg
-                                                    ""
-                                                    classList
-                                                    False
-                                                    data
-                                                    discussionPropertyId
-                                        )
-                                )
+                                    _ ->
+                                        False
+                              )
+                            , ( "nav-link", True )
+                            ]
                         ]
-                    , hr [] []
-                    , Discussions.NewIntervention.View.view model.newInterventionModel
-                        |> Html.map translateNewInterventionMsg
+                        [ text <| I18n.translate language I18n.Interventions ]
                     ]
+                , li [ class "nav-item" ]
+                    [ aForPath
+                        navigateMsg
+                        language
+                        (Urls.idToIdeasPath data model.objectId)
+                        [ classList
+                            [ ( "active"
+                              , case model.activeTab of
+                                    IdeasTab _ ->
+                                        True
 
-            Nothing ->
-                case model.httpError of
-                    Just httpError ->
-                        div
-                            [ class "alert alert-danger"
-                            , role "alert"
+                                    _ ->
+                                        False
+                              )
+                            , ( "nav-link", True )
                             ]
-                            [ strong []
-                                [ text <|
-                                    I18n.translate language I18n.ArgumentsRetrievalFailed
-                                        ++ I18n.translate language I18n.Colon
-                                ]
-                            , text <| Http.Error.toString language httpError
-                            ]
+                        ]
+                        [ text <| I18n.translate language I18n.Ideas ]
+                    ]
+                , li [ class "nav-item" ]
+                    [ aForPath
+                        navigateMsg
+                        language
+                        (Urls.idToQuestionsPath data model.objectId)
+                        [ classList
+                            [ ( "active"
+                              , case model.activeTab of
+                                    QuestionsTab _ ->
+                                        True
 
-                    Nothing ->
-                        div [ class "text-center" ]
-                            [ Views.viewLoading language ]
+                                    _ ->
+                                        False
+                              )
+                            , ( "nav-link", True )
+                            ]
+                        ]
+                        [ text <| I18n.translate language I18n.Questions ]
+                    ]
+                ]
+            , case model.activeTab of
+                IdeasTab ideasModel ->
+                    Ideas.Index.View.view ideasModel
+                        |> Html.map translateIdeasMsg
+
+                InterventionsTab interventionsModel ->
+                    Interventions.Index.View.view interventionsModel
+                        |> Html.map translateInterventionsMsg
+
+                NoTab ->
+                    text ""
+
+                QuestionsTab questionsModel ->
+                    Questions.Index.View.view questionsModel
+                        |> Html.map translateQuestionsMsg
+            ]

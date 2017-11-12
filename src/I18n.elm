@@ -113,6 +113,8 @@ type TranslationId
     | Home
     | HomeDescription
     | Id
+    | IdeaCreationFailed
+    | Ideas
     | IdsArray
     | Image
     | ImageAlt
@@ -123,6 +125,7 @@ type TranslationId
     | InputNumberField
     | InputUrlField
     | InterventionCreationFailed
+    | Interventions
     | InvalidNumber
     | Language Language
     | LanguageWord
@@ -143,11 +146,15 @@ type TranslationId
     | NewCardDescription
     | NewDiscussion
     | NewDiscussionDescription
+    | NewIdea
+    | NewIdeaDescription
     | NewIntervention
     | NewInterventionDescription
     | NewProperty
     | NewProposal
     | NewProposalDescription
+    | NewQuestion
+    | NewQuestionDescription
     | NewValue
     | NewValueDescription
     | Number
@@ -173,6 +180,8 @@ type TranslationId
     | Proposals
     | ProposalsDescription
     | ProposalsRetrievalFailed
+    | QuestionCreationFailed
+    | Questions
     | RadioButtonForFollowingAutocompleter
     | ReadingSelectedImage
     | ReadMore
@@ -1154,6 +1163,20 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        IdeaCreationFailed ->
+            { emptyTranslationSet
+                | english = s "Idea creation failed"
+                , french = s "Échec de la création de l'idée"
+                , spanish = todo
+            }
+
+        Ideas ->
+            { emptyTranslationSet
+                | english = s "Ideas"
+                , french = s "Idées"
+                , spanish = todo
+            }
+
         IdsArray ->
             { emptyTranslationSet
                 | english = s "Array of links to objects"
@@ -1205,6 +1228,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Intervention creation failed"
                 , french = s "Échec de la création de l'intervention"
+                , spanish = todo
+            }
+
+        Interventions ->
+            { emptyTranslationSet
+                | english = s "Interventions"
+                , french = s "Interventions"
                 , spanish = todo
             }
 
@@ -1364,6 +1394,20 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        NewIdea ->
+            { emptyTranslationSet
+                | english = s "New Idea"
+                , french = s "Nouvelle idée"
+                , spanish = todo
+            }
+
+        NewIdeaDescription ->
+            { emptyTranslationSet
+                | english = s "Form to enter a new idea"
+                , french = s "Formulaire de création d'une nouvelle idée"
+                , spanish = todo
+            }
+
         NewIntervention ->
             { emptyTranslationSet
                 | english = s "New Intervention"
@@ -1396,6 +1440,20 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Form to enter a new proposal"
                 , french = s "Formulaire de création d'une nouvelle proposition"
+                , spanish = todo
+            }
+
+        NewQuestion ->
+            { emptyTranslationSet
+                | english = s "New Question"
+                , french = s "Nouvelle question"
+                , spanish = todo
+            }
+
+        NewQuestionDescription ->
+            { emptyTranslationSet
+                | english = s "Form to enter a new question"
+                , french = s "Formulaire de création d'une nouvelle question"
                 , spanish = todo
             }
 
@@ -1571,6 +1629,20 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Retrieval of proposals failed"
                 , french = s "Échec de la récupération des propositions"
+                , spanish = todo
+            }
+
+        QuestionCreationFailed ->
+            { emptyTranslationSet
+                | english = s "Question creation failed"
+                , french = s "Échec de la création de la question"
+                , spanish = todo
+            }
+
+        Questions ->
+            { emptyTranslationSet
+                | english = s "Questions"
+                , french = s "Questions"
                 , spanish = todo
             }
 
