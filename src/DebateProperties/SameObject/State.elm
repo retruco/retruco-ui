@@ -14,14 +14,15 @@ import Types exposing (..)
 import Urls
 
 
-init : Maybe Authentication -> I18n.Language -> String -> Model
-init authentication language objectId =
+init : Maybe Authentication -> Bool -> I18n.Language -> String -> Model
+init authentication embed language objectId =
     { authentication = authentication
     , data = initData
+    , embed = embed
     , debatePropertyIds = Nothing
     , httpError = Nothing
     , language = language
-    , newDebatePropertyModel = DebateProperties.New.State.init authentication language objectId [ "TextField" ]
+    , newDebatePropertyModel = DebateProperties.New.State.init authentication embed language objectId [ "TextField" ]
     , objectId = objectId
     , showTrashed = False
     }
@@ -39,14 +40,16 @@ mergeModelData data model =
         }
 
 
-setContext : Maybe Authentication -> I18n.Language -> Model -> Model
-setContext authentication language model =
+setContext : Maybe Authentication -> Bool -> I18n.Language -> Model -> Model
+setContext authentication embed language model =
     { model
         | authentication = authentication
+        , embed = embed
         , language = language
         , newDebatePropertyModel =
             DebateProperties.New.State.setContext
                 authentication
+                embed
                 language
                 model.newDebatePropertyModel
     }

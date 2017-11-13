@@ -26,6 +26,7 @@ type alias Model =
     { authentication : Maybe Authentication
     , data : Data
     , discussionPropertyIds : Maybe (Array String)
+    , embed : Bool
     , httpError : Maybe Http.Error
     , language : I18n.Language
     , newIdeaModel : Ideas.New.Types.Model

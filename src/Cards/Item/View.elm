@@ -31,6 +31,9 @@ view model =
                 data =
                     model.data
 
+                embed =
+                    model.embed
+
                 language =
                     model.language
 
@@ -42,6 +45,7 @@ view model =
                         div []
                             [ viewStatementIdRatedLine
                                 h1
+                                embed
                                 language
                                 False
                                 navigateMsg
@@ -50,11 +54,13 @@ view model =
                                 data
                                 card.id
                             , viewDuplicatedByAlert
+                                embed
                                 language
                                 navigateMsg
                                 data
                                 model.duplicatedByPropertyIds
                             , viewDuplicateOfAlert
+                                embed
                                 language
                                 navigateMsg
                                 data
@@ -70,6 +76,7 @@ view model =
                                         [ li [ class "nav-item" ]
                                             [ aForPath
                                                 navigateMsg
+                                                embed
                                                 language
                                                 (Urls.idToDiscussionPath data card.id)
                                                 [ classList
@@ -93,6 +100,7 @@ view model =
                                         ++ [ li [ class "nav-item" ]
                                                 [ aForPath
                                                     navigateMsg
+                                                    embed
                                                     language
                                                     (Urls.idToDebatePropertiesPath data card.id)
                                                     [ classList
@@ -112,6 +120,7 @@ view model =
                                            , li [ class "nav-item" ]
                                                 [ aForPath
                                                     navigateMsg
+                                                    embed
                                                     language
                                                     (Urls.idToPropertiesPath data card.id)
                                                     [ classList
@@ -131,6 +140,7 @@ view model =
                                            , li [ class "nav-item" ]
                                                 [ aForPath
                                                     navigateMsg
+                                                    embed
                                                     language
                                                     (Urls.idToPropertiesAsValuePath data card.id)
                                                     [ classList

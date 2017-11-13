@@ -42,6 +42,9 @@ view model =
         data =
             model.data
 
+        embed =
+            model.embed
+
         language =
             model.language
 
@@ -74,6 +77,7 @@ view model =
                         [ li [ class "nav-item" ]
                             [ aForPath
                                 navigateMsg
+                                embed
                                 language
                                 "/values/new"
                                 [ class "btn btn-secondary", role "button" ]
@@ -91,10 +95,11 @@ view model =
                                     (\valueId ->
                                         aForPath
                                             navigateMsg
+                                            embed
                                             language
                                             (Urls.idToPath data valueId)
                                             [ class "list-group-item list-group-item-action" ]
-                                            [ viewValueIdLine language navigateMsg False data valueId ]
+                                            [ viewValueIdLine embed language navigateMsg False data valueId ]
                                     )
                             )
                         , if Array.length ids < model.count then

@@ -2,7 +2,6 @@ module Discussions.New.State exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import Cards.New.State
-import Cards.New.Types
 import Discussions.New.Types exposing (..)
 import Http
 import I18n
@@ -14,14 +13,15 @@ import Types exposing (DataProxy, initDataId, mergeData)
 import Urls
 
 
-init : Maybe Authentication -> I18n.Language -> Model
-init authentication language =
+init : Maybe Authentication -> Bool -> I18n.Language -> Model
+init authentication embed language =
     { authentication = authentication
     , data = initDataId
+    , embed = embed
     , httpError = Nothing
     , id = ""
     , language = language
-    , newCardModel = Cards.New.State.init authentication language
+    , newCardModel = Cards.New.State.init authentication embed language
     }
 
 
@@ -37,12 +37,13 @@ mergeModelData data model =
         }
 
 
-setContext : Maybe Authentication -> I18n.Language -> Model -> Model
-setContext authentication language model =
+setContext : Maybe Authentication -> Bool -> I18n.Language -> Model -> Model
+setContext authentication embed language model =
     { model
         | authentication = authentication
+        , embed = embed
         , language = language
-        , newCardModel = Cards.New.State.setContext authentication language model.newCardModel
+        , newCardModel = Cards.New.State.setContext authentication embed language model.newCardModel
     }
 
 
@@ -58,7 +59,7 @@ update msg model =
             let
                 ( newCardModel, childCmd ) =
                     model.newCardModel
-                        |> Cards.New.State.setContext model.authentication model.language
+                        |> Cards.New.State.setContext model.authentication model.embed model.language
                         |> Cards.New.State.update childMsg
             in
                 ( { model | newCardModel = newCardModel }

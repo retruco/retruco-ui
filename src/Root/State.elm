@@ -84,8 +84,8 @@ navigate model path =
         Cmd.none
 
 
-requireSignIn : I18n.Language -> Navigation.Location -> Maybe Msg -> Model -> ( Model, Cmd Msg )
-requireSignIn language location completionMsg model =
+requireSignIn : Bool -> I18n.Language -> Navigation.Location -> Maybe Msg -> Model -> ( Model, Cmd Msg )
+requireSignIn embed language location completionMsg model =
     ( { model
         | authenticatorCancelMsg = model.signOutMsg
         , authenticatorCompletionMsgs =
@@ -98,7 +98,7 @@ requireSignIn language location completionMsg model =
                         []
       }
     , Navigation.modifyUrl
-        (Urls.languagePath language "/sign_in")
+        (Urls.languagePath embed language "/sign_in")
     )
 
 
@@ -168,7 +168,7 @@ update msg model =
         requireSignInOrUpdate completionMsg =
             if model.authentication == Nothing then
                 -- update (StartAuthenticator Nothing (Just completionMsg) SignInRoute) model
-                requireSignIn language model.location (Just completionMsg) model
+                requireSignIn embed language model.location (Just completionMsg) model
             else
                 update completionMsg model
     in
@@ -209,7 +209,7 @@ update msg model =
                                 Task.perform (\_ -> cancelMsg) (Task.succeed ())
 
                             Nothing ->
-                                navigate model <| Urls.languagePath language "/"
+                                navigate model <| Urls.languagePath embed language "/"
                         )
 
                     Ok authentication ->
@@ -224,10 +224,10 @@ update msg model =
                                     [ navigate model
                                         (case route of
                                             ChangePasswordRoute _ ->
-                                                Urls.languagePath language "/profile"
+                                                Urls.languagePath embed language "/profile"
 
                                             _ ->
-                                                Urls.languagePath language "/"
+                                                Urls.languagePath embed language "/"
                                         )
                                     ]
                                    else
@@ -265,7 +265,7 @@ update msg model =
                         ( model, Cmd.none )
 
             CardUpserted data ->
-                update (Navigate <| Urls.languagePath language <| Urls.idToPath data data.id) model
+                update (Navigate <| Urls.languagePath embed language <| Urls.idToPath data data.id) model
 
             ChangeAuthenticatorRoute authenticatorRoute ->
                 let
@@ -290,7 +290,7 @@ update msg model =
                                 "/sign_up"
                 in
                     ( model
-                    , navigate model <| Urls.languagePath language path
+                    , navigate model <| Urls.languagePath embed language path
                     )
 
             DiscussionsMsg childMsg ->
@@ -308,7 +308,7 @@ update msg model =
                         ( model, Cmd.none )
 
             DiscussionUpserted data ->
-                update (Navigate <| Urls.languagePath language <| Urls.idToPath data data.id) model
+                update (Navigate <| Urls.languagePath embed language <| Urls.idToPath data data.id) model
 
             GraphqlInited ->
                 ( model, Cmd.none )
@@ -414,7 +414,7 @@ update msg model =
                         ( model, Cmd.none )
 
             ProposalUpserted data ->
-                update (Navigate <| Urls.languagePath language <| Urls.idToPath data data.id) model
+                update (Navigate <| Urls.languagePath embed language <| Urls.idToPath data data.id) model
 
             RequireSignInForCard cardCompletionMsg ->
                 requireSignInOrUpdate <| CardMsg cardCompletionMsg
@@ -469,7 +469,7 @@ update msg model =
                         ( model, Cmd.none )
 
             ValueUpserted data ->
-                update (Navigate <| Urls.languagePath language <| Urls.idToPath data data.id) model
+                update (Navigate <| Urls.languagePath embed language <| Urls.idToPath data data.id) model
 
 
 urlUpdate : Navigation.Location -> Model -> ( Model, Cmd Msg )
@@ -514,7 +514,7 @@ urlUpdate location model =
                                                     existingAboutModel
 
                                                 Nothing ->
-                                                    About.State.init model.authentication language
+                                                    About.State.init model.authentication embed language
 
                                         ( updatedAboutModel, updatedAboutCmd ) =
                                             About.State.urlUpdate location aboutModel
@@ -578,7 +578,7 @@ urlUpdate location model =
                                         CardsIndexRoute ->
                                             let
                                                 cardsModel =
-                                                    Cards.Index.State.init model.authentication language
+                                                    Cards.Index.State.init model.authentication embed language
 
                                                 ( updatedCardsModel, childCmd ) =
                                                     Cards.Index.State.urlUpdate
@@ -596,12 +596,14 @@ urlUpdate location model =
                                                         ( Just newCardModel, False ) ->
                                                             Cards.New.State.setContext
                                                                 model.authentication
+                                                                embed
                                                                 language
                                                                 newCardModel
 
                                                         _ ->
                                                             Cards.New.State.init
                                                                 model.authentication
+                                                                embed
                                                                 language
 
                                                 ( updatedNewCardModel, updatedNewCardCmd ) =
@@ -612,7 +614,7 @@ urlUpdate location model =
                                                     , signOutMsg =
                                                         Just <|
                                                             NavigateFromAuthenticator <|
-                                                                Urls.languagePath language "/cards"
+                                                                Urls.languagePath embed language "/cards"
                                                   }
                                                 , Cmd.map translateNewCardMsg updatedNewCardCmd
                                                 )
@@ -622,7 +624,7 @@ urlUpdate location model =
                                         DiscussionsIndexRoute ->
                                             let
                                                 discussionsModel =
-                                                    Discussions.Index.State.init model.authentication language
+                                                    Discussions.Index.State.init model.authentication embed language
 
                                                 ( updatedDiscussionsModel, childCmd ) =
                                                     Discussions.Index.State.urlUpdate location discussionsModel
@@ -638,12 +640,14 @@ urlUpdate location model =
                                                         ( Just newDiscussionModel, False ) ->
                                                             Discussions.New.State.setContext
                                                                 model.authentication
+                                                                embed
                                                                 language
                                                                 newDiscussionModel
 
                                                         _ ->
                                                             Discussions.New.State.init
                                                                 model.authentication
+                                                                embed
                                                                 language
 
                                                 ( updatedNewDiscussionModel, updatedNewDiscussionCmd ) =
@@ -654,13 +658,13 @@ urlUpdate location model =
                                                     , signOutMsg =
                                                         Just <|
                                                             NavigateFromAuthenticator <|
-                                                                Urls.languagePath language "/discussions"
+                                                                Urls.languagePath embed language "/discussions"
                                                   }
                                                 , Cmd.map translateNewDiscussionMsg updatedNewDiscussionCmd
                                                 )
 
                                 HomeRoute ->
-                                    ( cleanModel, navigate cleanModel <| Urls.languagePath language "/proposals" )
+                                    ( cleanModel, navigate cleanModel <| Urls.languagePath embed language "/proposals" )
 
                                 NotFoundRoute _ ->
                                     ( cleanModel
@@ -680,12 +684,14 @@ urlUpdate location model =
                                                         ( Just propertyModel, False ) ->
                                                             Properties.Item.State.setContext
                                                                 model.authentication
+                                                                embed
                                                                 language
                                                                 propertyModel
 
                                                         _ ->
                                                             Properties.Item.State.init
                                                                 model.authentication
+                                                                embed
                                                                 language
                                                                 propertyId
 
@@ -708,7 +714,7 @@ urlUpdate location model =
                                         ProposalsIndexRoute ->
                                             let
                                                 proposalsModel =
-                                                    Proposals.Index.State.init model.authentication language
+                                                    Proposals.Index.State.init model.authentication embed language
 
                                                 ( updatedProposalsModel, childCmd ) =
                                                     Proposals.Index.State.urlUpdate location proposalsModel
@@ -724,12 +730,14 @@ urlUpdate location model =
                                                         ( Just newProposalModel, False ) ->
                                                             Proposals.New.State.setContext
                                                                 model.authentication
+                                                                embed
                                                                 language
                                                                 newProposalModel
 
                                                         _ ->
                                                             Proposals.New.State.init
                                                                 model.authentication
+                                                                embed
                                                                 language
 
                                                 ( updatedNewProposalModel, updatedNewProposalCmd ) =
@@ -740,7 +748,7 @@ urlUpdate location model =
                                                     , signOutMsg =
                                                         Just <|
                                                             NavigateFromAuthenticator <|
-                                                                Urls.languagePath language "/proposals"
+                                                                Urls.languagePath embed language "/proposals"
                                                   }
                                                 , Cmd.map translateNewProposalMsg updatedNewProposalCmd
                                                 )
@@ -755,7 +763,7 @@ urlUpdate location model =
                                                 Just _ ->
                                                     let
                                                         newValueModel =
-                                                            Values.New.State.init model.authentication language []
+                                                            Values.New.State.init model.authentication embed language []
 
                                                         ( updatedNewValueModel, updatedNewValueCmd ) =
                                                             Values.New.State.urlUpdate location newValueModel
@@ -765,13 +773,13 @@ urlUpdate location model =
                                                             , signOutMsg =
                                                                 Just <|
                                                                     NavigateFromAuthenticator <|
-                                                                        Urls.languagePath language "/values"
+                                                                        Urls.languagePath embed language "/values"
                                                           }
                                                         , Cmd.map translateNewValueMsg updatedNewValueCmd
                                                         )
 
                                                 Nothing ->
-                                                    requireSignIn language location Nothing cleanModel
+                                                    requireSignIn embed language location Nothing cleanModel
 
                                         ValueRoute valueId valueRoute ->
                                             let
@@ -780,12 +788,14 @@ urlUpdate location model =
                                                         ( Just valueModel, False ) ->
                                                             Values.Item.State.setContext
                                                                 model.authentication
+                                                                embed
                                                                 language
                                                                 valueModel
 
                                                         _ ->
                                                             Values.Item.State.init
                                                                 model.authentication
+                                                                embed
                                                                 language
                                                                 valueId
 
@@ -806,7 +816,7 @@ urlUpdate location model =
                                         ValuesIndexRoute ->
                                             let
                                                 valuesModel =
-                                                    Values.Index.State.init model.authentication language
+                                                    Values.Index.State.init model.authentication embed language
 
                                                 ( updatedValuesModel, childCmd ) =
                                                     Values.Index.State.urlUpdate location valuesModel
@@ -823,7 +833,9 @@ urlUpdate location model =
                             model.navigatorLanguage |> Maybe.withDefault I18n.English
 
                         command =
-                            Urls.languagePath language
+                            Urls.languagePath
+                                False
+                                language
                                 (path ++ (Urls.queryStringForParams [ "q", "tagIds" ] location))
                                 |> Navigation.modifyUrl
                     in

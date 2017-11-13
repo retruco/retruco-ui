@@ -134,9 +134,16 @@ idToSameObjectAndKeyPropertiesPath data id keyId =
     (idToPath data id) ++ "/properties/" ++ keyId
 
 
-languagePath : I18n.Language -> String -> String
-languagePath language path =
-    "/" ++ (I18n.languageIdFromLanguage language) ++ path
+languagePath : Bool -> I18n.Language -> String -> String
+languagePath embed language path =
+    "/"
+        ++ (if embed then
+                "embed/"
+            else
+                ""
+           )
+        ++ (I18n.languageIdFromLanguage language)
+        ++ path
 
 
 objectIdPath : String -> DataProxy a -> String

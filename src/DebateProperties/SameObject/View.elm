@@ -19,6 +19,9 @@ view model =
         data =
             model.data
 
+        embed =
+            model.embed
+
         language =
             model.language
 
@@ -54,6 +57,7 @@ view model =
                                                             []
                                             in
                                                 viewStatementIdRatedListGroupLine
+                                                    embed
                                                     language
                                                     navigateMsg
                                                     ""

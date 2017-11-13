@@ -9,8 +9,8 @@ import Statements.Lines exposing (viewStatementIdRatedListGroupLine)
 import Types exposing (Argument, DataProxy, Statement)
 
 
-viewDuplicatedByAlert : I18n.Language -> (String -> msg) -> DataProxy a -> Maybe (List String) -> Html msg
-viewDuplicatedByAlert language navigateMsg data duplicatedByPropertyIds =
+viewDuplicatedByAlert : Bool -> I18n.Language -> (String -> msg) -> DataProxy a -> Maybe (List String) -> Html msg
+viewDuplicatedByAlert embed language navigateMsg data duplicatedByPropertyIds =
     case duplicatedByPropertyIds of
         Just duplicatedByPropertyIds ->
             let
@@ -38,6 +38,7 @@ viewDuplicatedByAlert language navigateMsg data duplicatedByPropertyIds =
                             (List.map
                                 (\duplicatedByProperty ->
                                     viewStatementIdRatedListGroupLine
+                                        embed
                                         language
                                         navigateMsg
                                         ""
@@ -56,8 +57,8 @@ viewDuplicatedByAlert language navigateMsg data duplicatedByPropertyIds =
             text ""
 
 
-viewDuplicateOfAlert : I18n.Language -> (String -> msg) -> DataProxy a -> Maybe (List String) -> Html msg
-viewDuplicateOfAlert language navigateMsg data duplicateOfPropertyIds =
+viewDuplicateOfAlert : Bool -> I18n.Language -> (String -> msg) -> DataProxy a -> Maybe (List String) -> Html msg
+viewDuplicateOfAlert embed language navigateMsg data duplicateOfPropertyIds =
     case duplicateOfPropertyIds of
         Just duplicateOfPropertyIds ->
             let
@@ -85,6 +86,7 @@ viewDuplicateOfAlert language navigateMsg data duplicateOfPropertyIds =
                             (List.map
                                 (\duplicateOfProperty ->
                                     viewStatementIdRatedListGroupLine
+                                        embed
                                         language
                                         navigateMsg
                                         ""

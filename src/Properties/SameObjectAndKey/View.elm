@@ -23,6 +23,9 @@ view model =
         data =
             model.data
 
+        embed =
+            model.embed
+
         language =
             model.language
 
@@ -36,6 +39,7 @@ view model =
                         [ div [ class "mb-3 w-100" ]
                             [ viewStatementIdRatedLine
                                 div
+                                embed
                                 language
                                 True
                                 navigateMsg
@@ -81,6 +85,7 @@ view model =
                                             Just <|
                                                 aForPath
                                                     navigateMsg
+                                                    embed
                                                     language
                                                     (Urls.idToPath data property.id)
                                                     [ classList
@@ -95,6 +100,7 @@ view model =
                                                         ]
                                                     ]
                                                     [ viewStatementIdLine
+                                                        embed
                                                         language
                                                         navigateMsg
                                                         True

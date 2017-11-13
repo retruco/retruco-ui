@@ -32,6 +32,7 @@ type alias Model =
     { authentication : Maybe Authentication
     , cardId : String
     , data : DataId
+    , embed : Bool
     , errors : FormErrors
     , httpError : Maybe Http.Error
     , language : I18n.Language

@@ -23,6 +23,9 @@ view model =
         data =
             model.data
 
+        embed =
+            model.embed
+
         language =
             model.language
 
@@ -34,6 +37,7 @@ view model =
                 [ li [ class "nav-item" ]
                     [ aForPath
                         navigateMsg
+                        embed
                         language
                         (Urls.idToInterventionsPath data model.objectId)
                         [ classList
@@ -53,6 +57,7 @@ view model =
                 , li [ class "nav-item" ]
                     [ aForPath
                         navigateMsg
+                        embed
                         language
                         (Urls.idToIdeasPath data model.objectId)
                         [ classList
@@ -72,6 +77,7 @@ view model =
                 , li [ class "nav-item" ]
                     [ aForPath
                         navigateMsg
+                        embed
                         language
                         (Urls.idToQuestionsPath data model.objectId)
                         [ classList

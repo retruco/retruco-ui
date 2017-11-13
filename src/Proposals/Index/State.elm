@@ -13,25 +13,6 @@ import Types exposing (DataProxy, initData, mergeData)
 import Urls
 
 
-init : Maybe Authentication -> I18n.Language -> Model
-init authentication language =
-    { authentication = authentication
-    , count = 0
-    , data = initData
-    , errors = Dict.empty
-    , httpError = Nothing
-    , ids = Nothing
-    , language = language
-    , searchCriteria =
-        { sort = "trending"
-        , term = Nothing
-        }
-    , searchSort = "trending"
-    , searchTerm = ""
-    , showTrashed = False
-    }
-
-
 convertControlsToSearchCriteria : Model -> Result FormErrors SearchCriteria
 convertControlsToSearchCriteria model =
     let
@@ -67,6 +48,26 @@ convertControlsToSearchCriteria model =
                 }
         else
             Err (Dict.fromList errorsList)
+
+
+init : Maybe Authentication -> Bool -> I18n.Language -> Model
+init authentication embed language =
+    { authentication = authentication
+    , count = 0
+    , data = initData
+    , embed = embed
+    , errors = Dict.empty
+    , httpError = Nothing
+    , ids = Nothing
+    , language = language
+    , searchCriteria =
+        { sort = "trending"
+        , term = Nothing
+        }
+    , searchSort = "trending"
+    , searchTerm = ""
+    , showTrashed = False
+    }
 
 
 mergeModelData : DataProxy a -> Model -> Model

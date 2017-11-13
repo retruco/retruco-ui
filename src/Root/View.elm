@@ -80,6 +80,7 @@ view model =
                             li [ class "nav-item" ]
                                 [ aForPath
                                     Navigate
+                                    embed
                                     language
                                     "/profile"
                                     [ class "nav-link" ]
@@ -95,6 +96,7 @@ view model =
                             li [ class "nav-item" ]
                                 [ aForPath
                                     Navigate
+                                    embed
                                     language
                                     "/sign_out"
                                     [ class "nav-link" ]
@@ -105,6 +107,7 @@ view model =
                             li [ class "nav-item" ]
                                 [ aForPath
                                     Navigate
+                                    embed
                                     language
                                     "/sign_in"
                                     [ class "nav-link" ]
@@ -120,6 +123,7 @@ view model =
                             li [ class "nav-item" ]
                                 [ aForPath
                                     Navigate
+                                    embed
                                     language
                                     "/sign_up"
                                     [ class "nav-link" ]
@@ -134,6 +138,7 @@ view model =
                         [ nav [ class "bg-dark fixed-top navbar navbar-dark navbar-expand-sm" ]
                             [ aForPath
                                 Navigate
+                                embed
                                 language
                                 "/"
                                 [ class "navbar-brand" ]
@@ -162,6 +167,7 @@ view model =
                                 [ ul [ class "navbar-nav mr-auto" ]
                                     -- [ li [ class "nav-item" ]
                                     --     [ aForPath Navigate
+                                    --         embed
                                     --         language
                                     --         "/"
                                     --         [ class "nav-link" ]
@@ -173,27 +179,34 @@ view model =
                                     [ li [ class "nav-item" ]
                                         [ aForPath
                                             Navigate
+                                            embed
                                             language
                                             "/about"
                                             [ class "nav-link" ]
                                             [ text <| I18n.translate language I18n.About ]
                                         ]
                                     , li [ class "nav-item" ]
-                                        [ aForPath Navigate
+                                        [ aForPath
+                                            Navigate
+                                            embed
                                             language
                                             "/cards"
                                             [ class "nav-link" ]
                                             [ text <| I18n.translate language I18n.Cards ]
                                         ]
                                     , li [ class "nav-item" ]
-                                        [ aForPath Navigate
+                                        [ aForPath
+                                            Navigate
+                                            embed
                                             language
                                             "/discussions"
                                             [ class "nav-link" ]
                                             [ text <| I18n.translate language I18n.Discussions ]
                                         ]
                                     , li [ class "nav-item" ]
-                                        [ aForPath Navigate
+                                        [ aForPath
+                                            Navigate
+                                            embed
                                             language
                                             "/proposals"
                                             [ class "nav-link" ]
@@ -201,7 +214,9 @@ view model =
                                         ]
 
                                     -- , li [ class "nav-item" ]
-                                    --     [ aForPath Navigate
+                                    --     [ aForPath
+                                    --         Navigate
+                                    --         embed
                                     --         language
                                     --         "/values"
                                     --         [ class "nav-link" ]

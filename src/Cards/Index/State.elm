@@ -13,11 +13,12 @@ import Types exposing (DataProxy, initData, mergeData)
 import Urls
 
 
-init : Maybe Authentication -> I18n.Language -> Model
-init authentication language =
+init : Maybe Authentication -> Bool -> I18n.Language -> Model
+init authentication embed language =
     { authentication = authentication
     , count = 0
     , data = initData
+    , embed = embed
     , errors = Dict.empty
     , httpError = Nothing
     , ids = Nothing

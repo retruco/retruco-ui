@@ -24,6 +24,9 @@ view model =
         data =
             model.data
 
+        embed =
+            model.embed
+
         language =
             model.language
 
@@ -101,6 +104,7 @@ view model =
                                                             [ case valueIds of
                                                                 [ valueId ] ->
                                                                     viewStatementIdLine
+                                                                        embed
                                                                         language
                                                                         navigateMsg
                                                                         True
@@ -114,6 +118,7 @@ view model =
                                                                             (\valueId ->
                                                                                 li []
                                                                                     [ viewStatementIdLine
+                                                                                        embed
                                                                                         language
                                                                                         navigateMsg
                                                                                         True
@@ -129,6 +134,7 @@ view model =
                                                     , div []
                                                         [ aForPath
                                                             navigateMsg
+                                                            embed
                                                             language
                                                             (Urls.idToSameObjectAndKeyPropertiesPath
                                                                 data

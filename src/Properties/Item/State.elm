@@ -21,11 +21,12 @@ import Types exposing (..)
 import Urls
 
 
-init : Maybe Authentication -> I18n.Language -> String -> Model
-init authentication language id =
+init : Maybe Authentication -> Bool -> I18n.Language -> String -> Model
+init authentication embed language id =
     { activeTab = NoTab
     , authentication = authentication
     , data = initData
+    , embed = embed
     , httpError = Nothing
     , id = id
     , language = language
@@ -83,6 +84,7 @@ mergeModelData data model =
                                 Just <|
                                     Statements.Toolbar.State.init
                                         model.authentication
+                                        model.embed
                                         model.language
                                         mergedData
                                         property
@@ -92,39 +94,52 @@ mergeModelData data model =
         }
 
 
-setContext : Maybe Authentication -> I18n.Language -> Model -> Model
-setContext authentication language model =
+setContext : Maybe Authentication -> Bool -> I18n.Language -> Model -> Model
+setContext authentication embed language model =
     { model
         | activeTab =
             case model.activeTab of
                 DebatePropertiesTab debatePropertiesModel ->
                     DebatePropertiesTab <|
-                        DebateProperties.SameObject.State.setContext authentication language debatePropertiesModel
+                        DebateProperties.SameObject.State.setContext authentication embed language debatePropertiesModel
 
                 PropertiesAsValueTab propertiesAsValueModel ->
                     PropertiesAsValueTab <|
-                        Properties.SameValue.State.setContext authentication
+                        Properties.SameValue.State.setContext
+                            authentication
+                            embed
                             language
                             propertiesAsValueModel
 
                 PropertiesTab propertiesModel ->
-                    PropertiesTab <| Properties.SameObject.State.setContext authentication language propertiesModel
+                    PropertiesTab <|
+                        Properties.SameObject.State.setContext
+                            authentication
+                            embed
+                            language
+                            propertiesModel
 
                 _ ->
                     model.activeTab
         , authentication = authentication
+        , embed = embed
         , language = language
         , sameKeyPropertiesModel =
             case model.sameKeyPropertiesModel of
                 Just sameKeyPropertiesModel ->
-                    Just <| Properties.SameObjectAndKey.State.setContext authentication language sameKeyPropertiesModel
+                    Just <|
+                        Properties.SameObjectAndKey.State.setContext
+                            authentication
+                            embed
+                            language
+                            sameKeyPropertiesModel
 
                 Nothing ->
                     Nothing
         , toolbarModel =
             case model.toolbarModel of
                 Just toolbarModel ->
-                    Just <| Statements.Toolbar.State.setContext authentication language toolbarModel
+                    Just <| Statements.Toolbar.State.setContext authentication embed language toolbarModel
 
                 Nothing ->
                     Nothing
@@ -313,6 +328,9 @@ urlUpdate location route model =
         authentication =
             model.authentication
 
+        embed =
+            model.embed
+
         id =
             model.id
 
@@ -335,7 +353,7 @@ urlUpdate location route model =
             DebatePropertiesRoute ->
                 let
                     debatePropertiesModel =
-                        DebateProperties.SameObject.State.init authentication language id
+                        DebateProperties.SameObject.State.init authentication embed language id
 
                     ( updatedDebatePropertiesModel, updatedDebatePropertiesCmd ) =
                         DebateProperties.SameObject.State.urlUpdate location debatePropertiesModel
@@ -350,7 +368,7 @@ urlUpdate location route model =
             PropertiesAsValueRoute ->
                 let
                     propertiesAsValueModel =
-                        Properties.SameValue.State.init authentication language id
+                        Properties.SameValue.State.init authentication embed language id
 
                     ( updatedPropertiesAsValueModel, updatedPropertiesAsValueCmd ) =
                         Properties.SameValue.State.urlUpdate location propertiesAsValueModel
@@ -365,7 +383,7 @@ urlUpdate location route model =
             PropertiesRoute ->
                 let
                     propertiesModel =
-                        Properties.SameObject.State.init authentication language id
+                        Properties.SameObject.State.init authentication embed language id
 
                     ( updatedPropertiesModel, updatedPropertiesCmd ) =
                         Properties.SameObject.State.urlUpdate location propertiesModel
@@ -380,7 +398,7 @@ urlUpdate location route model =
             SameObjectAndKeyPropertiesRoute keyId ->
                 let
                     sameKeyPropertiesModel =
-                        Properties.SameObjectAndKey.State.init authentication language id keyId
+                        Properties.SameObjectAndKey.State.init authentication embed language id keyId
 
                     ( updatedSameObjectAndKeyPropertiesModel, updatedSameObjectAndKeyPropertiesCmd ) =
                         Properties.SameObjectAndKey.State.urlUpdate location sameKeyPropertiesModel

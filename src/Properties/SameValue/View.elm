@@ -17,6 +17,9 @@ view model =
         data =
             model.data
 
+        embed =
+            model.embed
+
         language =
             model.language
 
@@ -35,6 +38,7 @@ view model =
                                     |> List.map
                                         (\propertyId ->
                                             viewStatementIdRatedListGroupLine
+                                                embed
                                                 language
                                                 navigateMsg
                                                 ""

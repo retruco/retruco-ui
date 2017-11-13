@@ -13,14 +13,15 @@ import Urls
 import Values.New.State
 
 
-init : Maybe Authentication -> I18n.Language -> String -> String -> Model
-init authentication language objectId keyId =
+init : Maybe Authentication -> Bool -> I18n.Language -> String -> String -> Model
+init authentication embed language objectId keyId =
     { authentication = authentication
     , data = initData
+    , embed = embed
     , httpError = Nothing
     , keyId = keyId
     , language = language
-    , newValueModel = Values.New.State.init authentication language []
+    , newValueModel = Values.New.State.init authentication embed language []
     , objectId = objectId
     , propertyIds = Nothing
     }
@@ -38,12 +39,13 @@ mergeModelData data model =
         }
 
 
-setContext : Maybe Authentication -> I18n.Language -> Model -> Model
-setContext authentication language model =
+setContext : Maybe Authentication -> Bool -> I18n.Language -> Model -> Model
+setContext authentication embed language model =
     { model
         | authentication = authentication
+        , embed = embed
         , language = language
-        , newValueModel = Values.New.State.setContext authentication language model.newValueModel
+        , newValueModel = Values.New.State.setContext authentication embed language model.newValueModel
     }
 
 

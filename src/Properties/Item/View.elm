@@ -30,6 +30,9 @@ view model =
                 data =
                     model.data
 
+                embed =
+                    model.embed
+
                 language =
                     model.language
 
@@ -41,6 +44,7 @@ view model =
                         div []
                             [ viewStatementIdRatedLine
                                 h1
+                                embed
                                 language
                                 False
                                 navigateMsg
@@ -72,6 +76,7 @@ view model =
                                                     (List.map
                                                         (\similarDebatePropertyId ->
                                                             viewStatementIdRatedListGroupLine
+                                                                embed
                                                                 language
                                                                 navigateMsg
                                                                 ""
@@ -95,6 +100,7 @@ view model =
                                 [ li [ class "nav-item" ]
                                     [ aForPath
                                         navigateMsg
+                                        embed
                                         language
                                         (Urls.idToDebatePropertiesPath data property.id)
                                         [ classList
@@ -114,6 +120,7 @@ view model =
                                 , li [ class "nav-item" ]
                                     [ aForPath
                                         navigateMsg
+                                        embed
                                         language
                                         (Urls.idToPropertiesPath data property.id)
                                         [ classList
@@ -133,6 +140,7 @@ view model =
                                 , li [ class "nav-item" ]
                                     [ aForPath
                                         navigateMsg
+                                        embed
                                         language
                                         (Urls.idToPropertiesAsValuePath data property.id)
                                         [ classList

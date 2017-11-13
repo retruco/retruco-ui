@@ -15,13 +15,14 @@ import Values.New.State
 import Values.New.Types
 
 
-init : Maybe Authentication -> I18n.Language -> Model
-init authentication language =
+init : Maybe Authentication -> Bool -> I18n.Language -> Model
+init authentication embed language =
     { authentication = authentication
     , data = initDataId
+    , embed = embed
     , httpError = Nothing
     , language = language
-    , newValueModel = Values.New.State.init authentication language [ "TextField" ]
+    , newValueModel = Values.New.State.init authentication embed language [ "TextField" ]
     }
 
 
@@ -37,12 +38,13 @@ mergeModelData data model =
         }
 
 
-setContext : Maybe Authentication -> I18n.Language -> Model -> Model
-setContext authentication language model =
+setContext : Maybe Authentication -> Bool -> I18n.Language -> Model -> Model
+setContext authentication embed language model =
     { model
         | authentication = authentication
+        , embed = embed
         , language = language
-        , newValueModel = Values.New.State.setContext authentication language model.newValueModel
+        , newValueModel = Values.New.State.setContext authentication embed language model.newValueModel
     }
 
 
@@ -58,7 +60,7 @@ update msg model =
             let
                 ( newValueModel, childCmd ) =
                     model.newValueModel
-                        |> Values.New.State.setContext model.authentication model.language
+                        |> Values.New.State.setContext model.authentication model.embed model.language
                         |> Values.New.State.update childMsg
             in
                 ( { model | newValueModel = newValueModel }

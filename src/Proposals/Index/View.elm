@@ -20,6 +20,9 @@ view model =
         data =
             model.data
 
+        embed =
+            model.embed
+
         language =
             model.language
 
@@ -52,6 +55,7 @@ view model =
                         [ li [ class "nav-item" ]
                             [ aForPath
                                 navigateMsg
+                                embed
                                 language
                                 "/proposals/new"
                                 [ class "btn btn-secondary", role "button" ]
@@ -72,6 +76,7 @@ view model =
                                                 Just typedValue ->
                                                     Just <|
                                                         viewStatementIdRatedListGroupLine
+                                                            embed
                                                             language
                                                             navigateMsg
                                                             ""

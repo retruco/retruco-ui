@@ -24,6 +24,7 @@ type InternalMsg
 type alias Model =
     { authentication : Maybe Authentication
     , data : Data
+    , embed : Bool
     , httpError : Maybe Http.Error
     , keyId : String
     , language : I18n.Language

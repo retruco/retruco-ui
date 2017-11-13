@@ -92,6 +92,7 @@ mergeModelData data model =
                                 Just <|
                                     Statements.Toolbar.State.init
                                         model.authentication
+                                        model.embed
                                         model.language
                                         mergedData
                                         card
@@ -101,29 +102,35 @@ mergeModelData data model =
         }
 
 
-setContext : Maybe Authentication -> I18n.Language -> Model -> Model
-setContext authentication language model =
+setContext : Maybe Authentication -> Bool -> I18n.Language -> Model -> Model
+setContext authentication embed language model =
     { model
         | activeTab =
             case model.activeTab of
                 DebatePropertiesTab debatePropertiesModel ->
                     DebatePropertiesTab <|
-                        DebateProperties.SameObject.State.setContext authentication language debatePropertiesModel
+                        DebateProperties.SameObject.State.setContext authentication embed language debatePropertiesModel
 
                 DiscussionTab discussionModel ->
                     DiscussionTab <|
-                        Discussions.Item.State.setContext authentication language discussionModel
+                        Discussions.Item.State.setContext authentication embed language discussionModel
 
                 PropertiesAsValueTab propertiesAsValueModel ->
                     PropertiesAsValueTab <|
-                        Properties.SameValue.State.setContext authentication language propertiesAsValueModel
+                        Properties.SameValue.State.setContext authentication embed language propertiesAsValueModel
 
                 PropertiesTab propertiesModel ->
-                    PropertiesTab <| Properties.SameObject.State.setContext authentication language propertiesModel
+                    PropertiesTab <|
+                        Properties.SameObject.State.setContext
+                            authentication
+                            embed
+                            language
+                            propertiesModel
 
                 _ ->
                     model.activeTab
         , authentication = authentication
+        , embed = embed
         , language = language
         , sameKeyPropertiesModel =
             case model.sameKeyPropertiesModel of
@@ -131,6 +138,7 @@ setContext authentication language model =
                     Just <|
                         Properties.SameObjectAndKey.State.setContext
                             authentication
+                            embed
                             language
                             sameKeyPropertiesModel
 
@@ -139,7 +147,7 @@ setContext authentication language model =
         , toolbarModel =
             case model.toolbarModel of
                 Just toolbarModel ->
-                    Just <| Statements.Toolbar.State.setContext authentication language toolbarModel
+                    Just <| Statements.Toolbar.State.setContext authentication embed language toolbarModel
 
                 Nothing ->
                     Nothing
@@ -361,6 +369,9 @@ urlUpdate location route model =
         authentication =
             model.authentication
 
+        embed =
+            model.embed
+
         id =
             model.id
 
@@ -383,7 +394,7 @@ urlUpdate location route model =
             DebatePropertiesRoute ->
                 let
                     debatePropertiesModel =
-                        DebateProperties.SameObject.State.init authentication language id
+                        DebateProperties.SameObject.State.init authentication embed language id
 
                     ( updatedDebatePropertiesModel, updatedDebatePropertiesCmd ) =
                         DebateProperties.SameObject.State.urlUpdate location debatePropertiesModel
@@ -398,7 +409,7 @@ urlUpdate location route model =
             DiscussionRoute discussionRoute ->
                 let
                     discussionModel =
-                        Discussions.Item.State.init authentication language id
+                        Discussions.Item.State.init authentication embed language id
 
                     ( updatedDiscussionModel, updatedDiscussionCmd ) =
                         Discussions.Item.State.urlUpdate location discussionRoute discussionModel
@@ -413,7 +424,7 @@ urlUpdate location route model =
             PropertiesAsValueRoute ->
                 let
                     propertiesAsValueModel =
-                        Properties.SameValue.State.init authentication language id
+                        Properties.SameValue.State.init authentication embed language id
 
                     ( updatedPropertiesAsValueModel, updatedPropertiesAsValueCmd ) =
                         Properties.SameValue.State.urlUpdate location propertiesAsValueModel
@@ -428,7 +439,7 @@ urlUpdate location route model =
             PropertiesRoute ->
                 let
                     propertiesModel =
-                        Properties.SameObject.State.init authentication language id
+                        Properties.SameObject.State.init authentication embed language id
 
                     ( updatedPropertiesModel, updatedPropertiesCmd ) =
                         Properties.SameObject.State.urlUpdate location propertiesModel
@@ -443,7 +454,7 @@ urlUpdate location route model =
             SameObjectAndKeyPropertiesRoute keyId ->
                 let
                     sameKeyPropertiesModel =
-                        Properties.SameObjectAndKey.State.init authentication language id keyId
+                        Properties.SameObjectAndKey.State.init authentication embed language id keyId
 
                     ( updatedSameObjectAndKeyPropertiesModel, updatedSameObjectAndKeyPropertiesCmd ) =
                         Properties.SameObjectAndKey.State.urlUpdate location sameKeyPropertiesModel

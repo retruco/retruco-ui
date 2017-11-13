@@ -14,10 +14,11 @@ import Types exposing (..)
 import Urls
 
 
-init : Maybe Authentication -> I18n.Language -> Data -> Statement b -> Model (Statement b)
-init authentication language data statement =
+init : Maybe Authentication -> Bool -> I18n.Language -> Data -> Statement b -> Model (Statement b)
+init authentication embed language data statement =
     { authentication = authentication
     , data = data
+    , embed = embed
     , httpError = Nothing
     , language = language
     , statement = statement
@@ -26,10 +27,11 @@ init authentication language data statement =
     }
 
 
-setContext : Maybe Authentication -> I18n.Language -> Model (Statement b) -> Model (Statement b)
-setContext authentication language model =
+setContext : Maybe Authentication -> Bool -> I18n.Language -> Model (Statement b) -> Model (Statement b)
+setContext authentication embed language model =
     { model
         | authentication = authentication
+        , embed = embed
         , language = language
     }
 
@@ -140,7 +142,7 @@ update msg model =
                                     (\_ ->
                                         ForParent <|
                                             Navigate <|
-                                                Urls.languagePath model.language <|
+                                                Urls.languagePath model.embed model.language <|
                                                     Urls.idToPropertiesPath data trashPropertyId
                                     )
                                     (Task.succeed ())

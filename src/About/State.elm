@@ -8,9 +8,10 @@ import Ports
 import Urls
 
 
-init : Maybe Authentication -> I18n.Language -> Model
-init authentication language =
+init : Maybe Authentication -> Bool -> I18n.Language -> Model
+init authentication embed language =
     { authentication = authentication
+    , embed = embed
     , language = language
     }
 

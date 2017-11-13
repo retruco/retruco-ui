@@ -16,20 +16,6 @@ import Values.New.State
 import Values.New.Types
 
 
-init : Maybe Authentication -> I18n.Language -> String -> List String -> Model
-init authentication language objectId validFieldTypes =
-    { authentication = authentication
-    , data = initDataId
-    , errors = Dict.empty
-    , httpError = Nothing
-    , keyId = ""
-    , language = language
-    , newValueModel = Values.New.State.init authentication language validFieldTypes
-    , objectId = objectId
-    , validFieldTypes = validFieldTypes
-    }
-
-
 convertControls : Model -> Model
 convertControls model =
     let
@@ -52,6 +38,21 @@ convertControls model =
         }
 
 
+init : Maybe Authentication -> Bool -> I18n.Language -> String -> List String -> Model
+init authentication embed language objectId validFieldTypes =
+    { authentication = authentication
+    , data = initDataId
+    , embed = embed
+    , errors = Dict.empty
+    , httpError = Nothing
+    , keyId = ""
+    , language = language
+    , newValueModel = Values.New.State.init authentication embed language validFieldTypes
+    , objectId = objectId
+    , validFieldTypes = validFieldTypes
+    }
+
+
 mergeModelData : DataProxy a -> Model -> Model
 mergeModelData data model =
     let
@@ -64,12 +65,13 @@ mergeModelData data model =
         }
 
 
-setContext : Maybe Authentication -> I18n.Language -> Model -> Model
-setContext authentication language model =
+setContext : Maybe Authentication -> Bool -> I18n.Language -> Model -> Model
+setContext authentication embed language model =
     { model
         | authentication = authentication
+        , embed = embed
         , language = language
-        , newValueModel = Values.New.State.setContext authentication language model.newValueModel
+        , newValueModel = Values.New.State.setContext authentication embed language model.newValueModel
     }
 
 
@@ -88,7 +90,7 @@ update msg model =
             let
                 ( newValueModel, childCmd ) =
                     model.newValueModel
-                        |> Values.New.State.setContext model.authentication model.language
+                        |> Values.New.State.setContext model.authentication model.embed model.language
                         |> Values.New.State.update childMsg
             in
                 ( { model | newValueModel = newValueModel }

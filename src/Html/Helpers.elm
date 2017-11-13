@@ -20,11 +20,11 @@ aExternal attributes children =
         children
 
 
-aForPath : (String -> msg) -> I18n.Language -> String -> List (Attribute msg) -> List (Html msg) -> Html msg
-aForPath navigate language path attributes children =
+aForPath : (String -> msg) -> Bool -> I18n.Language -> String -> List (Attribute msg) -> List (Html msg) -> Html msg
+aForPath navigate embed language path attributes children =
     let
         pathWithLanguage =
-            Urls.languagePath language path
+            Urls.languagePath embed language path
     in
         a
             ([ href pathWithLanguage

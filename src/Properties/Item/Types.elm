@@ -32,6 +32,7 @@ type alias Model =
     { activeTab : Tab
     , authentication : Maybe Authentication
     , data : Data
+    , embed : Bool
     , httpError : Maybe Http.Error
     , id : String
     , language : I18n.Language

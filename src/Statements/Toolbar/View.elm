@@ -25,6 +25,7 @@ view model =
             model.statement.ballotId
             model.trashPropertyId
         , viewStatementSocialToolbar
+            model.embed
             model.language
             (ForSelf << ShareOnFacebook)
             (ForSelf << ShareOnGooglePlus)
@@ -392,7 +393,8 @@ viewStatementRatingToolbar language data ballotId trashPropertyId =
 
 
 viewStatementSocialToolbar :
-    I18n.Language
+    Bool
+    -> I18n.Language
     -> (String -> msg)
     -> (String -> msg)
     -> (String -> msg)
@@ -400,7 +402,7 @@ viewStatementSocialToolbar :
     -> DataProxy a
     -> { b | id : String }
     -> Html msg
-viewStatementSocialToolbar language shareOnFacebookMsg shareOnGooglePlusMsg shareOnLinkedInMsg shareOnTwitterMsg data { id } =
+viewStatementSocialToolbar embed language shareOnFacebookMsg shareOnGooglePlusMsg shareOnLinkedInMsg shareOnTwitterMsg data { id } =
     div
         [ class "toolbar"
         , role "toolbar"
@@ -414,7 +416,7 @@ viewStatementSocialToolbar language shareOnFacebookMsg shareOnGooglePlusMsg shar
 
             url =
                 Urls.idToPath data id
-                    |> Urls.languagePath language
+                    |> Urls.languagePath embed language
                     |> Urls.fullUrl
 
             facebookUrl =

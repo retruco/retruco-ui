@@ -1,4 +1,4 @@
-module Ideas.Index.State exposing (..)
+module Interventions.Index.State exposing (..)
 
 import Array
 import Authenticator.Types exposing (Authentication)
@@ -6,8 +6,8 @@ import Constants exposing (discussionKeyIds)
 import Decoders
 import Http
 import I18n
-import Ideas.Index.Types exposing (..)
-import Ideas.New.State
+import Interventions.Index.Types exposing (..)
+import Interventions.New.State
 import Json.Decode
 import Navigation
 import Ports
@@ -24,7 +24,7 @@ init authentication embed language objectId =
     , embed = embed
     , httpError = Nothing
     , language = language
-    , newIdeaModel = Ideas.New.State.init authentication embed language objectId
+    , newInterventionModel = Interventions.New.State.init authentication embed language objectId
     , objectId = objectId
     , showTrashed = False
     }
@@ -38,7 +38,7 @@ mergeModelData data model =
     in
         { model
             | data = mergedData
-            , newIdeaModel = Ideas.New.State.mergeModelData mergedData model.newIdeaModel
+            , newInterventionModel = Interventions.New.State.mergeModelData mergedData model.newInterventionModel
         }
 
 
@@ -48,19 +48,19 @@ setContext authentication embed language model =
         | authentication = authentication
         , embed = embed
         , language = language
-        , newIdeaModel =
-            Ideas.New.State.setContext
+        , newInterventionModel =
+            Interventions.New.State.setContext
                 authentication
                 embed
                 language
-                model.newIdeaModel
+                model.newInterventionModel
     }
 
 
 subscriptions : Model -> Sub InternalMsg
 subscriptions model =
     Sub.batch
-        [ Sub.map NewIdeaMsg (Ideas.New.State.subscriptions model.newIdeaModel)
+        [ Sub.map NewInterventionMsg (Interventions.New.State.subscriptions model.newInterventionModel)
         , Ports.propertyUpserted PropertyUpserted
         ]
 
@@ -68,16 +68,16 @@ subscriptions model =
 update : InternalMsg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        IdeaUpserted data ->
+        InterventionUpserted data ->
             ( model, Cmd.none )
 
-        NewIdeaMsg childMsg ->
+        NewInterventionMsg childMsg ->
             let
-                ( updatedNewIdeaModel, childCmd ) =
-                    Ideas.New.State.update childMsg model.newIdeaModel
+                ( updatedNewInterventionModel, childCmd ) =
+                    Interventions.New.State.update childMsg model.newInterventionModel
             in
-                ( { model | newIdeaModel = updatedNewIdeaModel }
-                , Cmd.map translateNewIdeaMsg childCmd
+                ( { model | newInterventionModel = updatedNewInterventionModel }
+                , Cmd.map translateNewInterventionMsg childCmd
                 )
 
         PropertyUpserted propertyJson ->
@@ -120,7 +120,7 @@ update msg model =
                 | discussionPropertyIds = Nothing
                 , httpError = Nothing
               }
-            , Requests.getProperties model.authentication model.showTrashed [ model.objectId ] [ "idea" ] []
+            , Requests.getProperties model.authentication model.showTrashed [ model.objectId ] discussionKeyIds []
                 |> Http.send (ForSelf << Retrieved)
             )
 

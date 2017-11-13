@@ -184,8 +184,8 @@ convertControls model =
         }
 
 
-init : Maybe Authentication -> I18n.Language -> List String -> Model
-init authentication language validFieldTypes =
+init : Maybe Authentication -> Bool -> I18n.Language -> List String -> Model
+init authentication embed language validFieldTypes =
     let
         fieldType =
             case List.head validFieldTypes of
@@ -207,6 +207,7 @@ init authentication language validFieldTypes =
         { authentication = authentication
         , booleanValue = False
         , cardsAutocompleteModel = Cards.Autocomplete.State.init []
+        , embed = embed
         , errors = Dict.empty
         , field = Nothing
         , fieldType = fieldType
@@ -253,10 +254,11 @@ schemaIdsAndWidgetIds fieldType languageId =
             ( [], [] )
 
 
-setContext : Maybe Authentication -> I18n.Language -> Model -> Model
-setContext authentication language model =
+setContext : Maybe Authentication -> Bool -> I18n.Language -> Model -> Model
+setContext authentication embed language model =
     { model
         | authentication = authentication
+        , embed = embed
         , language = language
     }
 

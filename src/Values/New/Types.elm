@@ -39,6 +39,7 @@ type alias Model =
     { authentication : Maybe Authentication
     , booleanValue : Bool
     , cardsAutocompleteModel : Cards.Autocomplete.Types.Model
+    , embed : Bool
     , errors : FormErrors
     , field : Maybe Field
     , fieldType : String

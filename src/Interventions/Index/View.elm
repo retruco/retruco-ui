@@ -1,4 +1,4 @@
-module Questions.Index.View exposing (..)
+module Interventions.Index.View exposing (..)
 
 import Array
 import Dict
@@ -7,8 +7,8 @@ import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
 import Http.Error
 import I18n
-import Questions.Index.Types exposing (..)
-import Questions.New.View
+import Interventions.Index.Types exposing (..)
+import Interventions.New.View
 import Statements.Lines exposing (viewStatementIdRatedListGroupLine)
 import Views
 
@@ -69,8 +69,8 @@ view model =
                                 )
                         ]
                     , hr [] []
-                    , Questions.New.View.view model.newQuestionModel
-                        |> Html.map translateNewQuestionMsg
+                    , Interventions.New.View.view model.newInterventionModel
+                        |> Html.map translateNewInterventionMsg
                     ]
 
             Nothing ->

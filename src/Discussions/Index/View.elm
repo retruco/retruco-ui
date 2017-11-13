@@ -20,6 +20,9 @@ view model =
         data =
             model.data
 
+        embed =
+            model.embed
+
         language =
             model.language
 
@@ -52,6 +55,7 @@ view model =
                         [ li [ class "nav-item" ]
                             [ aForPath
                                 navigateMsg
+                                embed
                                 language
                                 "/discussions/new"
                                 [ class "btn btn-secondary", role "button" ]
@@ -69,6 +73,7 @@ view model =
                                     |> List.map
                                         (\cardId ->
                                             viewStatementIdRatedListGroupLine
+                                                embed
                                                 language
                                                 navigateMsg
                                                 "/discussion"

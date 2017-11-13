@@ -12,11 +12,12 @@ import Types exposing (..)
 import Urls
 
 
-init : Maybe Authentication -> I18n.Language -> String -> Model
-init authentication language objectId =
+init : Maybe Authentication -> Bool -> I18n.Language -> String -> Model
+init authentication embed language objectId =
     { activeTab = NoTab
     , authentication = authentication
     , data = initData
+    , embed = embed
     , language = language
     , objectId = objectId
     , showTrashed = False
@@ -53,29 +54,30 @@ mergeModelData data model =
         }
 
 
-setContext : Maybe Authentication -> I18n.Language -> Model -> Model
-setContext authentication language model =
+setContext : Maybe Authentication -> Bool -> I18n.Language -> Model -> Model
+setContext authentication embed language model =
     { model
         | activeTab =
             case model.activeTab of
                 IdeasTab ideasModel ->
                     IdeasTab <|
-                        Ideas.Index.State.setContext authentication language ideasModel
+                        Ideas.Index.State.setContext authentication embed language ideasModel
 
                 InterventionsTab interventionsModel ->
                     InterventionsTab <|
-                        Interventions.Index.State.setContext authentication language interventionsModel
+                        Interventions.Index.State.setContext authentication embed language interventionsModel
 
                 QuestionsTab questionsModel ->
                     QuestionsTab <|
-                        Questions.Index.State.setContext authentication language questionsModel
+                        Questions.Index.State.setContext authentication embed language questionsModel
 
                 -- TrashTab trashModel ->
                 --     TrashTab <|
-                --         Trash.Index.State.setContext authentication language trashModel
+                --         Trash.Index.State.setContext authentication embed language trashModel
                 _ ->
                     model.activeTab
         , authentication = authentication
+        , embed = embed
         , language = language
     }
 
@@ -161,6 +163,9 @@ urlUpdate location route model =
         authentication =
             model.authentication
 
+        embed =
+            model.embed
+
         language =
             model.language
 
@@ -179,7 +184,7 @@ urlUpdate location route model =
             IdeasRoute ->
                 let
                     ideasModel =
-                        Ideas.Index.State.init authentication language objectId
+                        Ideas.Index.State.init authentication embed language objectId
 
                     ( updatedIdeasModel, updatedIdeasCmd ) =
                         Ideas.Index.State.urlUpdate location ideasModel
@@ -193,7 +198,7 @@ urlUpdate location route model =
             InterventionsRoute ->
                 let
                     interventionsModel =
-                        Interventions.Index.State.init authentication language objectId
+                        Interventions.Index.State.init authentication embed language objectId
 
                     ( updatedInterventionsModel, updatedInterventionsCmd ) =
                         Interventions.Index.State.urlUpdate location interventionsModel
@@ -207,7 +212,7 @@ urlUpdate location route model =
             QuestionsRoute ->
                 let
                     questionsModel =
-                        Questions.Index.State.init authentication language objectId
+                        Questions.Index.State.init authentication embed language objectId
 
                     ( updatedQuestionsModel, updatedQuestionsCmd ) =
                         Questions.Index.State.urlUpdate location questionsModel

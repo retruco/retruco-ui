@@ -24,6 +24,7 @@ type alias Model =
     { authentication : Maybe Authentication
     , data : Data
     , debatePropertyIds : Maybe (Array String)
+    , embed : Bool
     , httpError : Maybe Http.Error
     , language : I18n.Language
     , newDebatePropertyModel : DebateProperties.New.Types.Model

@@ -28,6 +28,7 @@ type alias Model =
     { activeTab : Tab
     , authentication : Maybe Authentication
     , data : Data
+    , embed : Bool
     , language : I18n.Language
     , objectId : String
     , showTrashed : Bool

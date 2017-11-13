@@ -30,6 +30,7 @@ type InternalMsg
 type alias Model statementType =
     { authentication : Maybe Authentication
     , data : Data
+    , embed : Bool
     , httpError : Maybe Http.Error
     , language : I18n.Language
     , statement : statementType

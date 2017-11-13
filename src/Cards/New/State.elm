@@ -82,11 +82,12 @@ convertControls model =
         }
 
 
-init : Maybe Authentication -> I18n.Language -> Model
-init authentication language =
+init : Maybe Authentication -> Bool -> I18n.Language -> Model
+init authentication embed language =
     { authentication = authentication
     , cardId = ""
     , data = initDataId
+    , embed = embed
     , errors = Dict.empty
     , httpError = Nothing
     , language = language
@@ -109,10 +110,11 @@ mergeModelData data model =
         }
 
 
-setContext : Maybe Authentication -> I18n.Language -> Model -> Model
-setContext authentication language model =
+setContext : Maybe Authentication -> Bool -> I18n.Language -> Model -> Model
+setContext authentication embed language model =
     { model
         | authentication = authentication
+        , embed = embed
         , language = language
     }
 
