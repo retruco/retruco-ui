@@ -61,7 +61,7 @@ viewPropertyLine embed language navigateMsg independent data property =
     -- The `independent` flag indicates whether to display the object of the property along with it key and value.
     let
         keyLabel =
-            Dict.get property.keyId I18n.keyLabelById
+            Dict.get property.keyId I18n.debateKeyLabelById
                 |> Maybe.map (I18n.translate language)
                 |> Maybe.withDefault (Strings.idToString language data property.keyId)
     in

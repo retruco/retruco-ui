@@ -87,7 +87,7 @@ viewFormControls model =
                      ]
                         ++ errorAttributes
                     )
-                    (I18n.keyIdLabelCouples
+                    (I18n.debateKeyIdLabelCouples
                         |> List.map
                             (\( symbol, labelI18n ) ->
                                 ( symbol

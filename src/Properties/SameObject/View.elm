@@ -40,7 +40,7 @@ view model =
                         Array.toList propertyIds
                             |> List.filterMap (\propertyId -> Dict.get propertyId data.properties)
 
-                    keyIdLabelCouples =
+                    debateKeyIdLabelCouples =
                         properties
                             |> List.map .keyId
                             |> Set.fromList
@@ -49,7 +49,7 @@ view model =
                             |> List.map
                                 (\keyId ->
                                     ( keyId
-                                    , Dict.get keyId I18n.keyLabelById
+                                    , Dict.get keyId I18n.debateKeyLabelById
                                         |> Maybe.map (I18n.translate language)
                                         |> Maybe.withDefault (Strings.idToString language data keyId)
                                     )
@@ -146,7 +146,7 @@ view model =
                                                         ]
                                                     ]
                                         )
-                                        keyIdLabelCouples
+                                        debateKeyIdLabelCouples
                                     )
                             ]
                         , hr [] []

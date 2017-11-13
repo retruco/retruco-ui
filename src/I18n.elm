@@ -2339,8 +2339,8 @@ todo =
 -- CONSTANTS
 
 
-keyIdLabelCouples : List ( String, TranslationId )
-keyIdLabelCouples =
+debateKeyIdLabelCouples : List ( String, TranslationId )
+debateKeyIdLabelCouples =
     [ ( "pro", DebateProLabel )
     , ( "con", DebateConLabel )
     , ( "remark", DebateRemarkLabel )
@@ -2349,9 +2349,9 @@ keyIdLabelCouples =
     ]
 
 
-keyLabelById : Dict String TranslationId
-keyLabelById =
-    Dict.fromList keyIdLabelCouples
+debateKeyLabelById : Dict String TranslationId
+debateKeyLabelById =
+    Dict.fromList debateKeyIdLabelCouples
 
 
 

@@ -49,7 +49,7 @@ view model =
                                 model.objectId
                             , let
                                 keyLabel =
-                                    Dict.get model.keyId I18n.keyLabelById
+                                    Dict.get model.keyId I18n.debateKeyLabelById
                                         |> Maybe.map (I18n.translate language)
                                         |> Maybe.withDefault (Strings.idToString language data model.keyId)
                               in
