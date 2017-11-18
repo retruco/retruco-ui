@@ -18,3 +18,9 @@ viewForm : I18n.TranslationId -> I18n.TranslationId -> Model -> Html Msg
 viewForm submitButtonI18n creationFailedI18n model =
     Values.New.View.viewForm submitButtonI18n creationFailedI18n model.newValueModel
         |> Html.map translateNewValueMsg
+
+
+viewFormControls : Model -> List (Html Msg)
+viewFormControls model =
+    Values.New.View.viewFormControls model.newValueModel
+        |> List.map (Html.map translateNewValueMsg)

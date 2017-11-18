@@ -1,7 +1,7 @@
 module DebateProperties.New.View exposing (..)
 
 import DebateProperties.New.Types exposing (..)
-import Dict exposing (Dict)
+import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
@@ -89,18 +89,18 @@ viewFormControls model =
                     )
                     (I18n.debateKeyIdLabelCouples
                         |> List.map
-                            (\( symbol, labelI18n ) ->
-                                ( symbol
+                            (\( keyId, labelI18n ) ->
+                                ( keyId
                                 , I18n.translate language labelI18n
                                 )
                             )
-                        |> List.sortBy (\( symbol, label ) -> label)
+                        |> List.sortBy (\( keyId, label ) -> label)
                         |> (::) ( "", I18n.translate language I18n.SelectArgumentType )
                         |> List.map
-                            (\( symbol, label ) ->
+                            (\( keyId, label ) ->
                                 option
-                                    [ selected (symbol == model.keyId)
-                                    , value symbol
+                                    [ selected (keyId == model.keyId)
+                                    , value keyId
                                     ]
                                     [ text label ]
                             )

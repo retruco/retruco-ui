@@ -2,10 +2,8 @@ module Ideas.Index.Types exposing (..)
 
 import Array exposing (Array)
 import Authenticator.Types exposing (Authentication)
-import Http
 import I18n
-import Ideas.New.Types
-import Json.Encode
+import Interventions.New.Types
 import Types exposing (..)
 
 
@@ -15,21 +13,17 @@ type ExternalMsg
 
 
 type InternalMsg
-    = IdeaUpserted Types.DataId
-    | NewIdeaMsg Ideas.New.Types.InternalMsg
-    | PropertyUpserted Json.Encode.Value
-    | Retrieve
-    | Retrieved (Result Http.Error DataIdsBody)
+    = InterventionUpserted Types.DataId
+    | NewInterventionMsg Interventions.New.Types.InternalMsg
 
 
 type alias Model =
     { authentication : Maybe Authentication
     , data : Data
-    , discussionPropertyIds : Maybe (Array String)
+    , discussionProperties : Maybe (Array Property)
     , embed : Bool
-    , httpError : Maybe Http.Error
     , language : I18n.Language
-    , newIdeaModel : Ideas.New.Types.Model
+    , newInterventionModel : Interventions.New.Types.Model
     , objectId : String
     , showTrashed : Bool
     }
@@ -64,10 +58,10 @@ translateMsg { onInternalMsg, onNavigate, onRequireSignIn } msg =
             onInternalMsg internalMsg
 
 
-translateNewIdeaMsg : Ideas.New.Types.MsgTranslator Msg
-translateNewIdeaMsg =
-    Ideas.New.Types.translateMsg
-        { onInternalMsg = ForSelf << NewIdeaMsg
-        , onIdeaUpserted = ForSelf << IdeaUpserted
-        , onRequireSignIn = ForParent << RequireSignIn << NewIdeaMsg
+translateNewInterventionMsg : Interventions.New.Types.MsgTranslator Msg
+translateNewInterventionMsg =
+    Interventions.New.Types.translateMsg
+        { onInternalMsg = ForSelf << NewInterventionMsg
+        , onInterventionUpserted = ForSelf << InterventionUpserted
+        , onRequireSignIn = ForParent << RequireSignIn << NewInterventionMsg
         }

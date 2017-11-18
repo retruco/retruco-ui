@@ -2,10 +2,8 @@ module Interventions.Index.Types exposing (..)
 
 import Array exposing (Array)
 import Authenticator.Types exposing (Authentication)
-import Http
 import I18n
 import Interventions.New.Types
-import Json.Encode
 import Types exposing (..)
 
 
@@ -17,17 +15,13 @@ type ExternalMsg
 type InternalMsg
     = InterventionUpserted Types.DataId
     | NewInterventionMsg Interventions.New.Types.InternalMsg
-    | PropertyUpserted Json.Encode.Value
-    | Retrieve
-    | Retrieved (Result Http.Error DataIdsBody)
 
 
 type alias Model =
     { authentication : Maybe Authentication
     , data : Data
-    , discussionPropertyIds : Maybe (Array String)
+    , discussionProperties : Maybe (Array Property)
     , embed : Bool
-    , httpError : Maybe Http.Error
     , language : I18n.Language
     , newInterventionModel : Interventions.New.Types.Model
     , objectId : String

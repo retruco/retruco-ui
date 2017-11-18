@@ -1,16 +1,15 @@
 module Interventions.Index.View exposing (..)
 
 import Array
-import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Attributes.Aria exposing (..)
-import Http.Error
+import Html.Helpers exposing (aForPath)
 import I18n
 import Interventions.Index.Types exposing (..)
 import Interventions.New.View
-import Statements.Lines exposing (viewStatementIdRatedListGroupLine)
-import Views
+import Statements.Lines exposing (viewStatementIdLine)
+import Types exposing (DataProxy, Property)
+import Urls
 
 
 view : Model -> Html Msg
@@ -28,43 +27,24 @@ view model =
         navigateMsg =
             ForParent << Navigate
     in
-        case model.discussionPropertyIds of
-            Just discussionPropertyIds ->
+        case model.discussionProperties of
+            Just discussionProperties ->
                 div []
                     [ div []
-                        [ if Array.isEmpty discussionPropertyIds then
-                            p [] [ text <| I18n.translate language I18n.MissingArguments ]
+                        [ if Array.isEmpty discussionProperties then
+                            p [] [ text <| I18n.translate language I18n.MissingInterventions ]
                           else
                             div [ class "list-group" ]
-                                (Array.toList discussionPropertyIds
+                                (Array.toList discussionProperties
                                     |> List.map
-                                        (\discussionPropertyId ->
-                                            let
-                                                classList =
-                                                    case Dict.get discussionPropertyId data.properties of
-                                                        Just discussionProperty ->
-                                                            case discussionProperty.keyId of
-                                                                "con" ->
-                                                                    [ ( "list-group-item-warning", True ) ]
-
-                                                                "pro" ->
-                                                                    [ ( "list-group-item-success", True ) ]
-
-                                                                _ ->
-                                                                    [ ( "list-group-item-secondary", True ) ]
-
-                                                        Nothing ->
-                                                            []
-                                            in
-                                                viewStatementIdRatedListGroupLine
-                                                    embed
-                                                    language
-                                                    navigateMsg
-                                                    ""
-                                                    classList
-                                                    False
-                                                    data
-                                                    discussionPropertyId
+                                        (\discussionProperty ->
+                                            viewInterventionListGroupLine
+                                                embed
+                                                language
+                                                navigateMsg
+                                                ""
+                                                data
+                                                discussionProperty
                                         )
                                 )
                         ]
@@ -74,20 +54,60 @@ view model =
                     ]
 
             Nothing ->
-                case model.httpError of
-                    Just httpError ->
-                        div
-                            [ class "alert alert-danger"
-                            , role "alert"
-                            ]
-                            [ strong []
-                                [ text <|
-                                    I18n.translate language I18n.ArgumentsRetrievalFailed
-                                        ++ I18n.translate language I18n.Colon
-                                ]
-                            , text <| Http.Error.toString language httpError
-                            ]
+                text ""
 
-                    Nothing ->
-                        div [ class "text-center" ]
-                            [ Views.viewLoading language ]
+
+viewInterventionListGroupLine :
+    Bool
+    -> I18n.Language
+    -> (String -> msg)
+    -> String
+    -> DataProxy a
+    -> Property
+    -> Html msg
+viewInterventionListGroupLine embed language navigateMsg path data discussionProperty =
+    aForPath
+        navigateMsg
+        embed
+        language
+        (Urls.idToPath data discussionProperty.id ++ path)
+        [ classList
+            [ ( "align", True )
+            , ( "align-items-top", True )
+            , ( "d-flex", True )
+            , ( "flex-nowrap", True )
+            , ( "justify-content-between", True )
+            , ( "lead", True )
+            , ( "list-group-item", True )
+            , ( "list-group-item-action", True )
+
+            -- , ( "list-group-item-secondary", True )
+            ]
+        ]
+        [ div
+            [ classList [ ( "bg-white", True ), ( "ml-4", True ) ] ]
+            [ aForPath
+                navigateMsg
+                embed
+                language
+                (Urls.idToPath data discussionProperty.valueId)
+                [ classList
+                    [ ( "align", True )
+                    , ( "align-items-top", True )
+                    , ( "d-flex", True )
+                    , ( "flex-nowrap", True )
+                    , ( "justify-content-between", True )
+                    , ( "text-dark", True )
+                    ]
+                ]
+                [ viewStatementIdLine
+                    embed
+                    language
+                    navigateMsg
+                    True
+                    False
+                    data
+                    discussionProperty.valueId
+                ]
+            ]
+        ]

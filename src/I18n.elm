@@ -113,6 +113,7 @@ type TranslationId
     | Home
     | HomeDescription
     | Id
+    | Idea
     | IdeaCreationFailed
     | Ideas
     | IdsArray
@@ -124,8 +125,10 @@ type TranslationId
     | InputEmailField
     | InputNumberField
     | InputUrlField
+    | Intervention
     | InterventionCreationFailed
     | Interventions
+    | InterventionsRetrievalFailed
     | InvalidNumber
     | Language Language
     | LanguageWord
@@ -133,8 +136,11 @@ type TranslationId
     | LoadingMenu
     | MissingArguments
     | MissingDescription
+    | MissingIdeas
+    | MissingInterventions
     | MissingName
     | MissingProperties
+    | MissingQuestions
     | MissingValue
     | MoreButton
     | NetworkError
@@ -180,6 +186,7 @@ type TranslationId
     | Proposals
     | ProposalsDescription
     | ProposalsRetrievalFailed
+    | Question
     | QuestionCreationFailed
     | Questions
     | RadioButtonForFollowingAutocompleter
@@ -1163,6 +1170,13 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        Idea ->
+            { emptyTranslationSet
+                | english = s "Idea"
+                , french = s "Idée"
+                , spanish = todo
+            }
+
         IdeaCreationFailed ->
             { emptyTranslationSet
                 | english = s "Idea creation failed"
@@ -1224,6 +1238,13 @@ getTranslationSet translationId =
         InputUrlField ->
             getTranslationSet Url
 
+        Intervention ->
+            { emptyTranslationSet
+                | english = s "Intervention"
+                , french = s "Intervention"
+                , spanish = todo
+            }
+
         InterventionCreationFailed ->
             { emptyTranslationSet
                 | english = s "Intervention creation failed"
@@ -1235,6 +1256,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Interventions"
                 , french = s "Interventions"
+                , spanish = todo
+            }
+
+        InterventionsRetrievalFailed ->
+            { emptyTranslationSet
+                | english = s "Retrieval of interventions failed"
+                , french = s "Échec de la récupération des interventions"
                 , spanish = todo
             }
 
@@ -1303,6 +1331,20 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
+        MissingIdeas ->
+            { emptyTranslationSet
+                | english = s "Missing ideas"
+                , french = s "Idées manquantes"
+                , spanish = todo
+            }
+
+        MissingInterventions ->
+            { emptyTranslationSet
+                | english = s "Missing interventions"
+                , french = s "Interventions manquantes"
+                , spanish = todo
+            }
+
         MissingName ->
             { emptyTranslationSet
                 | english = s "Missing name"
@@ -1314,6 +1356,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "No properties. Let's be the first to add one!"
                 , french = s "Aucune propriété. Soyez le premier à en ajouter une !"
+                , spanish = todo
+            }
+
+        MissingQuestions ->
+            { emptyTranslationSet
+                | english = s "Missing questions"
+                , french = s "Questions manquantes"
                 , spanish = todo
             }
 
@@ -1629,6 +1678,13 @@ getTranslationSet translationId =
             { emptyTranslationSet
                 | english = s "Retrieval of proposals failed"
                 , french = s "Échec de la récupération des propositions"
+                , spanish = todo
+            }
+
+        Question ->
+            { emptyTranslationSet
+                | english = s "Question"
+                , french = s "Question"
                 , spanish = todo
             }
 
@@ -2352,6 +2408,19 @@ debateKeyIdLabelCouples =
 debateKeyLabelById : Dict String TranslationId
 debateKeyLabelById =
     Dict.fromList debateKeyIdLabelCouples
+
+
+discussionKeyIdLabelCouples : List ( String, TranslationId )
+discussionKeyIdLabelCouples =
+    [ ( "idea", Idea )
+    , ( "intervention", Intervention )
+    , ( "question", Question )
+    ]
+
+
+discussionKeyLabelById : Dict String TranslationId
+discussionKeyLabelById =
+    Dict.fromList discussionKeyIdLabelCouples
 
 
 

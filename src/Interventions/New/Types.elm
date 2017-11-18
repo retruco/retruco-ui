@@ -18,16 +18,22 @@ type alias FormErrors =
 
 
 type InternalMsg
-    = NewProposalMsg Proposals.New.Types.InternalMsg
+    = InterventionSpecificPropertyUpserted (Result Http.Error DataIdBody)
+    | KeyIdChanged String
+    | NewProposalMsg Proposals.New.Types.InternalMsg
     | Upserted (Result Http.Error DataIdBody)
     | ProposalUpserted DataId
+    | Submit
 
 
 type alias Model =
     { authentication : Maybe Authentication
     , data : DataId
     , embed : Bool
+    , errors : FormErrors
     , httpError : Maybe Http.Error
+    , keyId : String
+    , keyIds : List String
     , language : I18n.Language
     , newProposalModel : Proposals.New.Types.Model
     , objectId : String -- Discussion ID

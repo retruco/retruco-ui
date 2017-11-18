@@ -1,7 +1,5 @@
 module Discussions.Item.View exposing (..)
 
-import Array
-import Dict
 import Discussions.Item.Types exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -12,7 +10,6 @@ import I18n
 import Ideas.Index.View
 import Interventions.Index.View
 import Questions.Index.View
-import Statements.Lines exposing (viewStatementIdRatedListGroupLine)
 import Urls
 import Views
 
@@ -95,19 +92,40 @@ view model =
                         [ text <| I18n.translate language I18n.Questions ]
                     ]
                 ]
-            , case model.activeTab of
-                IdeasTab ideasModel ->
-                    Ideas.Index.View.view ideasModel
-                        |> Html.map translateIdeasMsg
+            , case model.discussionProperties of
+                Just _ ->
+                    case model.activeTab of
+                        IdeasTab ideasModel ->
+                            Ideas.Index.View.view ideasModel
+                                |> Html.map translateIdeasMsg
 
-                InterventionsTab interventionsModel ->
-                    Interventions.Index.View.view interventionsModel
-                        |> Html.map translateInterventionsMsg
+                        InterventionsTab interventionsModel ->
+                            Interventions.Index.View.view interventionsModel
+                                |> Html.map translateInterventionsMsg
 
-                NoTab ->
-                    text ""
+                        NoTab ->
+                            text ""
 
-                QuestionsTab questionsModel ->
-                    Questions.Index.View.view questionsModel
-                        |> Html.map translateQuestionsMsg
+                        QuestionsTab questionsModel ->
+                            Questions.Index.View.view questionsModel
+                                |> Html.map translateQuestionsMsg
+
+                Nothing ->
+                    case model.httpError of
+                        Just httpError ->
+                            div
+                                [ class "alert alert-danger"
+                                , role "alert"
+                                ]
+                                [ strong []
+                                    [ text <|
+                                        I18n.translate language I18n.InterventionsRetrievalFailed
+                                            ++ I18n.translate language I18n.Colon
+                                    ]
+                                , text <| Http.Error.toString language httpError
+                                ]
+
+                        Nothing ->
+                            div [ class "text-center" ]
+                                [ Views.viewLoading language ]
             ]

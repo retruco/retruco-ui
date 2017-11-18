@@ -1,24 +1,53 @@
 module Interventions.New.State exposing (..)
 
 import Authenticator.Types exposing (Authentication)
+import Constants exposing (discussionKeyIds)
+import Dict
 import Http
 import I18n
 import Interventions.New.Types exposing (..)
 import Navigation
 import Ports
 import Proposals.New.State
+import Proposals.New.Types
 import Requests
 import Task
 import Types exposing (DataProxy, initDataId, mergeData)
 import Urls
+import Values.New.Types
 
 
-init : Maybe Authentication -> Bool -> I18n.Language -> String -> Model
-init authentication embed language objectId =
+convertControls : Model -> Model
+convertControls model =
+    let
+        keyIdError =
+            if List.member model.keyId discussionKeyIds then
+                Nothing
+            else if model.keyId == "" then
+                Just I18n.MissingValue
+            else
+                Just I18n.UnknownValue
+    in
+        { model
+            | errors =
+                case keyIdError of
+                    Just keyIdError ->
+                        Dict.singleton "keyId" keyIdError
+
+                    Nothing ->
+                        Dict.empty
+        }
+
+
+init : Maybe Authentication -> Bool -> I18n.Language -> String -> String -> List String -> Model
+init authentication embed language objectId keyId keyIds =
     { authentication = authentication
     , data = initDataId
     , embed = embed
+    , errors = Dict.empty
     , httpError = Nothing
+    , keyId = keyId
+    , keyIds = keyIds
     , language = language
     , newProposalModel = Proposals.New.State.init authentication embed language
     , objectId = objectId
@@ -55,6 +84,17 @@ subscriptions model =
 update : InternalMsg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        InterventionSpecificPropertyUpserted (Err httpError) ->
+            ( { model | httpError = Just httpError }, Cmd.none )
+
+        InterventionSpecificPropertyUpserted (Ok body) ->
+            ( mergeModelData body.data model
+            , Cmd.none
+            )
+
+        KeyIdChanged keyId ->
+            ( convertControls { model | keyId = keyId }, Cmd.none )
+
         NewProposalMsg childMsg ->
             let
                 ( newProposalModel, childCmd ) =
@@ -67,10 +107,28 @@ update msg model =
                 )
 
         ProposalUpserted data ->
-            ( { model | data = mergeData data model.data }
-            , Requests.postProperty model.authentication model.objectId "intervention" data.id (Just 1)
-                |> Http.send (ForSelf << Upserted)
-            )
+            { model | data = mergeData data model.data }
+                ! ((if model.keyId == "intervention" then
+                        []
+                    else
+                        [ Requests.postProperty model.authentication model.objectId model.keyId data.id (Just 1)
+                            |> Http.send (ForSelf << InterventionSpecificPropertyUpserted)
+                        ]
+                   )
+                    ++ [ Requests.postProperty model.authentication model.objectId "intervention" data.id (Just 1)
+                            |> Http.send (ForSelf << Upserted)
+                       ]
+                  )
+
+        Submit ->
+            let
+                newModel =
+                    convertControls model
+            in
+                if Dict.isEmpty newModel.errors then
+                    update (NewProposalMsg (Proposals.New.Types.NewValueMsg Values.New.Types.Submit)) newModel
+                else
+                    ( newModel, Cmd.none )
 
         Upserted (Err httpError) ->
             ( { model | httpError = Just httpError }, Cmd.none )

@@ -1,16 +1,12 @@
 module Questions.Index.View exposing (..)
 
 import Array
-import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Attributes.Aria exposing (..)
-import Http.Error
 import I18n
 import Questions.Index.Types exposing (..)
-import Questions.New.View
+import Interventions.New.View
 import Statements.Lines exposing (viewStatementIdRatedListGroupLine)
-import Views
 
 
 view : Model -> Html Msg
@@ -28,33 +24,28 @@ view model =
         navigateMsg =
             ForParent << Navigate
     in
-        case model.discussionPropertyIds of
-            Just discussionPropertyIds ->
+        case model.discussionProperties of
+            Just discussionProperties ->
                 div []
                     [ div []
-                        [ if Array.isEmpty discussionPropertyIds then
-                            p [] [ text <| I18n.translate language I18n.MissingArguments ]
+                        [ if Array.isEmpty discussionProperties then
+                            p [] [ text <| I18n.translate language I18n.MissingQuestions ]
                           else
                             div [ class "list-group" ]
-                                (Array.toList discussionPropertyIds
+                                (Array.toList discussionProperties
                                     |> List.map
-                                        (\discussionPropertyId ->
+                                        (\discussionProperty ->
                                             let
                                                 classList =
-                                                    case Dict.get discussionPropertyId data.properties of
-                                                        Just discussionProperty ->
-                                                            case discussionProperty.keyId of
-                                                                "con" ->
-                                                                    [ ( "list-group-item-warning", True ) ]
+                                                    case discussionProperty.keyId of
+                                                        "con" ->
+                                                            [ ( "list-group-item-warning", True ) ]
 
-                                                                "pro" ->
-                                                                    [ ( "list-group-item-success", True ) ]
+                                                        "pro" ->
+                                                            [ ( "list-group-item-success", True ) ]
 
-                                                                _ ->
-                                                                    [ ( "list-group-item-secondary", True ) ]
-
-                                                        Nothing ->
-                                                            []
+                                                        _ ->
+                                                            [ ( "list-group-item-secondary", True ) ]
                                             in
                                                 viewStatementIdRatedListGroupLine
                                                     embed
@@ -64,30 +55,14 @@ view model =
                                                     classList
                                                     False
                                                     data
-                                                    discussionPropertyId
+                                                    discussionProperty.id
                                         )
                                 )
                         ]
                     , hr [] []
-                    , Questions.New.View.view model.newQuestionModel
-                        |> Html.map translateNewQuestionMsg
+                    , Interventions.New.View.view model.newInterventionModel
+                        |> Html.map translateNewInterventionMsg
                     ]
 
             Nothing ->
-                case model.httpError of
-                    Just httpError ->
-                        div
-                            [ class "alert alert-danger"
-                            , role "alert"
-                            ]
-                            [ strong []
-                                [ text <|
-                                    I18n.translate language I18n.ArgumentsRetrievalFailed
-                                        ++ I18n.translate language I18n.Colon
-                                ]
-                            , text <| Http.Error.toString language httpError
-                            ]
-
-                    Nothing ->
-                        div [ class "text-center" ]
-                            [ Views.viewLoading language ]
+                text ""

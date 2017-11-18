@@ -1,10 +1,12 @@
 module Discussions.Item.Types exposing (..)
 
+import Array exposing (Array)
 import Authenticator.Types exposing (Authentication)
 import Http
 import I18n
 import Ideas.Index.Types
 import Interventions.Index.Types
+import Json.Encode
 import Questions.Index.Types
 import Types exposing (..)
 
@@ -17,7 +19,10 @@ type ExternalMsg
 type InternalMsg
     = IdeasMsg Ideas.Index.Types.InternalMsg
     | InterventionsMsg Interventions.Index.Types.InternalMsg
+    | PropertyUpserted Json.Encode.Value
     | QuestionsMsg Questions.Index.Types.InternalMsg
+    | Retrieve
+    | Retrieved (Result Http.Error DataIdsBody)
 
 
 
@@ -28,7 +33,9 @@ type alias Model =
     { activeTab : Tab
     , authentication : Maybe Authentication
     , data : Data
+    , discussionProperties : Maybe (Array Property)
     , embed : Bool
+    , httpError : Maybe Http.Error
     , language : I18n.Language
     , objectId : String
     , showTrashed : Bool
