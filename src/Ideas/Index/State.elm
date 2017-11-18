@@ -14,8 +14,8 @@ init : Maybe Authentication -> Bool -> I18n.Language -> String -> Model
 init authentication embed language objectId =
     { authentication = authentication
     , data = initData
-    , discussionProperties = Nothing
     , embed = embed
+    , ideaProperties = Array.empty
     , language = language
     , newInterventionModel = Interventions.New.State.init authentication embed language objectId "idea" [ "idea" ]
     , objectId = objectId
@@ -50,23 +50,14 @@ setContext authentication embed language model =
     }
 
 
-setDiscussionProperties : Maybe (Array Property) -> Model -> Model
+setDiscussionProperties : Array Property -> Model -> Model
 setDiscussionProperties discussionProperties model =
-    if discussionProperties == model.discussionProperties then
-        model
-    else
-        { model
-            | discussionProperties =
-                case discussionProperties of
-                    Just discussionProperties ->
-                        Just <|
-                            Array.filter
-                                (\discussionProperty -> discussionProperty.keyId == "idea")
-                                discussionProperties
-
-                    Nothing ->
-                        Nothing
-        }
+    { model
+        | ideaProperties =
+            Array.filter
+                (\discussionProperty -> discussionProperty.keyId == "idea")
+                discussionProperties
+    }
 
 
 subscriptions : Model -> Sub InternalMsg

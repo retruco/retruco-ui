@@ -1,13 +1,14 @@
 module Interventions.Index.View exposing (..)
 
 import Array
+import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Helpers exposing (aForPath)
 import I18n
 import Interventions.Index.Types exposing (..)
 import Interventions.New.View
-import Statements.Lines exposing (viewStatementIdLine)
+import Statements.Lines exposing (viewStatementIdLine, viewStatementIdRatedListGroupLine)
 import Types exposing (DataProxy, Property)
 import Urls
 
@@ -27,34 +28,57 @@ view model =
         navigateMsg =
             ForParent << Navigate
     in
-        case model.discussionProperties of
-            Just discussionProperties ->
-                div []
-                    [ div []
-                        [ if Array.isEmpty discussionProperties then
-                            p [] [ text <| I18n.translate language I18n.MissingInterventions ]
-                          else
-                            div [ class "list-group" ]
-                                (Array.toList discussionProperties
-                                    |> List.map
-                                        (\discussionProperty ->
-                                            viewInterventionListGroupLine
+        div []
+            [ div []
+                [ if Array.isEmpty model.interventionProperties then
+                    p [] [ text <| I18n.translate language I18n.MissingInterventions ]
+                  else
+                    div [ class "list-group" ]
+                        (Array.toList model.interventionProperties
+                            |> List.map
+                                (\interventionProperty ->
+                                    case Dict.get interventionProperty.valueId model.ideaPropertyByValueId of
+                                        Just ideaProperty ->
+                                            viewStatementIdRatedListGroupLine
                                                 embed
                                                 language
                                                 navigateMsg
                                                 ""
+                                                []
+                                                False
                                                 data
-                                                discussionProperty
-                                        )
-                                )
-                        ]
-                    , hr [] []
-                    , Interventions.New.View.view model.newInterventionModel
-                        |> Html.map translateNewInterventionMsg
-                    ]
+                                                ideaProperty.id
 
-            Nothing ->
-                text ""
+                                        Nothing ->
+                                            case
+                                                Dict.get interventionProperty.valueId model.questionPropertyByValueId
+                                            of
+                                                Just questionProperty ->
+                                                    viewStatementIdRatedListGroupLine
+                                                        embed
+                                                        language
+                                                        navigateMsg
+                                                        ""
+                                                        []
+                                                        False
+                                                        data
+                                                        questionProperty.id
+
+                                                Nothing ->
+                                                    viewInterventionListGroupLine
+                                                        embed
+                                                        language
+                                                        navigateMsg
+                                                        ""
+                                                        data
+                                                        interventionProperty
+                                )
+                        )
+                ]
+            , hr [] []
+            , Interventions.New.View.view model.newInterventionModel
+                |> Html.map translateNewInterventionMsg
+            ]
 
 
 viewInterventionListGroupLine :
@@ -65,12 +89,12 @@ viewInterventionListGroupLine :
     -> DataProxy a
     -> Property
     -> Html msg
-viewInterventionListGroupLine embed language navigateMsg path data discussionProperty =
+viewInterventionListGroupLine embed language navigateMsg path data interventionProperty =
     aForPath
         navigateMsg
         embed
         language
-        (Urls.idToPath data discussionProperty.id ++ path)
+        (Urls.idToPath data interventionProperty.id ++ path)
         [ classList
             [ ( "align", True )
             , ( "align-items-top", True )
@@ -90,7 +114,7 @@ viewInterventionListGroupLine embed language navigateMsg path data discussionPro
                 navigateMsg
                 embed
                 language
-                (Urls.idToPath data discussionProperty.valueId)
+                (Urls.idToPath data interventionProperty.valueId)
                 [ classList
                     [ ( "align", True )
                     , ( "align-items-top", True )
@@ -107,7 +131,7 @@ viewInterventionListGroupLine embed language navigateMsg path data discussionPro
                     True
                     False
                     data
-                    discussionProperty.valueId
+                    interventionProperty.valueId
                 ]
             ]
         ]

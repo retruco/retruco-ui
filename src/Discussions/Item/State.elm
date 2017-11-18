@@ -93,31 +93,35 @@ setContext authentication embed language model =
 
 
 setDiscussionProperties : Maybe (Array Property) -> Model -> Model
-setDiscussionProperties discussionProperties model =
-    if discussionProperties == model.discussionProperties then
+setDiscussionProperties discussionPropertiesMaybe model =
+    if discussionPropertiesMaybe == model.discussionProperties then
         model
     else
         { model
             | activeTab =
-                case model.activeTab of
-                    IdeasTab ideasModel ->
-                        IdeasTab <|
-                            Ideas.Index.State.setDiscussionProperties discussionProperties ideasModel
+                let
+                    discussionProperties =
+                        Maybe.withDefault Array.empty discussionPropertiesMaybe
+                in
+                    case model.activeTab of
+                        IdeasTab ideasModel ->
+                            IdeasTab <|
+                                Ideas.Index.State.setDiscussionProperties discussionProperties ideasModel
 
-                    InterventionsTab interventionsModel ->
-                        InterventionsTab <|
-                            Interventions.Index.State.setDiscussionProperties discussionProperties interventionsModel
+                        InterventionsTab interventionsModel ->
+                            InterventionsTab <|
+                                Interventions.Index.State.setDiscussionProperties discussionProperties interventionsModel
 
-                    QuestionsTab questionsModel ->
-                        QuestionsTab <|
-                            Questions.Index.State.setDiscussionProperties discussionProperties questionsModel
+                        QuestionsTab questionsModel ->
+                            QuestionsTab <|
+                                Questions.Index.State.setDiscussionProperties discussionProperties questionsModel
 
-                    -- TrashTab trashModel ->
-                    --     TrashTab <|
-                    --         Trash.Index.State.setDiscussionProperties  discussionProperties  trashModel
-                    _ ->
-                        model.activeTab
-            , discussionProperties = discussionProperties
+                        -- TrashTab trashModel ->
+                        --     TrashTab <|
+                        --         Trash.Index.State.setDiscussionProperties  discussionProperties  trashModel
+                        _ ->
+                            model.activeTab
+            , discussionProperties = discussionPropertiesMaybe
         }
 
 

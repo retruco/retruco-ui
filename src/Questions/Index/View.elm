@@ -24,45 +24,28 @@ view model =
         navigateMsg =
             ForParent << Navigate
     in
-        case model.discussionProperties of
-            Just discussionProperties ->
-                div []
-                    [ div []
-                        [ if Array.isEmpty discussionProperties then
-                            p [] [ text <| I18n.translate language I18n.MissingQuestions ]
-                          else
-                            div [ class "list-group" ]
-                                (Array.toList discussionProperties
-                                    |> List.map
-                                        (\discussionProperty ->
-                                            let
-                                                classList =
-                                                    case discussionProperty.keyId of
-                                                        "con" ->
-                                                            [ ( "list-group-item-warning", True ) ]
-
-                                                        "pro" ->
-                                                            [ ( "list-group-item-success", True ) ]
-
-                                                        _ ->
-                                                            [ ( "list-group-item-secondary", True ) ]
-                                            in
-                                                viewStatementIdRatedListGroupLine
-                                                    embed
-                                                    language
-                                                    navigateMsg
-                                                    ""
-                                                    classList
-                                                    False
-                                                    data
-                                                    discussionProperty.id
-                                        )
+        div []
+            [ div []
+                [ if Array.isEmpty model.questionProperties then
+                    p [] [ text <| I18n.translate language I18n.MissingQuestions ]
+                  else
+                    div [ class "list-group" ]
+                        (Array.toList model.questionProperties
+                            |> List.map
+                                (\questionProperty ->
+                                    viewStatementIdRatedListGroupLine
+                                        embed
+                                        language
+                                        navigateMsg
+                                        ""
+                                        []
+                                        False
+                                        data
+                                        questionProperty.id
                                 )
-                        ]
-                    , hr [] []
-                    , Interventions.New.View.view model.newInterventionModel
-                        |> Html.map translateNewInterventionMsg
-                    ]
-
-            Nothing ->
-                text ""
+                        )
+                ]
+            , hr [] []
+            , Interventions.New.View.view model.newInterventionModel
+                |> Html.map translateNewInterventionMsg
+            ]

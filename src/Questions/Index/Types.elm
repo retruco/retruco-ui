@@ -20,11 +20,11 @@ type InternalMsg
 type alias Model =
     { authentication : Maybe Authentication
     , data : Data
-    , discussionProperties : Maybe (Array Property)
     , embed : Bool
     , language : I18n.Language
     , newInterventionModel : Interventions.New.Types.Model
     , objectId : String
+    , questionProperties : Array Property
     , showTrashed : Bool
     }
 
