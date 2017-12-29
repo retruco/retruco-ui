@@ -381,7 +381,7 @@ getValue authentication id =
     Http.request
         { method = "GET"
         , headers = authenticationHeaders authentication
-        , url = apiUrl ++ "objects/" ++ id ++ "?depth=3&show=ballots&show=properties&show=values"
+        , url = apiUrl ++ "objects/" ++ id ++ "?depth=3&show=ballots&show=values"
         , body = Http.emptyBody
         , expect = Http.expectJson dataIdBodyDecoder
         , timeout = Nothing
@@ -408,7 +408,6 @@ getValues authentication term limit offset ratedOnly showTrashed sort =
                             Nothing
                        )
                      , ( "show", Just "ballots" )
-                     , ( "show", Just "properties" )
                      , ( "show"
                        , if showTrashed then
                             Just "trashed"
