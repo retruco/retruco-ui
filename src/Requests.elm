@@ -2,6 +2,7 @@ module Requests exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import Configuration exposing (apiUrl)
+import Constants exposing (imagePathKeyIds, nameKeyIds)
 import Decoders exposing (..)
 import Dict exposing (Dict)
 import Http
@@ -11,6 +12,20 @@ import Json.Encode as Encode
 import String
 import Types exposing (..)
 import Urls
+
+
+-- CONSTANTS
+
+
+needs : List ( String, Maybe String )
+needs =
+    imagePathKeyIds
+        ++ nameKeyIds
+        |> List.map (\id -> ( "need", Just id ))
+
+
+
+-- REQUESTS
 
 
 activateUser : String -> String -> Http.Request UserBody
@@ -183,7 +198,14 @@ getCard authentication cardId =
     Http.request
         { method = "GET"
         , headers = authenticationHeaders authentication
-        , url = apiUrl ++ "objects/" ++ cardId ++ "?depth=5&show=references&show=values"
+        , url =
+            apiUrl
+                ++ "objects/"
+                ++ cardId
+                ++ Urls.paramsToQuery
+                    (needs
+                        ++ [ ( "show", Just "references" ) ]
+                    )
         , body = Http.emptyBody
         , expect = Http.expectJson dataIdBodyDecoder
         , timeout = Nothing
@@ -209,33 +231,33 @@ getCards authentication term limit offset tagIds cardTypes showTrashed sort =
             apiUrl
                 ++ "cards"
                 ++ Urls.paramsToQuery
-                    ([ ( "depth", Just "2" )
-                     , ( "limit", Just (toString limit) )
-                     , ( "offset", Just (toString offset) )
-                     , ( "show"
-                       , if showTrashed then
-                            Just "trashed"
-                         else
-                            Nothing
-                       )
-                     , ( "show", Just "values" )
-                     , ( "sort", Just sort )
-                     , ( "term"
-                       , case term of
-                            Just term ->
-                                let
-                                    cleanTerm =
-                                        String.trim term
-                                in
-                                    if String.isEmpty cleanTerm then
-                                        Nothing
-                                    else
-                                        Just cleanTerm
-
-                            Nothing ->
-                                Nothing
-                       )
+                    ([ ( "limit", Just (toString limit) )
                      ]
+                        ++ needs
+                        ++ [ ( "offset", Just (toString offset) )
+                           , ( "show"
+                             , if showTrashed then
+                                Just "trashed"
+                               else
+                                Nothing
+                             )
+                           , ( "sort", Just sort )
+                           , ( "term"
+                             , case term of
+                                Just term ->
+                                    let
+                                        cleanTerm =
+                                            String.trim term
+                                    in
+                                        if String.isEmpty cleanTerm then
+                                            Nothing
+                                        else
+                                            Just cleanTerm
+
+                                Nothing ->
+                                    Nothing
+                             )
+                           ]
                         ++ List.map
                             (\tagId ->
                                 ( "tag"
@@ -266,7 +288,7 @@ getCollection authentication collectionId =
     Http.request
         { method = "GET"
         , headers = authenticationHeaders authentication
-        , url = apiUrl ++ "collections/" ++ collectionId ++ "?show=values&depth=4"
+        , url = apiUrl ++ "collections/" ++ collectionId ++ Urls.paramsToQuery needs
         , body = Http.emptyBody
         , expect = Http.expectJson dataIdBodyDecoder
         , timeout = Nothing
@@ -283,17 +305,17 @@ getCollections authentication limit =
             apiUrl
                 ++ "collections"
                 ++ Urls.paramsToQuery
-                    [ ( "depth", Just "1" )
-                    , ( "limit"
-                      , case limit of
+                    ([ ( "limit"
+                       , case limit of
                             Just limit ->
                                 Just (toString limit)
 
                             Nothing ->
                                 Nothing
-                      )
-                    , ( "show", Just "values" )
-                    ]
+                       )
+                     ]
+                        ++ needs
+                    )
         , body = Http.emptyBody
         , expect = Http.expectJson dataIdsBodyDecoder
         , timeout = Nothing
@@ -306,7 +328,7 @@ getCollectionsForAuthor authentication =
     Http.request
         { method = "GET"
         , headers = authenticationHeaders (Just authentication)
-        , url = apiUrl ++ "users/" ++ authentication.urlName ++ "/collections?show=values&depth=1"
+        , url = apiUrl ++ "users/" ++ authentication.urlName ++ "/collections" ++ Urls.paramsToQuery needs
         , body = Http.emptyBody
         , expect = Http.expectJson dataIdsBodyDecoder
         , timeout = Nothing
@@ -323,16 +345,15 @@ getProperties authentication showTrashed objectIds keyIds valueIds =
             apiUrl
                 ++ "properties"
                 ++ Urls.paramsToQuery
-                    ([ ( "depth", Just "3" )
-                     , ( "show", Just "ballots" )
-                     , ( "show"
-                       , if showTrashed then
-                            Just "trashed"
-                         else
-                            Nothing
-                       )
-                     , ( "show", Just "values" )
-                     ]
+                    (needs
+                        ++ [ ( "show", Just "ballots" )
+                           , ( "show"
+                             , if showTrashed then
+                                Just "trashed"
+                               else
+                                Nothing
+                             )
+                           ]
                         ++ (List.map (\keyId -> ( "keyId", Just keyId )) keyIds)
                         ++ (List.map (\objectId -> ( "objectId", Just objectId )) objectIds)
                         ++ (List.map (\valueId -> ( "valueId", Just valueId )) valueIds)
@@ -381,7 +402,14 @@ getValue authentication id =
     Http.request
         { method = "GET"
         , headers = authenticationHeaders authentication
-        , url = apiUrl ++ "objects/" ++ id ++ "?depth=3&show=ballots&show=values"
+        , url =
+            apiUrl
+                ++ "objects/"
+                ++ id
+                ++ Urls.paramsToQuery
+                    (needs
+                        ++ [ ( "show", Just "ballots" ) ]
+                    )
         , body = Http.emptyBody
         , expect = Http.expectJson dataIdBodyDecoder
         , timeout = Nothing
@@ -398,40 +426,39 @@ getValues authentication term limit offset ratedOnly showTrashed sort =
             apiUrl
                 ++ "values"
                 ++ Urls.paramsToQuery
-                    ([ ( "depth", Just "3" )
-                     , ( "limit", Just (toString limit) )
-                     , ( "offset", Just (toString offset) )
-                     , ( "rated"
-                       , if ratedOnly then
-                            Just "true"
-                         else
-                            Nothing
-                       )
-                     , ( "show", Just "ballots" )
-                     , ( "show"
-                       , if showTrashed then
-                            Just "trashed"
-                         else
-                            Nothing
-                       )
-                     , ( "show", Just "values" )
-                     , ( "sort", Just sort )
-                     , ( "term"
-                       , case term of
-                            Just term ->
-                                let
-                                    cleanTerm =
-                                        String.trim term
-                                in
-                                    if String.isEmpty cleanTerm then
-                                        Nothing
-                                    else
-                                        Just cleanTerm
-
-                            Nothing ->
+                    ([ ( "limit", Just (toString limit) ) ]
+                        ++ needs
+                        ++ [ ( "offset", Just (toString offset) )
+                           , ( "rated"
+                             , if ratedOnly then
+                                Just "true"
+                               else
                                 Nothing
-                       )
-                     ]
+                             )
+                           , ( "show", Just "ballots" )
+                           , ( "show"
+                             , if showTrashed then
+                                Just "trashed"
+                               else
+                                Nothing
+                             )
+                           , ( "sort", Just sort )
+                           , ( "term"
+                             , case term of
+                                Just term ->
+                                    let
+                                        cleanTerm =
+                                            String.trim term
+                                    in
+                                        if String.isEmpty cleanTerm then
+                                            Nothing
+                                        else
+                                            Just cleanTerm
+
+                                Nothing ->
+                                    Nothing
+                             )
+                           ]
                     )
         , body = Http.emptyBody
         , expect = Http.expectJson dataIdsBodyDecoder
@@ -498,7 +525,13 @@ postCardEasy authentication fields language =
         Http.request
             { method = "POST"
             , headers = authenticationHeaders authentication
-            , url = apiUrl ++ "cards/easy" ++ "?depth=5&show=references&show=values"
+            , url =
+                apiUrl
+                    ++ "cards/easy"
+                    ++ Urls.paramsToQuery
+                        (needs
+                            ++ [ ( "show", Just "references" ) ]
+                        )
             , body = body
             , expect = Http.expectJson dataIdBodyDecoder
             , timeout = Nothing
@@ -530,7 +563,13 @@ postProperty authentication objectId keyId valueId rating =
     Http.request
         { method = "POST"
         , headers = authenticationHeaders authentication
-        , url = apiUrl ++ "properties?show=ballots&show=values&depth=3"
+        , url =
+            apiUrl
+                ++ "properties"
+                ++ Urls.paramsToQuery
+                    (needs
+                        ++ [ ( "show", Just "ballots" ) ]
+                    )
         , body =
             Encode.object
                 ([ ( "keyId", Just <| Encode.string keyId )
@@ -643,7 +682,15 @@ rateStatement authentication statementId rating =
     Http.request
         { method = "POST"
         , headers = authenticationHeaders authentication
-        , url = apiUrl ++ "statements/" ++ statementId ++ "/rating?show=ballots&depth=1"
+        , url =
+            apiUrl
+                ++ "statements/"
+                ++ statementId
+                ++ "/rating"
+                ++ Urls.paramsToQuery
+                    (needs
+                        ++ [ ( "show", Just "ballots" ) ]
+                    )
         , body = Encode.object [ ( "rating", Encode.int rating ) ] |> Http.jsonBody
         , expect = Http.expectJson dataIdBodyDecoder
         , timeout = Nothing
@@ -688,7 +735,15 @@ unrateStatement authentication statementId =
     Http.request
         { method = "DELETE"
         , headers = authenticationHeaders authentication
-        , url = apiUrl ++ "statements/" ++ statementId ++ "/rating?show=ballots&depth=1"
+        , url =
+            apiUrl
+                ++ "statements/"
+                ++ statementId
+                ++ "/rating"
+                ++ Urls.paramsToQuery
+                    (needs
+                        ++ [ ( "show", Just "ballots" ) ]
+                    )
         , body = Http.emptyBody
         , expect = Http.expectJson dataIdBodyDecoder
         , timeout = Nothing
