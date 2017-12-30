@@ -30,7 +30,7 @@ type alias Card =
     , ballotId : String
     , createdAt : String
     , id : String
-    , properties : Dict String (List String)
+    , qualities : Dict String (List String)
     , ratingCount : Int
     , ratingSum : Int
     , references : Dict String (List String)
@@ -163,7 +163,7 @@ type alias Property =
     , id : String
     , keyId : String
     , objectId : String
-    , properties : Dict String (List String)
+    , qualities : Dict String (List String)
     , ratingCount : Int
     , ratingSum : Int
     , references : Dict String (List String)
@@ -182,7 +182,7 @@ type alias Statement a =
           ballotId : String
         , createdAt : String
         , id : String
-        , properties : Dict String (List String)
+        , qualities : Dict String (List String)
         , ratingCount : Int
         , ratingSum : Int
         , trashed : Bool
@@ -202,7 +202,7 @@ type alias TypedValue =
       ballotId : String
     , createdAt : String
     , id : String
-    , properties : Dict String (List String)
+    , qualities : Dict String (List String)
     , ratingCount : Int
     , ratingSum : Int
     , schemaId : String

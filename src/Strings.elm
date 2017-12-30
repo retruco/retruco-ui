@@ -15,7 +15,7 @@ cardNameToString language data card =
 
 cardNameToStringForLanguages : List (Maybe I18n.Language) -> DataProxy a -> Card -> Maybe String
 cardNameToStringForLanguages languages data card =
-    statementPropertiesToStringForLanguages nameKeyIds languages data card
+    qualitiesToStringForLanguages nameKeyIds languages data card
 
 
 getPreferredLanguages : I18n.Language -> List (Maybe I18n.Language)
@@ -132,48 +132,48 @@ propertyToString language data property =
         ++ (idToString language data property.valueId)
 
 
-statementPropertiesToString : List String -> I18n.Language -> DataProxy a -> Statement b -> Maybe String
-statementPropertiesToString keyIds language data statement =
-    statementPropertiesToStringForLanguages keyIds (getPreferredLanguages language) data statement
+qualitiesToString : List String -> I18n.Language -> DataProxy a -> Statement b -> Maybe String
+qualitiesToString keyIds language data statement =
+    qualitiesToStringForLanguages keyIds (getPreferredLanguages language) data statement
 
 
-statementPropertiesToStringForLanguage :
+qualitiesToStringForLanguage :
     List String
     -> Maybe I18n.Language
     -> DataProxy a
     -> Statement b
     -> Maybe String
-statementPropertiesToStringForLanguage keyIds language data statement =
+qualitiesToStringForLanguage keyIds language data statement =
     case keyIds of
         keyId :: remainingKeyIds ->
-            case Dict.get keyId statement.properties of
+            case Dict.get keyId statement.qualities of
                 Just valueIds ->
                     case idsToStringForLanguage language data Set.empty valueIds of
                         Nothing ->
-                            statementPropertiesToStringForLanguage remainingKeyIds language data statement
+                            qualitiesToStringForLanguage remainingKeyIds language data statement
 
                         justAString ->
                             justAString
 
                 Nothing ->
-                    statementPropertiesToStringForLanguage remainingKeyIds language data statement
+                    qualitiesToStringForLanguage remainingKeyIds language data statement
 
         [] ->
             Nothing
 
 
-statementPropertiesToStringForLanguages :
+qualitiesToStringForLanguages :
     List String
     -> List (Maybe I18n.Language)
     -> DataProxy a
     -> Statement b
     -> Maybe String
-statementPropertiesToStringForLanguages keyIds languages data statement =
+qualitiesToStringForLanguages keyIds languages data statement =
     case languages of
         language :: remainingLanguages ->
-            case statementPropertiesToStringForLanguage keyIds language data statement of
+            case qualitiesToStringForLanguage keyIds language data statement of
                 Nothing ->
-                    statementPropertiesToStringForLanguages keyIds remainingLanguages data statement
+                    qualitiesToStringForLanguages keyIds remainingLanguages data statement
 
                 justAString ->
                     justAString
@@ -200,7 +200,7 @@ typedStringValueToStringForLanguage :
 typedStringValueToStringForLanguage language data visitedIdsSet typedValue string =
     case language of
         Just language ->
-            case Dict.get (I18n.languageIdFromLanguage language) typedValue.properties of
+            case Dict.get (I18n.languageIdFromLanguage language) typedValue.qualities of
                 Just localizedValueIds ->
                     -- Found some strings localized for requested language.
                     idsToStringForLanguage Nothing data visitedIdsSet localizedValueIds
@@ -215,7 +215,7 @@ typedStringValueToStringForLanguage language data visitedIdsSet typedValue strin
                         getStringFromOtherLanguages otherLanguages =
                             case otherLanguages of
                                 otherLanguage :: remainingLanguages ->
-                                    case Dict.get (I18n.languageIdFromLanguage otherLanguage) typedValue.properties of
+                                    case Dict.get (I18n.languageIdFromLanguage otherLanguage) typedValue.qualities of
                                         Just localizedValueIds ->
                                             case
                                                 idsToStringForLanguage

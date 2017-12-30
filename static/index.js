@@ -111,11 +111,20 @@ const propertyFragment = gql`
     id
     keyId
     objectId
+    qualities {
+      ...QualityItemFragment
+    }
     ratingCount
     ratingSum
     trashed
     type
     valueId
+  }
+`
+const qualityItemFragment = gql`
+  fragment QualityItemFragment on QualityItem {
+    keyId
+    valueIds
   }
 `
 const statementFragment = gql`
@@ -124,6 +133,9 @@ const statementFragment = gql`
     ballotId
     createdAt
     id
+    qualities {
+      ...QualityItemFragment
+    }
     ratingCount
     ratingSum
     trashed
@@ -181,6 +193,7 @@ main.ports.graphqlSubscribeToPropertyUpserted.subscribe(function ({objectIds, ke
         }
       }
       ${propertyFragment}
+      ${qualityItemFragment}
       ${statementFragment}
     `,
     variables: {
@@ -190,8 +203,11 @@ main.ports.graphqlSubscribeToPropertyUpserted.subscribe(function ({objectIds, ke
     }
   }).subscribe({
     next (data) {
+      if (!data.data) {
+        console.log("graphqlSubscribeToPropertyUpserted.subscribe.next", data)
+      }
       // Notify your application with the new arrived data
-      main.ports.propertyUpserted.send(data.propertyUpserted);
+      main.ports.propertyUpserted.send(data.data.propertyUpserted);
     }
   });
 });
