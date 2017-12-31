@@ -70,13 +70,24 @@ type alias GraphqlPropertyUpsertedArguments =
     }
 
 
+type alias GraphqlStatementUpsertedArguments =
+    { need : List String
+    }
+
+
 port graphqlInit : GraphqlInitArguments -> Cmd msg
 
 
 port graphqlSubscribeToPropertyUpserted : GraphqlPropertyUpsertedArguments -> Cmd msg
 
 
+port graphqlSubscribeToStatementUpserted : GraphqlStatementUpsertedArguments -> Cmd msg
+
+
 port propertyUpserted : (Json.Encode.Value -> msg) -> Sub msg
+
+
+port statementUpserted : (Json.Encode.Value -> msg) -> Sub msg
 
 
 initGraphql : Cmd msg
@@ -93,6 +104,13 @@ subscribeToPropertyUpserted objectIds keyIds valueIds =
         { keyIds = keyIds
         , objectIds = objectIds
         , valueIds = valueIds
+        }
+
+
+subscribeToStatementUpserted : List String -> Cmd msg
+subscribeToStatementUpserted need =
+    graphqlSubscribeToStatementUpserted
+        { need = need
         }
 
 

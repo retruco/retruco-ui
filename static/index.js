@@ -102,7 +102,48 @@ const introspectionQueryResultData = {
     ]
   }
 }
-// TODO: Add "properties" field in fragment, after renaming it to validProperties or something like that.
+
+const ballotFragment = gql`
+  fragment BallotFragment on Ballot {
+    id
+    rating
+    statementId
+    updatedAt
+    voterId
+  }
+`
+const cardFragment = gql`
+  fragment CardFragment on Card {
+    argumentCount
+    ballotId
+    createdAt
+    id
+    qualities {
+      ...QualityItemFragment
+    }
+    ratingCount
+    ratingSum
+    trashed
+    type
+  }
+`
+const dataIdFragment = gql`
+  fragment DataIdFragment on DataId {
+    ballots {
+      ...BallotFragment
+    }
+    cards {
+      ...CardFragment
+    }
+    id
+    properties {
+      ...PropertyFragment
+    }
+    values {
+      ...ValueFragment
+    }
+  }
+`
 const propertyFragment = gql`
   fragment PropertyFragment on Property {
     argumentCount
@@ -150,6 +191,24 @@ const statementFragment = gql`
       value
       widgetId
     }
+  }
+`
+const valueFragment = gql`
+  fragment ValueFragment on Value {
+    argumentCount
+    ballotId
+    createdAt
+    id
+    qualities {
+      ...QualityItemFragment
+    }
+    ratingCount
+    ratingSum
+    schemaId
+    trashed
+    type
+    value
+    widgetId
   }
 `
 
@@ -208,6 +267,35 @@ main.ports.graphqlSubscribeToPropertyUpserted.subscribe(function ({objectIds, ke
       }
       // Notify your application with the new arrived data
       main.ports.propertyUpserted.send(data.data.propertyUpserted);
+    }
+  });
+});
+
+main.ports.graphqlSubscribeToStatementUpserted.subscribe(function ({need}) {
+  graphqlClient.subscribe({
+    query: gql`
+      subscription onStatementUpserted ($need: [String!]) {
+        statementUpserted (need: $need) {
+          ...DataIdFragment
+        }
+      }
+      ${ballotFragment}
+      ${cardFragment}
+      ${dataIdFragment}
+      ${propertyFragment}
+      ${qualityItemFragment}
+      ${valueFragment}
+    `,
+    variables: {
+      need,
+    }
+  }).subscribe({
+    next (data) {
+      if (!data.data) {
+        console.log("graphqlSubscribeToStatementUpserted.subscribe.next", data)
+      }
+      // Notify your application with the new arrived data
+      main.ports.statementUpserted.send(data.data.statementUpserted);
     }
   });
 });

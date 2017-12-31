@@ -9,6 +9,7 @@ import Cards.New.Types
 import Discussions.Index.Types
 import Discussions.New.Types
 import I18n
+import Json.Encode
 import Navigation
 import Properties.Item.Types
 import Proposals.Index.Types
@@ -74,6 +75,7 @@ type Msg
     | RequireSignInForProperty Properties.Item.Types.InternalMsg
     | RequireSignInForValue Values.Item.Types.InternalMsg
     | ScrolledToTop
+    | StatementUpserted Json.Encode.Value
     | ValueMsg Values.Item.Types.InternalMsg
     | ValuesMsg Values.Index.Types.InternalMsg
     | ValueUpserted Types.DataId

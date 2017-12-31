@@ -6,6 +6,7 @@ import Authenticator.State
 import Cards.Index.State
 import Cards.Item.State
 import Cards.New.State
+import Constants exposing (imagePathKeyIds, nameKeyIds)
 import Decoders
 import Discussions.Index.State
 import Discussions.New.State
@@ -71,6 +72,7 @@ init flags location =
     in
         model
             ! [ Ports.initGraphql
+              , Ports.subscribeToStatementUpserted (imagePathKeyIds ++ nameKeyIds)
               , Task.perform (\_ -> LocationChanged location) (Task.succeed ())
               ]
 
@@ -149,6 +151,7 @@ subscriptions model =
 
             Nothing ->
                 Nothing
+        , Just <| Ports.statementUpserted StatementUpserted
         ]
         |> Sub.batch
 
@@ -439,6 +442,26 @@ update msg model =
 
             ScrolledToTop ->
                 ( model, Cmd.none )
+
+            StatementUpserted dataIdJson ->
+                case Json.Decode.decodeValue Decoders.graphqlDataIdDecoder dataIdJson of
+                    Err message ->
+                        let
+                            _ =
+                                Debug.log "PropertyUpserted Decode error:" message
+
+                            _ =
+                                Debug.log "PropertyUpserted JSON:" dataIdJson
+                        in
+                            ( model, Cmd.none )
+
+                    Ok dataId ->
+                        let
+                            _ =
+                                Debug.log "StatementUpserted Ok" dataId
+                        in
+                            -- TODO
+                            ( model, Cmd.none )
 
             ValueMsg childMsg ->
                 case model.valueModel of

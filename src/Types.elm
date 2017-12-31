@@ -175,6 +175,12 @@ type alias Property =
     }
 
 
+type alias QualityItem =
+    { keyId : String
+    , valueIds : List String
+    }
+
+
 type alias Statement a =
     { a
         | argumentCount : Int
