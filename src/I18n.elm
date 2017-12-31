@@ -270,7 +270,7 @@ type TranslationId
     | Values
     | ValuesDescription
     | ValuesRetrievalFailed
-    | ValueType
+    | ValueWrapper
     | VoteBestContributions
     | VoteMinusAction
     | VoteNeutralAction
@@ -2301,10 +2301,10 @@ getTranslationSet translationId =
                 , spanish = todo
             }
 
-        ValueType ->
+        ValueWrapper ->
             { emptyTranslationSet
-                | english = s "Value Type"
-                , french = s "Type de valeur"
+                | english = s "Value Wrapper"
+                , french = s "Enveloppe de valeur"
                 , spanish = todo
             }
 

@@ -12,32 +12,32 @@ import Types exposing (..)
 import Urls
 
 
-valueTypeToTypeLabel : I18n.Language -> ValueType -> String
-valueTypeToTypeLabel language valueType =
+valueWrapperToTypeLabel : I18n.Language -> ValueWrapper -> String
+valueWrapperToTypeLabel language valueWrapper =
     I18n.translate language <|
-        case valueType of
-            BooleanValue _ ->
+        case valueWrapper of
+            BooleanWrapper _ ->
                 I18n.Boolean
 
-            IdsArrayValue _ ->
+            IdsArrayWrapper _ ->
                 I18n.IdsArray
 
-            EmailValue _ ->
+            EmailWrapper _ ->
                 I18n.Email
 
-            ImagePathValue _ ->
+            ImagePathWrapper _ ->
                 I18n.Image
 
-            NumberValue _ ->
+            NumberWrapper _ ->
                 I18n.Number
 
-            StringValue _ ->
+            StringWrapper _ ->
                 I18n.String
 
-            UrlValue _ ->
+            UrlWrapper _ ->
                 I18n.Url
 
-            WrongValue _ schemaId ->
+            WrongWrapper _ schemaId ->
                 I18n.UnknownSchemaId schemaId
 
 
@@ -126,7 +126,7 @@ viewStatementIdLine embed language navigateMsg independent showDetails data stat
                 Nothing ->
                     case Dict.get statementId data.values of
                         Just typedValue ->
-                            viewValueTypeLine embed language navigateMsg showDetails data typedValue.value
+                            viewValueWrapperLine embed language navigateMsg showDetails data typedValue.value
 
                         Nothing ->
                             i [ class "text-warning" ] [ text (I18n.translate language <| I18n.UnknownId statementId) ]
@@ -238,34 +238,34 @@ viewValueIdLine : Bool -> I18n.Language -> (String -> msg) -> Bool -> DataProxy 
 viewValueIdLine embed language navigateMsg showDetails data valueId =
     case Dict.get valueId data.values of
         Just typedValue ->
-            viewValueTypeLine embed language navigateMsg showDetails data typedValue.value
+            viewValueWrapperLine embed language navigateMsg showDetails data typedValue.value
 
         Nothing ->
             i [ class "text-warning" ] [ text ("Missing value with ID: " ++ valueId) ]
 
 
-viewValueTypeLine : Bool -> I18n.Language -> (String -> msg) -> Bool -> DataProxy a -> ValueType -> Html msg
-viewValueTypeLine embed language navigateMsg showDetails data valueType =
+viewValueWrapperLine : Bool -> I18n.Language -> (String -> msg) -> Bool -> DataProxy a -> ValueWrapper -> Html msg
+viewValueWrapperLine embed language navigateMsg showDetails data valueWrapper =
     if showDetails then
         div []
-            [ i [] [ text (valueTypeToTypeLabel language valueType) ]
+            [ i [] [ text (valueWrapperToTypeLabel language valueWrapper) ]
             , text (I18n.translate language I18n.Colon)
-            , viewValueTypeLineContent embed language navigateMsg showDetails data valueType
+            , viewValueWrapperLineContent embed language navigateMsg showDetails data valueWrapper
             ]
     else
-        viewValueTypeLineContent embed language navigateMsg showDetails data valueType
+        viewValueWrapperLineContent embed language navigateMsg showDetails data valueWrapper
 
 
-viewValueTypeLineContent : Bool -> I18n.Language -> (String -> msg) -> Bool -> DataProxy a -> ValueType -> Html msg
-viewValueTypeLineContent embed language navigateMsg showDetails data valueType =
-    case valueType of
-        BooleanValue bool ->
+viewValueWrapperLineContent : Bool -> I18n.Language -> (String -> msg) -> Bool -> DataProxy a -> ValueWrapper -> Html msg
+viewValueWrapperLineContent embed language navigateMsg showDetails data valueWrapper =
+    case valueWrapper of
+        BooleanWrapper bool ->
             text (toString bool)
 
-        EmailValue str ->
+        EmailWrapper str ->
             aIfIsUrl [] str
 
-        IdsArrayValue ids ->
+        IdsArrayWrapper ids ->
             ul []
                 (List.map
                     (\id ->
@@ -276,7 +276,7 @@ viewValueTypeLineContent embed language navigateMsg showDetails data valueType =
                     ids
                 )
 
-        ImagePathValue path ->
+        ImagePathWrapper path ->
             figure
                 [ class "figure text-center" ]
                 [ img
@@ -289,7 +289,7 @@ viewValueTypeLineContent embed language navigateMsg showDetails data valueType =
                 , figcaption [ class "figure-caption" ] [ text path ]
                 ]
 
-        -- LocalizedStringValue values ->
+        -- LocalizedStringWrapper values ->
         --     if showDetails || Dict.size values > 1 then
         --         dl []
         --             (values
@@ -307,16 +307,16 @@ viewValueTypeLineContent embed language navigateMsg showDetails data valueType =
         --                 |> Dict.toList
         --                 |> List.map (\( languageCode, childValue ) -> aIfIsUrl [] childValue)
         --             )
-        NumberValue float ->
+        NumberWrapper float ->
             text (toString float)
 
-        StringValue str ->
+        StringWrapper str ->
             aIfIsUrl [] str
 
-        UrlValue str ->
+        UrlWrapper str ->
             aIfIsUrl [] str
 
-        WrongValue str schemaId ->
+        WrongWrapper str schemaId ->
             div []
                 [ p [ style [ ( "color", "red" ) ] ] [ text "Wrong value!" ]
                 , pre [] [ text str ]

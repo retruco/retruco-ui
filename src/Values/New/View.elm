@@ -102,7 +102,7 @@ viewFormControls model =
                     div [ class ("form-group" ++ errorClass) ]
                         ([ label
                             [ class "control-label sr-only", for controlId ]
-                            [ text <| I18n.translate language I18n.ValueType ]
+                            [ text <| I18n.translate language I18n.ValueWrapper ]
                          , select
                             ([ class "form-control custom-select"
                              , id controlId

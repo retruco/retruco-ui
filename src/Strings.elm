@@ -254,15 +254,15 @@ typedValueToStringForLanguage language data visitedIdsSet typedValue =
         Nothing
     else
         case typedValue.value of
-            EmailValue value ->
+            EmailWrapper value ->
                 typedStringValueToStringForLanguage language data visitedIdsSet typedValue value
 
-            -- IdsArrayValue ids ->
+            -- IdsArrayWrapper ids ->
             --     idsToStringForLanguage language data visitedIdsSet ids
-            StringValue value ->
+            StringWrapper value ->
                 typedStringValueToStringForLanguage language data visitedIdsSet typedValue value
 
-            UrlValue value ->
+            UrlWrapper value ->
                 typedStringValueToStringForLanguage language data visitedIdsSet typedValue value
 
             value ->

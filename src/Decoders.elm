@@ -300,7 +300,7 @@ typedValueDecoder =
         |: oneOf [ field "widgetId" string, succeed "" ]
         |> andThen
             (\{ argumentCount, ballotId, createdAt, id, qualities, ratingCount, ratingSum, schemaId, trashed, type_, widgetId } ->
-                (field "value" (valueTypeDecoder schemaId widgetId))
+                (field "value" (valueWrapperDecoder schemaId widgetId))
                     |> map
                         (\value ->
                             TypedValue
@@ -344,37 +344,37 @@ userDecoder =
         |: field "urlName" string
 
 
-valueTypeDecoder : String -> String -> Decoder ValueType
-valueTypeDecoder schemaId widgetId =
+valueWrapperDecoder : String -> String -> Decoder ValueWrapper
+valueWrapperDecoder schemaId widgetId =
     let
         decoder =
             case ( schemaId, widgetId ) of
                 ( "schema:boolean", _ ) ->
-                    bool |> map BooleanValue
+                    bool |> map BooleanWrapper
 
                 ( "schema:email", _ ) ->
-                    string |> map EmailValue
+                    string |> map EmailWrapper
 
                 ( "schema:ids-array", _ ) ->
-                    list string |> map IdsArrayValue
+                    list string |> map IdsArrayWrapper
 
                 ( "schema:number", _ ) ->
-                    float |> map NumberValue
+                    float |> map NumberWrapper
 
                 ( "schema:string", _ ) ->
-                    string |> map StringValue
+                    string |> map StringWrapper
 
                 ( "schema:uri", "widget:image" ) ->
-                    string |> map ImagePathValue
+                    string |> map ImagePathWrapper
 
                 ( "schema:uri", _ ) ->
-                    string |> map UrlValue
+                    string |> map UrlWrapper
 
                 ( "schema:uri-reference", "widget:image" ) ->
-                    string |> map ImagePathValue
+                    string |> map ImagePathWrapper
 
                 ( "schema:uri-reference", _ ) ->
-                    string |> map UrlValue
+                    string |> map UrlWrapper
 
                 ( _, _ ) ->
                     fail ("TODO Unsupported schemaId \"" ++ schemaId ++ "\" & widgetId \"" ++ widgetId ++ "\"")
@@ -389,8 +389,8 @@ valueTypeDecoder schemaId widgetId =
                                 toString value
 
                             -- _ =
-                            --     Debug.log ("WrongValue \"" ++ str ++ "\", schemaId: " ++ schemaId)
+                            --     Debug.log ("WrongWrapper \"" ++ str ++ "\", schemaId: " ++ schemaId)
                         in
-                            WrongValue str schemaId
+                            WrongWrapper str schemaId
                     )
             ]

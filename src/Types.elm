@@ -214,7 +214,7 @@ type alias TypedValue =
     , schemaId : String
     , trashed : Bool
     , type_ : String
-    , value : ValueType
+    , value : ValueWrapper
     , widgetId : String
     }
 
@@ -247,15 +247,15 @@ type alias UserBody =
     }
 
 
-type ValueType
-    = BooleanValue Bool
-    | EmailValue String
-    | IdsArrayValue (List String)
-    | ImagePathValue String
-    | NumberValue Float
-    | StringValue String
-    | UrlValue String
-    | WrongValue String String
+type ValueWrapper
+    = BooleanWrapper Bool
+    | EmailWrapper String
+    | IdsArrayWrapper (List String)
+    | ImagePathWrapper String
+    | NumberWrapper Float
+    | StringWrapper String
+    | UrlWrapper String
+    | WrongWrapper String String
 
 
 addToData : StatementWrapper -> DataProxy a -> DataProxy a

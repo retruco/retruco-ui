@@ -11,7 +11,7 @@ import Properties.SameObject.View
 import Properties.SameObjectAndKey.View
 import Properties.SameValue.View
 import Statements.Alerts exposing (viewDuplicatedByAlert, viewDuplicateOfAlert)
-import Statements.Lines exposing (viewStatementIdRatedLine, viewValueTypeLine)
+import Statements.Lines exposing (viewStatementIdRatedLine, viewValueWrapperLine)
 import Statements.Toolbar.View
 import Urls
 import Values.Item.Types exposing (..)
@@ -148,7 +148,7 @@ view model =
                                         |> Html.map translateDebatePropertiesMsg
 
                                 DetailsTab ->
-                                    viewValueTypeLine
+                                    viewValueWrapperLine
                                         embed
                                         language
                                         navigateMsg
