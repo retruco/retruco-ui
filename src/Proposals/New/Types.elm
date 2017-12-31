@@ -9,7 +9,7 @@ import Values.New.Types
 
 
 type ExternalMsg
-    = ProposalUpserted DataId
+    = ProposalUpserted DataWithId
     | RequireSignIn InternalMsg
 
 
@@ -19,13 +19,13 @@ type alias FormErrors =
 
 type InternalMsg
     = NewValueMsg Values.New.Types.InternalMsg
-    | Rated (Result Http.Error DataIdBody)
-    | Upserted DataId
+    | Rated (Result Http.Error DataWithIdBody)
+    | Upserted DataWithId
 
 
 type alias Model =
     { authentication : Maybe Authentication
-    , data : DataId
+    , data : DataWithId
     , embed : Bool
     , httpError : Maybe Http.Error
     , language : I18n.Language
@@ -40,7 +40,7 @@ type Msg
 
 type alias MsgTranslation parentMsg =
     { onInternalMsg : InternalMsg -> parentMsg
-    , onProposalUpserted : DataId -> parentMsg
+    , onProposalUpserted : DataWithId -> parentMsg
     , onRequireSignIn : InternalMsg -> parentMsg
     }
 

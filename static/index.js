@@ -127,8 +127,8 @@ const cardFragment = gql`
     type
   }
 `
-const dataIdFragment = gql`
-  fragment DataIdFragment on DataId {
+const dataWithIdFragment = gql`
+  fragment DataWithIdFragment on DataWithId {
     ballots {
       ...BallotFragment
     }
@@ -276,12 +276,12 @@ main.ports.graphqlSubscribeToStatementUpserted.subscribe(function ({need}) {
     query: gql`
       subscription onStatementUpserted ($need: [String!]) {
         statementUpserted (need: $need) {
-          ...DataIdFragment
+          ...DataWithIdFragment
         }
       }
       ${ballotFragment}
       ${cardFragment}
-      ${dataIdFragment}
+      ${dataWithIdFragment}
       ${propertyFragment}
       ${qualityItemFragment}
       ${valueFragment}

@@ -13,7 +13,7 @@ type ExternalMsg
 
 
 type InternalMsg
-    = InterventionUpserted Types.DataId
+    = InterventionUpserted Types.DataWithId
     | NewInterventionMsg Interventions.New.Types.InternalMsg
 
 

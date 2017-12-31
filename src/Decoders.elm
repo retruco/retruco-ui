@@ -84,15 +84,15 @@ collectionDecoder =
         |: field "name" string
 
 
-dataIdBodyDecoder : Decoder DataIdBody
-dataIdBodyDecoder =
-    succeed DataIdBody
-        |: field "data" dataIdDecoder
+dataWithIdBodyDecoder : Decoder DataWithIdBody
+dataWithIdBodyDecoder =
+    succeed DataWithIdBody
+        |: field "data" dataWithIdDecoder
 
 
-dataIdDecoder : Decoder DataId
-dataIdDecoder =
-    succeed DataId
+dataWithIdDecoder : Decoder DataWithId
+dataWithIdDecoder =
+    succeed DataWithId
         |: oneOf [ field "ballots" (dict ballotDecoder), succeed Dict.empty ]
         |: oneOf [ field "cards" (dict cardDecoder), succeed Dict.empty ]
         |: oneOf [ field "collections" (dict collectionDecoder), succeed Dict.empty ]
@@ -102,17 +102,17 @@ dataIdDecoder =
         |: oneOf [ field "values" (dict typedValueDecoder), succeed Dict.empty ]
 
 
-dataIdsBodyDecoder : Decoder DataIdsBody
-dataIdsBodyDecoder =
-    succeed DataIdsBody
+dataWithIdsBodyDecoder : Decoder DataWithIdsBody
+dataWithIdsBodyDecoder =
+    succeed DataWithIdsBody
         |: oneOf [ field "count" int, succeed 0 ]
-        |: field "data" dataIdsDecoder
+        |: field "data" dataWithIdsDecoder
         |: oneOf [ field "limit" int, succeed 0 ]
         |: oneOf [ field "offset" int, succeed 0 ]
 
 
-dataIdsDecoder : Decoder DataIds
-dataIdsDecoder =
+dataWithIdsDecoder : Decoder DataWithIds
+dataWithIdsDecoder =
     map2 (,)
         (field "ids" (array string))
         (oneOf [ field "users" (dict userDecoder), succeed Dict.empty ])
@@ -130,13 +130,13 @@ dataIdsDecoder =
                 )
                     |> map
                         (\( ballots, cards, collections, properties, values ) ->
-                            DataIds ballots cards collections ids properties users values
+                            DataWithIds ballots cards collections ids properties users values
                         )
             )
 
 
-graphqlDataIdDecoder : Decoder DataId
-graphqlDataIdDecoder =
+graphqlDataWithIdDecoder : Decoder DataWithId
+graphqlDataWithIdDecoder =
     map7
         (\ballots cards collections id properties users values ->
             let
@@ -163,11 +163,11 @@ graphqlDataIdDecoder =
         (oneOf [ field "values" (list typedValueDecoder), succeed [] ])
 
 
-graphqlPropertyDecoder : Decoder DataId
+graphqlPropertyDecoder : Decoder DataWithId
 graphqlPropertyDecoder =
     map2
         (\property typedValue ->
-            { initDataId
+            { initDataWithId
                 | id = property.id
                 , properties = Dict.singleton property.id property
             }

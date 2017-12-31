@@ -443,22 +443,22 @@ update msg model =
             ScrolledToTop ->
                 ( model, Cmd.none )
 
-            StatementUpserted dataIdJson ->
-                case Json.Decode.decodeValue Decoders.graphqlDataIdDecoder dataIdJson of
+            StatementUpserted dataWithIdJson ->
+                case Json.Decode.decodeValue Decoders.graphqlDataWithIdDecoder dataWithIdJson of
                     Err message ->
                         let
                             _ =
                                 Debug.log "PropertyUpserted Decode error:" message
 
                             _ =
-                                Debug.log "PropertyUpserted JSON:" dataIdJson
+                                Debug.log "PropertyUpserted JSON:" dataWithIdJson
                         in
                             ( model, Cmd.none )
 
-                    Ok dataId ->
+                    Ok dataWithId ->
                         let
                             _ =
-                                Debug.log "StatementUpserted Ok" dataId
+                                Debug.log "StatementUpserted Ok" dataWithId
                         in
                             -- TODO
                             ( model, Cmd.none )

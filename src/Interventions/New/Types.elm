@@ -9,7 +9,7 @@ import Types exposing (..)
 
 
 type ExternalMsg
-    = InterventionUpserted DataId
+    = InterventionUpserted DataWithId
     | RequireSignIn InternalMsg
 
 
@@ -18,17 +18,17 @@ type alias FormErrors =
 
 
 type InternalMsg
-    = InterventionSpecificPropertyUpserted (Result Http.Error DataIdBody)
+    = InterventionSpecificPropertyUpserted (Result Http.Error DataWithIdBody)
     | KeyIdChanged String
     | NewProposalMsg Proposals.New.Types.InternalMsg
-    | Upserted (Result Http.Error DataIdBody)
-    | ProposalUpserted DataId
+    | Upserted (Result Http.Error DataWithIdBody)
+    | ProposalUpserted DataWithId
     | Submit
 
 
 type alias Model =
     { authentication : Maybe Authentication
-    , data : DataId
+    , data : DataWithId
     , embed : Bool
     , errors : FormErrors
     , httpError : Maybe Http.Error
@@ -47,7 +47,7 @@ type Msg
 
 type alias MsgTranslation parentMsg =
     { onInternalMsg : InternalMsg -> parentMsg
-    , onInterventionUpserted : DataId -> parentMsg
+    , onInterventionUpserted : DataWithId -> parentMsg
     , onRequireSignIn : InternalMsg -> parentMsg
     }
 

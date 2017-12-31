@@ -9,7 +9,7 @@ import Values.Autocomplete.Types
 
 
 type ExternalMsg
-    = CardUpserted DataId
+    = CardUpserted DataWithId
     | RequireSignIn InternalMsg
 
 
@@ -20,18 +20,18 @@ type alias FormErrors =
 type InternalMsg
     = LanguageChanged String
     | NameChanged String
-    | NameLocalizationPropertyUpserted (Result Http.Error DataIdBody)
-    | NamePropertyUpserted (Result Http.Error DataIdBody)
+    | NameLocalizationPropertyUpserted (Result Http.Error DataWithIdBody)
+    | NamePropertyUpserted (Result Http.Error DataWithIdBody)
     | NamesAutocompleteMsg Values.Autocomplete.Types.InternalMsg
-    | NameUpserted (Result Http.Error DataIdBody)
+    | NameUpserted (Result Http.Error DataWithIdBody)
     | Submit
-    | Upserted (Result Http.Error DataIdBody)
+    | Upserted (Result Http.Error DataWithIdBody)
 
 
 type alias Model =
     { authentication : Maybe Authentication
     , cardId : String
-    , data : DataId
+    , data : DataWithId
     , embed : Bool
     , errors : FormErrors
     , httpError : Maybe Http.Error
@@ -52,7 +52,7 @@ type Msg
 type alias MsgTranslation parentMsg =
     { onInternalMsg : InternalMsg -> parentMsg
     , onRequireSignIn : InternalMsg -> parentMsg
-    , onCardUpserted : DataId -> parentMsg
+    , onCardUpserted : DataWithId -> parentMsg
     }
 
 

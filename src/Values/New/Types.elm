@@ -13,7 +13,7 @@ import Values.Autocomplete.Types
 
 type ExternalMsg
     = RequireSignIn InternalMsg
-    | ValueUpserted DataId
+    | ValueUpserted DataWithId
 
 
 type alias FormErrors =
@@ -27,9 +27,9 @@ type InternalMsg
     | ImageSelected
     | ImageUploaded (Result Http.Error String)
     | LanguageChanged String
-    | LocalizationPropertyUpserted (Result Http.Error DataIdBody)
+    | LocalizationPropertyUpserted (Result Http.Error DataWithIdBody)
     | Submit
-    | Upserted (Result Http.Error DataIdBody)
+    | Upserted (Result Http.Error DataWithIdBody)
     | ValueChanged String
     | ValueChecked Bool
     | ValuesAutocompleteMsg Values.Autocomplete.Types.InternalMsg
@@ -61,7 +61,7 @@ type Msg
 type alias MsgTranslation parentMsg =
     { onInternalMsg : InternalMsg -> parentMsg
     , onRequireSignIn : InternalMsg -> parentMsg
-    , onValueUpserted : DataId -> parentMsg
+    , onValueUpserted : DataWithId -> parentMsg
     }
 
 

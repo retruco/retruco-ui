@@ -68,7 +68,7 @@ type alias Data =
     DataProxy {}
 
 
-type alias DataId =
+type alias DataWithId =
     { ballots : Dict String Ballot
     , cards : Dict String Card
     , collections : Dict String Collection
@@ -79,12 +79,12 @@ type alias DataId =
     }
 
 
-type alias DataIdBody =
-    { data : DataId
+type alias DataWithIdBody =
+    { data : DataWithId
     }
 
 
-type alias DataIds =
+type alias DataWithIds =
     { ballots : Dict String Ballot
     , cards : Dict String Card
     , collections : Dict String Collection
@@ -95,9 +95,9 @@ type alias DataIds =
     }
 
 
-type alias DataIdsBody =
+type alias DataWithIdsBody =
     { count : Int
-    , data : DataIds
+    , data : DataWithIds
     , limit : Int
     , offset : Int
     }
@@ -288,8 +288,8 @@ initData =
     }
 
 
-initDataId : DataId
-initDataId =
+initDataWithId : DataWithId
+initDataWithId =
     { ballots = Dict.empty
     , cards = Dict.empty
     , collections = Dict.empty
@@ -300,8 +300,8 @@ initDataId =
     }
 
 
-initDataIds : DataIds
-initDataIds =
+initDataWithIds : DataWithIds
+initDataWithIds =
     { ballots = Dict.empty
     , cards = Dict.empty
     , collections = Dict.empty

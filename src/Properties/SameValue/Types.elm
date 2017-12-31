@@ -14,7 +14,7 @@ type ExternalMsg
 
 type InternalMsg
     = Retrieve
-    | Retrieved (Result Http.Error DataIdsBody)
+    | Retrieved (Result Http.Error DataWithIdsBody)
 
 
 type alias Model =

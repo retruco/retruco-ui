@@ -16,9 +16,9 @@ type ExternalMsg
 type InternalMsg
     = NewValueMsg Values.New.Types.InternalMsg
     | Retrieve
-    | Retrieved (Result Http.Error DataIdsBody)
-    | Upserted (Result Http.Error DataIdBody)
-    | ValueUpserted Types.DataId
+    | Retrieved (Result Http.Error DataWithIdsBody)
+    | Upserted (Result Http.Error DataWithIdBody)
+    | ValueUpserted Types.DataWithId
 
 
 type alias Model =

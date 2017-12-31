@@ -9,7 +9,7 @@ import Values.New.Types
 
 
 type ExternalMsg
-    = PropertyUpserted DataId
+    = PropertyUpserted DataWithId
     | RequireSignIn InternalMsg
 
 
@@ -21,14 +21,14 @@ type InternalMsg
     = KeyIdChanged String
     | NewValueMsg Values.New.Types.InternalMsg
     | Submit
-    | Upserted (Result Http.Error DataIdBody)
-    | ValueRated (Result Http.Error DataIdBody)
-    | ValueUpserted DataId
+    | Upserted (Result Http.Error DataWithIdBody)
+    | ValueRated (Result Http.Error DataWithIdBody)
+    | ValueUpserted DataWithId
 
 
 type alias Model =
     { authentication : Maybe Authentication
-    , data : DataId
+    , data : DataWithId
     , embed : Bool
     , errors : FormErrors
     , httpError : Maybe Http.Error
@@ -47,7 +47,7 @@ type Msg
 
 type alias MsgTranslation parentMsg =
     { onInternalMsg : InternalMsg -> parentMsg
-    , onPropertyUpserted : DataId -> parentMsg
+    , onPropertyUpserted : DataWithId -> parentMsg
     , onRequireSignIn : InternalMsg -> parentMsg
     }
 

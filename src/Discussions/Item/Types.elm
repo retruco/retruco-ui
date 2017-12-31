@@ -22,7 +22,7 @@ type InternalMsg
     | PropertyUpserted Json.Encode.Value
     | QuestionsMsg Questions.Index.Types.InternalMsg
     | Retrieve
-    | Retrieved (Result Http.Error DataIdsBody)
+    | Retrieved (Result Http.Error DataWithIdsBody)
 
 
 

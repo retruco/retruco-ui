@@ -16,11 +16,11 @@ type ExternalMsg
 type InternalMsg
     = AddKey TypedValue
     | CreateKey String
-    | KeyUpserted (Result Http.Error DataIdBody)
+    | KeyUpserted (Result Http.Error DataWithIdBody)
     | KeysAutocompleteMsg Properties.KeysAutocomplete.Types.InternalMsg
     | Retrieve
-    | Retrieved (Result Http.Error DataIdsBody)
-    | Upserted Types.DataId
+    | Retrieved (Result Http.Error DataWithIdsBody)
+    | Upserted Types.DataWithId
 
 
 type alias Model =

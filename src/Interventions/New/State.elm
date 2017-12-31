@@ -12,7 +12,7 @@ import Proposals.New.State
 import Proposals.New.Types
 import Requests
 import Task
-import Types exposing (DataProxy, initDataId, mergeData)
+import Types exposing (DataProxy, initDataWithId, mergeData)
 import Urls
 import Values.New.Types
 
@@ -42,7 +42,7 @@ convertControls model =
 init : Maybe Authentication -> Bool -> I18n.Language -> String -> String -> List String -> Model
 init authentication embed language objectId keyId keyIds =
     { authentication = authentication
-    , data = initDataId
+    , data = initDataWithId
     , embed = embed
     , errors = Dict.empty
     , httpError = Nothing

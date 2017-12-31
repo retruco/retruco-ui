@@ -193,7 +193,7 @@ autocompleteValues authentication language schemas widgets term limit =
         }
 
 
-getCard : Maybe Authentication -> String -> Http.Request DataIdBody
+getCard : Maybe Authentication -> String -> Http.Request DataWithIdBody
 getCard authentication cardId =
     Http.request
         { method = "GET"
@@ -207,7 +207,7 @@ getCard authentication cardId =
                         ++ [ ( "show", Just "references" ) ]
                     )
         , body = Http.emptyBody
-        , expect = Http.expectJson dataIdBodyDecoder
+        , expect = Http.expectJson dataWithIdBodyDecoder
         , timeout = Nothing
         , withCredentials = False
         }
@@ -222,7 +222,7 @@ getCards :
     -> List String
     -> Bool
     -> String
-    -> Http.Request DataIdsBody
+    -> Http.Request DataWithIdsBody
 getCards authentication term limit offset tagIds cardTypes showTrashed sort =
     Http.request
         { method = "GET"
@@ -277,26 +277,26 @@ getCards authentication term limit offset tagIds cardTypes showTrashed sort =
                            )
                     )
         , body = Http.emptyBody
-        , expect = Http.expectJson dataIdsBodyDecoder
+        , expect = Http.expectJson dataWithIdsBodyDecoder
         , timeout = Nothing
         , withCredentials = False
         }
 
 
-getCollection : Maybe Authentication -> String -> Http.Request DataIdBody
+getCollection : Maybe Authentication -> String -> Http.Request DataWithIdBody
 getCollection authentication collectionId =
     Http.request
         { method = "GET"
         , headers = authenticationHeaders authentication
         , url = apiUrl ++ "collections/" ++ collectionId ++ Urls.paramsToQuery needs
         , body = Http.emptyBody
-        , expect = Http.expectJson dataIdBodyDecoder
+        , expect = Http.expectJson dataWithIdBodyDecoder
         , timeout = Nothing
         , withCredentials = False
         }
 
 
-getCollections : Maybe Authentication -> Maybe Int -> Http.Request DataIdsBody
+getCollections : Maybe Authentication -> Maybe Int -> Http.Request DataWithIdsBody
 getCollections authentication limit =
     Http.request
         { method = "GET"
@@ -317,26 +317,26 @@ getCollections authentication limit =
                         ++ needs
                     )
         , body = Http.emptyBody
-        , expect = Http.expectJson dataIdsBodyDecoder
+        , expect = Http.expectJson dataWithIdsBodyDecoder
         , timeout = Nothing
         , withCredentials = False
         }
 
 
-getCollectionsForAuthor : Authentication -> Http.Request DataIdsBody
+getCollectionsForAuthor : Authentication -> Http.Request DataWithIdsBody
 getCollectionsForAuthor authentication =
     Http.request
         { method = "GET"
         , headers = authenticationHeaders (Just authentication)
         , url = apiUrl ++ "users/" ++ authentication.urlName ++ "/collections" ++ Urls.paramsToQuery needs
         , body = Http.emptyBody
-        , expect = Http.expectJson dataIdsBodyDecoder
+        , expect = Http.expectJson dataWithIdsBodyDecoder
         , timeout = Nothing
         , withCredentials = False
         }
 
 
-getProperties : Maybe Authentication -> Bool -> List String -> List String -> List String -> Http.Request DataIdsBody
+getProperties : Maybe Authentication -> Bool -> List String -> List String -> List String -> Http.Request DataWithIdsBody
 getProperties authentication showTrashed objectIds keyIds valueIds =
     Http.request
         { method = "GET"
@@ -359,7 +359,7 @@ getProperties authentication showTrashed objectIds keyIds valueIds =
                         ++ (List.map (\valueId -> ( "valueId", Just valueId )) valueIds)
                     )
         , body = Http.emptyBody
-        , expect = Http.expectJson dataIdsBodyDecoder
+        , expect = Http.expectJson dataWithIdsBodyDecoder
         , timeout = Nothing
         , withCredentials = False
         }
@@ -397,7 +397,7 @@ getTagsPopularity authentication tagIds =
         }
 
 
-getValue : Maybe Authentication -> String -> Http.Request DataIdBody
+getValue : Maybe Authentication -> String -> Http.Request DataWithIdBody
 getValue authentication id =
     Http.request
         { method = "GET"
@@ -411,13 +411,13 @@ getValue authentication id =
                         ++ [ ( "show", Just "ballots" ) ]
                     )
         , body = Http.emptyBody
-        , expect = Http.expectJson dataIdBodyDecoder
+        , expect = Http.expectJson dataWithIdBodyDecoder
         , timeout = Nothing
         , withCredentials = False
         }
 
 
-getValues : Maybe Authentication -> Maybe String -> Int -> Int -> Bool -> Bool -> String -> Http.Request DataIdsBody
+getValues : Maybe Authentication -> Maybe String -> Int -> Int -> Bool -> Bool -> String -> Http.Request DataWithIdsBody
 getValues authentication term limit offset ratedOnly showTrashed sort =
     Http.request
         { method = "GET"
@@ -461,26 +461,26 @@ getValues authentication term limit offset ratedOnly showTrashed sort =
                            ]
                     )
         , body = Http.emptyBody
-        , expect = Http.expectJson dataIdsBodyDecoder
+        , expect = Http.expectJson dataWithIdsBodyDecoder
         , timeout = Nothing
         , withCredentials = False
         }
 
 
-postCard : Authentication -> Http.Request DataIdBody
+postCard : Authentication -> Http.Request DataWithIdBody
 postCard authentication =
     Http.request
         { method = "POST"
         , headers = authenticationHeaders (Just authentication)
         , url = apiUrl ++ "cards"
         , body = Http.emptyBody
-        , expect = Http.expectJson dataIdBodyDecoder
+        , expect = Http.expectJson dataWithIdBodyDecoder
         , timeout = Nothing
         , withCredentials = False
         }
 
 
-postCardEasy : Maybe Authentication -> Dict String String -> I18n.Language -> Http.Request DataIdBody
+postCardEasy : Maybe Authentication -> Dict String String -> I18n.Language -> Http.Request DataWithIdBody
 postCardEasy authentication fields language =
     let
         -- languageCode =
@@ -533,13 +533,13 @@ postCardEasy authentication fields language =
                             ++ [ ( "show", Just "references" ) ]
                         )
             , body = body
-            , expect = Http.expectJson dataIdBodyDecoder
+            , expect = Http.expectJson dataWithIdBodyDecoder
             , timeout = Nothing
             , withCredentials = False
             }
 
 
-postCollection : Maybe Authentication -> Maybe String -> Encode.Value -> Http.Request DataIdBody
+postCollection : Maybe Authentication -> Maybe String -> Encode.Value -> Http.Request DataWithIdBody
 postCollection authentication collectionId collectionJson =
     Http.request
         { method = "POST"
@@ -552,13 +552,13 @@ postCollection authentication collectionId collectionJson =
                 Nothing ->
                     apiUrl ++ "collections"
         , body = Http.jsonBody collectionJson
-        , expect = Http.expectJson dataIdBodyDecoder
+        , expect = Http.expectJson dataWithIdBodyDecoder
         , timeout = Nothing
         , withCredentials = False
         }
 
 
-postProperty : Maybe Authentication -> String -> String -> String -> Maybe Int -> Http.Request DataIdBody
+postProperty : Maybe Authentication -> String -> String -> String -> Maybe Int -> Http.Request DataWithIdBody
 postProperty authentication objectId keyId valueId rating =
     Http.request
         { method = "POST"
@@ -595,7 +595,7 @@ postProperty authentication objectId keyId valueId rating =
                         )
                 )
                 |> Http.jsonBody
-        , expect = Http.expectJson dataIdBodyDecoder
+        , expect = Http.expectJson dataWithIdBodyDecoder
         , timeout = Nothing
         , withCredentials = False
         }
@@ -616,7 +616,7 @@ postUploadImage authentication contents =
         }
 
 
-postValue : Authentication -> Field -> Http.Request DataIdBody
+postValue : Authentication -> Field -> Http.Request DataWithIdBody
 postValue authentication field =
     let
         ( schemaId, widgetId, encodedValue ) =
@@ -671,13 +671,13 @@ postValue authentication field =
                     , ( "widget", Encode.string widgetId )
                     ]
                     |> Http.jsonBody
-            , expect = Http.expectJson dataIdBodyDecoder
+            , expect = Http.expectJson dataWithIdBodyDecoder
             , timeout = Nothing
             , withCredentials = False
             }
 
 
-rateStatement : Maybe Authentication -> String -> Int -> Http.Request DataIdBody
+rateStatement : Maybe Authentication -> String -> Int -> Http.Request DataWithIdBody
 rateStatement authentication statementId rating =
     Http.request
         { method = "POST"
@@ -692,7 +692,7 @@ rateStatement authentication statementId rating =
                         ++ [ ( "show", Just "ballots" ) ]
                     )
         , body = Encode.object [ ( "rating", Encode.int rating ) ] |> Http.jsonBody
-        , expect = Http.expectJson dataIdBodyDecoder
+        , expect = Http.expectJson dataWithIdBodyDecoder
         , timeout = Nothing
         , withCredentials = False
         }
@@ -730,7 +730,7 @@ sendActivation authentication =
         }
 
 
-unrateStatement : Maybe Authentication -> String -> Http.Request DataIdBody
+unrateStatement : Maybe Authentication -> String -> Http.Request DataWithIdBody
 unrateStatement authentication statementId =
     Http.request
         { method = "DELETE"
@@ -745,7 +745,7 @@ unrateStatement authentication statementId =
                         ++ [ ( "show", Just "ballots" ) ]
                     )
         , body = Http.emptyBody
-        , expect = Http.expectJson dataIdBodyDecoder
+        , expect = Http.expectJson dataWithIdBodyDecoder
         , timeout = Nothing
         , withCredentials = False
         }

@@ -9,7 +9,7 @@ import Navigation
 import Ports
 import Requests
 import Task
-import Types exposing (DataProxy, Field(..), initDataId, mergeData)
+import Types exposing (DataProxy, Field(..), initDataWithId, mergeData)
 import Urls
 import Values.Autocomplete.State
 
@@ -86,7 +86,7 @@ init : Maybe Authentication -> Bool -> I18n.Language -> Model
 init authentication embed language =
     { authentication = authentication
     , cardId = ""
-    , data = initDataId
+    , data = initDataWithId
     , embed = embed
     , errors = Dict.empty
     , httpError = Nothing

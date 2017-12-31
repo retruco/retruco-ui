@@ -9,14 +9,14 @@ import Navigation
 import Ports
 import Requests
 import Task
-import Types exposing (DataProxy, initDataId, mergeData)
+import Types exposing (DataProxy, initDataWithId, mergeData)
 import Urls
 
 
 init : Maybe Authentication -> Bool -> I18n.Language -> Model
 init authentication embed language =
     { authentication = authentication
-    , data = initDataId
+    , data = initDataWithId
     , embed = embed
     , httpError = Nothing
     , id = ""

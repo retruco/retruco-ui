@@ -9,7 +9,7 @@ import Types exposing (..)
 
 
 type ExternalMsg
-    = DiscussionUpserted DataId
+    = DiscussionUpserted DataWithId
     | RequireSignIn InternalMsg
 
 
@@ -19,13 +19,13 @@ type alias FormErrors =
 
 type InternalMsg
     = NewCardMsg Cards.New.Types.InternalMsg
-    | TypePropertyUpserted (Result Http.Error DataIdBody)
-    | Upserted DataId
+    | TypePropertyUpserted (Result Http.Error DataWithIdBody)
+    | Upserted DataWithId
 
 
 type alias Model =
     { authentication : Maybe Authentication
-    , data : DataId
+    , data : DataWithId
     , embed : Bool
     , httpError : Maybe Http.Error
     , id : String
@@ -40,7 +40,7 @@ type Msg
 
 
 type alias MsgTranslation parentMsg =
-    { onDiscussionUpserted : DataId -> parentMsg
+    { onDiscussionUpserted : DataWithId -> parentMsg
     , onInternalMsg : InternalMsg -> parentMsg
     , onRequireSignIn : InternalMsg -> parentMsg
     }

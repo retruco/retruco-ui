@@ -52,10 +52,10 @@ type Msg
     | AuthenticatorTerminated Authenticator.Routes.Route (Result () (Maybe Authentication))
     | CardMsg Cards.Item.Types.InternalMsg
     | CardsMsg Cards.Index.Types.InternalMsg
-    | CardUpserted Types.DataId
+    | CardUpserted Types.DataWithId
     | ChangeAuthenticatorRoute Authenticator.Routes.Route
     | DiscussionsMsg Discussions.Index.Types.InternalMsg
-    | DiscussionUpserted Types.DataId
+    | DiscussionUpserted Types.DataWithId
     | GraphqlInited
     | LocationChanged Navigation.Location
     | Navigate String
@@ -66,7 +66,7 @@ type Msg
     | NewValueMsg Values.New.Types.InternalMsg
     | PropertyMsg Properties.Item.Types.InternalMsg
     | ProposalsMsg Proposals.Index.Types.InternalMsg
-    | ProposalUpserted Types.DataId
+    | ProposalUpserted Types.DataWithId
     | RequireSignInForCard Cards.Item.Types.InternalMsg
     | RequireSignInForNewCard Cards.New.Types.InternalMsg
     | RequireSignInForNewDiscussion Discussions.New.Types.InternalMsg
@@ -78,7 +78,7 @@ type Msg
     | StatementUpserted Json.Encode.Value
     | ValueMsg Values.Item.Types.InternalMsg
     | ValuesMsg Values.Index.Types.InternalMsg
-    | ValueUpserted Types.DataId
+    | ValueUpserted Types.DataWithId
 
 
 translateAboutMsg : About.Types.MsgTranslator Msg

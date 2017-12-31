@@ -9,7 +9,7 @@ import Ports
 import Proposals.New.Types exposing (..)
 import Requests
 import Task
-import Types exposing (DataProxy, initDataId, mergeData)
+import Types exposing (DataProxy, initDataWithId, mergeData)
 import Urls
 import Values.New.State
 import Values.New.Types
@@ -18,7 +18,7 @@ import Values.New.Types
 init : Maybe Authentication -> Bool -> I18n.Language -> Model
 init authentication embed language =
     { authentication = authentication
-    , data = initDataId
+    , data = initDataWithId
     , embed = embed
     , httpError = Nothing
     , language = language

@@ -16,8 +16,8 @@ type ExternalMsg
 type InternalMsg
     = NewDebatePropertyMsg DebateProperties.New.Types.InternalMsg
     | Retrieve
-    | Retrieved (Result Http.Error DataIdsBody)
-    | Upserted Types.DataId
+    | Retrieved (Result Http.Error DataWithIdsBody)
+    | Upserted Types.DataWithId
 
 
 type alias Model =

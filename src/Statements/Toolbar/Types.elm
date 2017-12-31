@@ -14,17 +14,17 @@ type ExternalMsg
 
 type InternalMsg
     = Rate (Maybe Int)
-    | RatingPosted (Result Http.Error DataIdBody)
+    | RatingPosted (Result Http.Error DataWithIdBody)
     | ShareOnFacebook String
     | ShareOnGooglePlus String
     | ShareOnLinkedIn String
     | ShareOnTwitter String
     | Start
-    | StatementRetrieved (Result Http.Error DataIdBody)
+    | StatementRetrieved (Result Http.Error DataWithIdBody)
     | Trash TrashAction
-    | TrashPosted (Result Http.Error DataIdBody)
-    | TrashRatingPosted (Result Http.Error DataIdBody)
-    | TrashRetrieved (Result Http.Error DataIdsBody)
+    | TrashPosted (Result Http.Error DataWithIdBody)
+    | TrashRatingPosted (Result Http.Error DataWithIdBody)
+    | TrashRetrieved (Result Http.Error DataWithIdsBody)
 
 
 type alias Model statementType =

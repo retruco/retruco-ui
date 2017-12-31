@@ -18,7 +18,7 @@ type alias FormErrors =
 
 type InternalMsg
     = Retrieve Int
-    | Retrieved (Result Http.Error DataIdsBody)
+    | Retrieved (Result Http.Error DataWithIdsBody)
     | SearchSortChanged String
     | SearchTermChanged String
     | Submit

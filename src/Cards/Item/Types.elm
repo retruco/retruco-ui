@@ -18,12 +18,12 @@ type ExternalMsg
 
 
 type InternalMsg
-    = CardRetrieved (Result Http.Error DataIdBody)
+    = CardRetrieved (Result Http.Error DataWithIdBody)
     | DataUpdated Data
     | DebatePropertiesMsg DebateProperties.SameObject.Types.InternalMsg
     | DiscussionMsg Discussions.Item.Types.InternalMsg
-    | DuplicatedByRetrieved (Result Http.Error DataIdsBody)
-    | DuplicateOfRetrieved (Result Http.Error DataIdsBody)
+    | DuplicatedByRetrieved (Result Http.Error DataWithIdsBody)
+    | DuplicateOfRetrieved (Result Http.Error DataWithIdsBody)
     | PropertiesAsValueMsg Properties.SameValue.Types.InternalMsg
     | PropertiesMsg Properties.SameObject.Types.InternalMsg
     | Retrieve

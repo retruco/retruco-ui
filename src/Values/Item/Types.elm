@@ -19,14 +19,14 @@ type ExternalMsg
 type InternalMsg
     = DataUpdated Data
     | DebatePropertiesMsg DebateProperties.SameObject.Types.InternalMsg
-    | DuplicatedByRetrieved (Result Http.Error DataIdsBody)
-    | DuplicateOfRetrieved (Result Http.Error DataIdsBody)
+    | DuplicatedByRetrieved (Result Http.Error DataWithIdsBody)
+    | DuplicateOfRetrieved (Result Http.Error DataWithIdsBody)
     | PropertiesAsValueMsg Properties.SameValue.Types.InternalMsg
     | PropertiesMsg Properties.SameObject.Types.InternalMsg
     | Retrieve
     | SameKeyPropertiesMsg Properties.SameObjectAndKey.Types.InternalMsg
     | ToolbarMsg Statements.Toolbar.Types.InternalMsg
-    | ValueRetrieved (Result Http.Error DataIdBody)
+    | ValueRetrieved (Result Http.Error DataWithIdBody)
 
 
 type alias Model =

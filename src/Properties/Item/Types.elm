@@ -23,9 +23,9 @@ type InternalMsg
     | PropertiesMsg Properties.SameObject.Types.InternalMsg
     | Retrieve
     | SameKeyPropertiesMsg Properties.SameObjectAndKey.Types.InternalMsg
-    | SimilarDebatePropertiesRetrieved (Result Http.Error DataIdsBody)
+    | SimilarDebatePropertiesRetrieved (Result Http.Error DataWithIdsBody)
     | ToolbarMsg Statements.Toolbar.Types.InternalMsg
-    | ValueRetrieved (Result Http.Error DataIdBody)
+    | ValueRetrieved (Result Http.Error DataWithIdBody)
 
 
 type alias Model =
