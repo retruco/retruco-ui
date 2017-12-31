@@ -2,6 +2,7 @@ module Interventions.New.State exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import Constants exposing (discussionKeyIds)
+import Data exposing (initDataWithId, mergeData)
 import Dict
 import Http
 import I18n
@@ -12,7 +13,7 @@ import Proposals.New.State
 import Proposals.New.Types
 import Requests
 import Task
-import Types exposing (DataProxy, initDataWithId, mergeData)
+import Types exposing (DataProxy)
 import Urls
 import Values.New.Types
 

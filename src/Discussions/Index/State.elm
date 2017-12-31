@@ -2,6 +2,7 @@ module Discussions.Index.State exposing (..)
 
 import Array
 import Authenticator.Types exposing (Authentication)
+import Data exposing (initData, mergeData)
 import Dict
 import Discussions.Index.Types exposing (..)
 import Http
@@ -9,7 +10,7 @@ import I18n
 import Navigation
 import Ports
 import Requests
-import Types exposing (DataProxy, initData, mergeData)
+import Types exposing (DataProxy)
 import Urls
 
 

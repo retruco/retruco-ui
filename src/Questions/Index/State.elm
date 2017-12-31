@@ -2,6 +2,7 @@ module Questions.Index.State exposing (..)
 
 import Array exposing (Array)
 import Authenticator.Types exposing (Authentication)
+import Data exposing (initData, mergeData)
 import I18n
 import Questions.Index.Types exposing (..)
 import Interventions.New.State

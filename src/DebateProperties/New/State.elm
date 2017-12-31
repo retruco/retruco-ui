@@ -2,6 +2,7 @@ module DebateProperties.New.State exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import Constants exposing (debateKeyIds)
+import Data exposing (initDataWithId, mergeData)
 import DebateProperties.New.Types exposing (..)
 import Dict exposing (Dict)
 import Http
@@ -10,7 +11,7 @@ import Navigation
 import Ports
 import Requests
 import Task
-import Types exposing (DataProxy, initDataWithId, mergeData)
+import Types exposing (DataProxy)
 import Urls
 import Values.New.State
 import Values.New.Types

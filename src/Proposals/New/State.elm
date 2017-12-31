@@ -1,6 +1,7 @@
 module Proposals.New.State exposing (..)
 
 import Authenticator.Types exposing (Authentication)
+import Data exposing (initDataWithId, mergeData)
 import Dict exposing (Dict)
 import Http
 import I18n
@@ -9,7 +10,7 @@ import Ports
 import Proposals.New.Types exposing (..)
 import Requests
 import Task
-import Types exposing (DataProxy, initDataWithId, mergeData)
+import Types exposing (DataProxy)
 import Urls
 import Values.New.State
 import Values.New.Types

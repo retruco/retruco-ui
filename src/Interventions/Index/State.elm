@@ -3,6 +3,7 @@ module Interventions.Index.State exposing (..)
 import Array exposing (Array)
 import Authenticator.Types exposing (Authentication)
 import Constants exposing (discussionKeyIds)
+import Data exposing (initData, mergeData)
 import Dict
 import I18n
 import Interventions.Index.Types exposing (..)

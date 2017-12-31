@@ -1,6 +1,7 @@
 module Decoders exposing (..)
 
 import Array
+import Data exposing (addToData, initDataWithId)
 import Dict exposing (Dict)
 import Json.Decode exposing (..)
 import Json.Decode.Extra exposing ((|:))

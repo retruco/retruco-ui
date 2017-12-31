@@ -2,6 +2,7 @@ module Statements.Toolbar.State exposing (..)
 
 import Array
 import Authenticator.Types exposing (Authentication)
+import Data exposing (initData, mergeData)
 import Http
 import I18n
 import Ports

@@ -3,6 +3,7 @@ module Discussions.Item.State exposing (..)
 import Array exposing (Array)
 import Authenticator.Types exposing (Authentication)
 import Constants exposing (discussionKeyIds)
+import Data exposing (initData, mergeData)
 import Decoders
 import Dict
 import Discussions.Item.Routes exposing (..)

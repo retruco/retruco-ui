@@ -3,13 +3,14 @@ module Cards.Index.State exposing (..)
 import Array
 import Authenticator.Types exposing (Authentication)
 import Cards.Index.Types exposing (..)
+import Data exposing (initData, mergeData)
 import Dict exposing (Dict)
 import Http
 import I18n
 import Navigation
 import Ports
 import Requests
-import Types exposing (DataProxy, initData, mergeData)
+import Types exposing (DataProxy)
 import Urls
 
 

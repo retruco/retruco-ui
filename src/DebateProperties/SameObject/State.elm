@@ -3,6 +3,7 @@ module DebateProperties.SameObject.State exposing (..)
 import Array
 import Authenticator.Types exposing (Authentication)
 import Constants exposing (debateKeyIds)
+import Data exposing (initData, mergeData)
 import DebateProperties.New.State
 import DebateProperties.SameObject.Types exposing (..)
 import Http

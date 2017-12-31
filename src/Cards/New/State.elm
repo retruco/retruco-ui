@@ -2,6 +2,7 @@ module Cards.New.State exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import Cards.New.Types exposing (..)
+import Data exposing (initDataWithId, mergeData)
 import Dict exposing (Dict)
 import Http
 import I18n
@@ -9,7 +10,7 @@ import Navigation
 import Ports
 import Requests
 import Task
-import Types exposing (DataProxy, Field(..), initDataWithId, mergeData)
+import Types exposing (DataProxy, Field(..))
 import Urls
 import Values.Autocomplete.State
 

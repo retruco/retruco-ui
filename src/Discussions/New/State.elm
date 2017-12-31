@@ -2,6 +2,7 @@ module Discussions.New.State exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import Cards.New.State
+import Data exposing (initDataWithId, mergeData)
 import Discussions.New.Types exposing (..)
 import Http
 import I18n
@@ -9,7 +10,7 @@ import Navigation
 import Ports
 import Requests
 import Task
-import Types exposing (DataProxy, initDataWithId, mergeData)
+import Types exposing (DataProxy)
 import Urls
 
 
