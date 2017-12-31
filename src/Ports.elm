@@ -1,5 +1,6 @@
 port module Ports exposing (..)
 
+import Authenticator.Types exposing (Authentication)
 import Configuration
 import I18n
 import Images
@@ -71,11 +72,15 @@ type alias GraphqlPropertyUpsertedArguments =
 
 
 type alias GraphqlStatementUpsertedArguments =
-    { need : List String
+    { apiKey : String
+    , need : List String
     }
 
 
 port graphqlInit : GraphqlInitArguments -> Cmd msg
+
+
+port graphqlReset : String -> Cmd msg
 
 
 port graphqlSubscribeToPropertyUpserted : GraphqlPropertyUpsertedArguments -> Cmd msg
@@ -98,6 +103,11 @@ initGraphql =
         }
 
 
+resetGraphql : Cmd msg
+resetGraphql =
+    graphqlReset "not used"
+
+
 subscribeToPropertyUpserted : List String -> List String -> List String -> Cmd msg
 subscribeToPropertyUpserted objectIds keyIds valueIds =
     graphqlSubscribeToPropertyUpserted
@@ -107,10 +117,17 @@ subscribeToPropertyUpserted objectIds keyIds valueIds =
         }
 
 
-subscribeToStatementUpserted : List String -> Cmd msg
-subscribeToStatementUpserted need =
+subscribeToStatementUpserted : Maybe Authentication -> List String -> Cmd msg
+subscribeToStatementUpserted authentication need =
     graphqlSubscribeToStatementUpserted
-        { need = need
+        { apiKey =
+            case authentication of
+                Just authentication ->
+                    authentication.apiKey
+
+                Nothing ->
+                    ""
+        , need = need
         }
 
 

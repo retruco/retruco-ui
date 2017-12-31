@@ -77,6 +77,8 @@ main.ports.fileSelected.subscribe(function (id) {
 // GraphQL
 // Cf https://medium.com/@michaelcbrook/how-to-get-apollo-2-0-working-with-graphql-subscriptions-321388be030c
 let graphqlClient = null
+let graphqlStatementUpsertedSubscription = null
+
 // Cf https://www.apollographql.com/docs/react/recipes/fragment-matching.html
 const introspectionQueryResultData = {
   "__schema": {
@@ -240,6 +242,10 @@ main.ports.graphqlInit.subscribe(function ({httpUrl, wsUrl}) {
   });
 });
 
+main.ports.graphqlReset.subscribe(function () {
+  graphqlClient.resetStore()
+});
+
 main.ports.graphqlSubscribeToPropertyUpserted.subscribe(function ({objectIds, keyIds, valueIds}) {
   graphqlClient.subscribe({
     query: gql`
@@ -258,12 +264,12 @@ main.ports.graphqlSubscribeToPropertyUpserted.subscribe(function ({objectIds, ke
     variables: {
       keyIds,
       objectIds,
-      valueIds,
+      valueIds
     }
   }).subscribe({
     next (data) {
       if (!data.data) {
-        console.log("graphqlSubscribeToPropertyUpserted.subscribe.next", data)
+        console.log("graphqlSubscribeToPropertyUpserted.subscribe.next", data);
       }
       // Notify your application with the new arrived data
       main.ports.propertyUpserted.send(data.data.propertyUpserted);
@@ -271,11 +277,18 @@ main.ports.graphqlSubscribeToPropertyUpserted.subscribe(function ({objectIds, ke
   });
 });
 
-main.ports.graphqlSubscribeToStatementUpserted.subscribe(function ({need}) {
-  graphqlClient.subscribe({
+main.ports.graphqlSubscribeToStatementUpserted.subscribe(function ({apiKey, need}) {
+  if (!apiKey) {
+    apiKey = null
+  }
+  if (graphqlStatementUpsertedSubscription) {
+    graphqlStatementUpsertedSubscription.unsubscribe();
+    graphqlStatementUpsertedSubscription = null;
+  }
+  graphqlStatementUpsertedSubscription = graphqlClient.subscribe({
     query: gql`
-      subscription onStatementUpserted ($need: [String!]) {
-        statementUpserted (need: $need) {
+      subscription onStatementUpserted ($apiKey: String, $need: [String!]) {
+        statementUpserted (apiKey: $apiKey, need: $need) {
           ...DataWithIdFragment
         }
       }
@@ -287,12 +300,13 @@ main.ports.graphqlSubscribeToStatementUpserted.subscribe(function ({need}) {
       ${valueFragment}
     `,
     variables: {
-      need,
+      apiKey,
+      need
     }
   }).subscribe({
     next (data) {
       if (!data.data) {
-        console.log("graphqlSubscribeToStatementUpserted.subscribe.next", data)
+        console.log("graphqlSubscribeToStatementUpserted.subscribe.next", data);
       }
       // Notify your application with the new arrived data
       main.ports.statementUpserted.send(data.data.statementUpserted);

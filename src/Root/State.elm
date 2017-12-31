@@ -72,7 +72,7 @@ init flags location =
     in
         model
             ! [ Ports.initGraphql
-              , Ports.subscribeToStatementUpserted (imagePathKeyIds ++ nameKeyIds)
+              , Ports.subscribeToStatementUpserted authentication (imagePathKeyIds ++ nameKeyIds)
               , Task.perform (\_ -> LocationChanged location) (Task.succeed ())
               ]
 
@@ -222,7 +222,10 @@ update msg model =
                             , authenticatorCompletionMsgs = []
                             , clearModelOnUrlUpdate = False
                         }
-                            ! ([ Ports.storeAuthentication authentication ]
+                            ! ([ Ports.resetGraphql
+                               , Ports.subscribeToStatementUpserted authentication (imagePathKeyIds ++ nameKeyIds)
+                               , Ports.storeAuthentication authentication
+                               ]
                                 ++ if List.isEmpty model.authenticatorCompletionMsgs then
                                     [ navigate model
                                         (case route of
