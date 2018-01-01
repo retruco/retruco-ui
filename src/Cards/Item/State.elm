@@ -295,6 +295,10 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        ObjectUpserted dataWithId objectWrapper ->
+            -- TODO
+            ( model, Cmd.none )
+
         PropertiesAsValueMsg childMsg ->
             case model.activeTab of
                 PropertiesAsValueTab propertiesAsValueModel ->

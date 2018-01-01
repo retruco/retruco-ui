@@ -64,16 +64,16 @@ type alias GraphqlInitArguments =
     }
 
 
+type alias GraphqlObjectUpsertedArguments =
+    { apiKey : String
+    , need : List String
+    }
+
+
 type alias GraphqlPropertyUpsertedArguments =
     { keyIds : List String
     , objectIds : List String
     , valueIds : List String
-    }
-
-
-type alias GraphqlStatementUpsertedArguments =
-    { apiKey : String
-    , need : List String
     }
 
 
@@ -83,16 +83,16 @@ port graphqlInit : GraphqlInitArguments -> Cmd msg
 port graphqlReset : String -> Cmd msg
 
 
+port graphqlSubscribeToObjectUpserted : GraphqlObjectUpsertedArguments -> Cmd msg
+
+
 port graphqlSubscribeToPropertyUpserted : GraphqlPropertyUpsertedArguments -> Cmd msg
 
 
-port graphqlSubscribeToStatementUpserted : GraphqlStatementUpsertedArguments -> Cmd msg
+port objectUpserted : (Json.Encode.Value -> msg) -> Sub msg
 
 
 port propertyUpserted : (Json.Encode.Value -> msg) -> Sub msg
-
-
-port statementUpserted : (Json.Encode.Value -> msg) -> Sub msg
 
 
 initGraphql : Cmd msg
@@ -108,18 +108,9 @@ resetGraphql =
     graphqlReset "not used"
 
 
-subscribeToPropertyUpserted : List String -> List String -> List String -> Cmd msg
-subscribeToPropertyUpserted objectIds keyIds valueIds =
-    graphqlSubscribeToPropertyUpserted
-        { keyIds = keyIds
-        , objectIds = objectIds
-        , valueIds = valueIds
-        }
-
-
-subscribeToStatementUpserted : Maybe Authentication -> List String -> Cmd msg
-subscribeToStatementUpserted authentication need =
-    graphqlSubscribeToStatementUpserted
+subscribeToObjectUpserted : Maybe Authentication -> List String -> Cmd msg
+subscribeToObjectUpserted authentication need =
+    graphqlSubscribeToObjectUpserted
         { apiKey =
             case authentication of
                 Just authentication ->
@@ -128,6 +119,15 @@ subscribeToStatementUpserted authentication need =
                 Nothing ->
                     ""
         , need = need
+        }
+
+
+subscribeToPropertyUpserted : List String -> List String -> List String -> Cmd msg
+subscribeToPropertyUpserted objectIds keyIds valueIds =
+    graphqlSubscribeToPropertyUpserted
+        { keyIds = keyIds
+        , objectIds = objectIds
+        , valueIds = valueIds
         }
 
 

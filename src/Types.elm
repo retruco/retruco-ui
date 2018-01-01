@@ -67,6 +67,17 @@ type alias Data =
     DataProxy {}
 
 
+type alias DataProxy a =
+    { a
+        | ballots : Dict String Ballot
+        , cards : Dict String Card
+        , collections : Dict String Collection
+        , properties : Dict String Property
+        , users : Dict String User
+        , values : Dict String TypedValue
+    }
+
+
 type alias DataWithId =
     { ballots : Dict String Ballot
     , cards : Dict String Card
@@ -102,17 +113,6 @@ type alias DataWithIdsBody =
     }
 
 
-type alias DataProxy a =
-    { a
-        | ballots : Dict String Ballot
-        , cards : Dict String Card
-        , collections : Dict String Collection
-        , properties : Dict String Property
-        , users : Dict String User
-        , values : Dict String TypedValue
-    }
-
-
 type alias DocumentMetadata =
     { description : String
     , imageUrl : String
@@ -142,6 +142,13 @@ type alias FormErrors =
     Dict String String
 
 
+type ObjectWrapper
+    = CardWrapper Card
+    | PropertyWrapper Property
+    | TypedValueWrapper TypedValue
+    | UserWrapper User
+
+
 type alias PopularTag =
     { count : Float
     , tagId : String
@@ -167,9 +174,10 @@ type alias Property =
     , ratingSum : Int
     , references : Dict String (List String)
     , subTypeIds : List String
-    , tags : List (Dict String String)
+    , tagIds : List String
     , trashed : Bool
     , type_ : String
+    , usageIds : List String
     , valueId : String
     }
 
@@ -190,15 +198,13 @@ type alias Statement a =
         , qualities : Dict String (List String)
         , ratingCount : Int
         , ratingSum : Int
+        , references : Dict String (List String)
+        , subTypeIds : List String
+        , tagIds : List String
         , trashed : Bool
         , type_ : String
+        , usageIds : List String
     }
-
-
-type StatementWrapper
-    = CardWrapper Card
-    | PropertyWrapper Property
-    | TypedValueWrapper TypedValue
 
 
 type alias TypedValue =
@@ -210,9 +216,13 @@ type alias TypedValue =
     , qualities : Dict String (List String)
     , ratingCount : Int
     , ratingSum : Int
+    , references : Dict String (List String)
     , schemaId : String
+    , subTypeIds : List String
+    , tagIds : List String
     , trashed : Bool
     , type_ : String
+    , usageIds : List String
     , value : ValueWrapper
     , widgetId : String
     }
@@ -233,6 +243,7 @@ type alias TypedValuesAutocompletionBody =
 type alias User =
     { activated : Bool
     , apiKey : String
+    , createdAt : String
     , email : String
     , id : String
     , isAdmin : Bool

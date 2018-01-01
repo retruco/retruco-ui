@@ -5,9 +5,12 @@ import Authenticator.Routes exposing (..)
 import Authenticator.State
 import Cards.Index.State
 import Cards.Item.State
+import Cards.Item.Types
 import Cards.New.State
 import Constants exposing (imagePathKeyIds, nameKeyIds)
+import Data exposing (objectWrapperFromId)
 import Decoders
+import Dict
 import Discussions.Index.State
 import Discussions.New.State
 import Discussions.Routes exposing (..)
@@ -23,7 +26,7 @@ import Proposals.New.State
 import Root.Types exposing (..)
 import Routes exposing (..)
 import Task
-import Types exposing (Flags)
+import Types exposing (Flags, ObjectWrapper(..))
 import Urls
 import Values.Index.State
 import Values.Item.State
@@ -72,7 +75,7 @@ init flags location =
     in
         model
             ! [ Ports.initGraphql
-              , Ports.subscribeToStatementUpserted authentication (imagePathKeyIds ++ nameKeyIds)
+              , Ports.subscribeToObjectUpserted authentication (imagePathKeyIds ++ nameKeyIds)
               , Task.perform (\_ -> LocationChanged location) (Task.succeed ())
               ]
 
@@ -151,7 +154,7 @@ subscriptions model =
 
             Nothing ->
                 Nothing
-        , Just <| Ports.statementUpserted StatementUpserted
+        , Just <| Ports.objectUpserted ObjectUpserted
         ]
         |> Sub.batch
 
@@ -223,7 +226,7 @@ update msg model =
                             , clearModelOnUrlUpdate = False
                         }
                             ! ([ Ports.resetGraphql
-                               , Ports.subscribeToStatementUpserted authentication (imagePathKeyIds ++ nameKeyIds)
+                               , Ports.subscribeToObjectUpserted authentication (imagePathKeyIds ++ nameKeyIds)
                                , Ports.storeAuthentication authentication
                                ]
                                 ++ if List.isEmpty model.authenticatorCompletionMsgs then
@@ -391,6 +394,52 @@ update msg model =
                     Nothing ->
                         ( model, Cmd.none )
 
+            ObjectUpserted dataWithIdJson ->
+                case Json.Decode.decodeValue Decoders.graphqlDataWithIdDecoder dataWithIdJson of
+                    Err message ->
+                        let
+                            _ =
+                                Debug.log "PropertyUpserted Decode error:" message
+
+                            _ =
+                                Debug.log "PropertyUpserted JSON:" dataWithIdJson
+                        in
+                            ( model, Cmd.none )
+
+                    Ok dataWithId ->
+                        case objectWrapperFromId dataWithId dataWithId.id of
+                            Just objectWrapper ->
+                                let
+                                    ( cardModel, cardCmd ) =
+                                        case model.cardModel of
+                                            Just cardModel ->
+                                                let
+                                                    ( updatedCardModel, childCmd ) =
+                                                        Cards.Item.State.update
+                                                            (Cards.Item.Types.ObjectUpserted
+                                                                dataWithId
+                                                                objectWrapper
+                                                            )
+                                                            cardModel
+                                                in
+                                                    ( Just updatedCardModel, Cmd.map translateCardMsg childCmd )
+
+                                            Nothing ->
+                                                ( Nothing, Cmd.none )
+                                in
+                                    { model
+                                        | cardModel = cardModel
+                                    }
+                                        ! [ cardCmd
+                                          ]
+
+                            Nothing ->
+                                let
+                                    _ =
+                                        Debug.log "ObjectUpserted — Not the ID of a valid statement: " dataWithId.id
+                                in
+                                    ( model, Cmd.none )
+
             PropertyMsg childMsg ->
                 case model.propertyModel of
                     Just propertyModel ->
@@ -445,26 +494,6 @@ update msg model =
 
             ScrolledToTop ->
                 ( model, Cmd.none )
-
-            StatementUpserted dataWithIdJson ->
-                case Json.Decode.decodeValue Decoders.graphqlDataWithIdDecoder dataWithIdJson of
-                    Err message ->
-                        let
-                            _ =
-                                Debug.log "PropertyUpserted Decode error:" message
-
-                            _ =
-                                Debug.log "PropertyUpserted JSON:" dataWithIdJson
-                        in
-                            ( model, Cmd.none )
-
-                    Ok dataWithId ->
-                        let
-                            _ =
-                                Debug.log "StatementUpserted Ok" dataWithId
-                        in
-                            -- TODO
-                            ( model, Cmd.none )
 
             ValueMsg childMsg ->
                 case model.valueModel of

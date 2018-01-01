@@ -64,6 +64,7 @@ type Msg
     | NewDiscussionMsg Discussions.New.Types.InternalMsg
     | NewProposalMsg Proposals.New.Types.InternalMsg
     | NewValueMsg Values.New.Types.InternalMsg
+    | ObjectUpserted Json.Encode.Value
     | PropertyMsg Properties.Item.Types.InternalMsg
     | ProposalsMsg Proposals.Index.Types.InternalMsg
     | ProposalUpserted Types.DataWithId
@@ -75,7 +76,6 @@ type Msg
     | RequireSignInForProperty Properties.Item.Types.InternalMsg
     | RequireSignInForValue Values.Item.Types.InternalMsg
     | ScrolledToTop
-    | StatementUpserted Json.Encode.Value
     | ValueMsg Values.Item.Types.InternalMsg
     | ValuesMsg Values.Index.Types.InternalMsg
     | ValueUpserted Types.DataWithId

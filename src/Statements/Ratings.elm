@@ -20,8 +20,12 @@ idToStatement data id =
                 , qualities = card.qualities
                 , ratingCount = card.ratingCount
                 , ratingSum = card.ratingSum
+                , references = card.references
+                , subTypeIds = card.subTypeIds
+                , tagIds = card.tagIds
                 , trashed = card.trashed
                 , type_ = card.type_
+                , usageIds = card.usageIds
                 }
 
         Nothing ->
@@ -35,8 +39,12 @@ idToStatement data id =
                         , qualities = property.qualities
                         , ratingCount = property.ratingCount
                         , ratingSum = property.ratingSum
+                        , references = property.references
+                        , subTypeIds = property.subTypeIds
+                        , tagIds = property.tagIds
                         , trashed = property.trashed
                         , type_ = property.type_
+                        , usageIds = property.usageIds
                         }
 
                 Nothing ->
@@ -50,8 +58,12 @@ idToStatement data id =
                                 , qualities = typedValue.qualities
                                 , ratingCount = typedValue.ratingCount
                                 , ratingSum = typedValue.ratingSum
+                                , references = typedValue.references
+                                , subTypeIds = typedValue.subTypeIds
+                                , tagIds = typedValue.tagIds
                                 , trashed = typedValue.trashed
                                 , type_ = typedValue.type_
+                                , usageIds = typedValue.usageIds
                                 }
 
                         Nothing ->

@@ -24,6 +24,7 @@ type InternalMsg
     | DiscussionMsg Discussions.Item.Types.InternalMsg
     | DuplicatedByRetrieved (Result Http.Error DataWithIdsBody)
     | DuplicateOfRetrieved (Result Http.Error DataWithIdsBody)
+    | ObjectUpserted DataWithId ObjectWrapper
     | PropertiesAsValueMsg Properties.SameValue.Types.InternalMsg
     | PropertiesMsg Properties.SameObject.Types.InternalMsg
     | Retrieve

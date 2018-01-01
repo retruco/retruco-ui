@@ -13,7 +13,6 @@ import Task
 import Types exposing (DataProxy)
 import Urls
 import Values.New.State
-import Values.New.Types
 
 
 init : Maybe Authentication -> Bool -> I18n.Language -> Model

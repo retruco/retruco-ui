@@ -175,12 +175,44 @@ graphqlPropertyDecoder =
                 |> addToData typedValue
         )
         propertyDecoder
-        (field "value" statementWrapperDecoder)
+        (field "value" objectWrapperDecoder)
 
 
 messageBodyDecoder : Decoder String
 messageBodyDecoder =
     (field "data" string)
+
+
+objectWrapperDecoder : Decoder ObjectWrapper
+objectWrapperDecoder =
+    field "type" string
+        |> andThen objectWrapperDecoderFromType
+
+
+objectWrapperDecoderFromType : String -> Decoder ObjectWrapper
+objectWrapperDecoderFromType type_ =
+    case type_ of
+        "Card" ->
+            cardDecoder
+                |> andThen (succeed << CardWrapper)
+
+        "Property" ->
+            propertyDecoder
+                |> andThen (succeed << PropertyWrapper)
+
+        "User" ->
+            userDecoder
+                |> andThen (succeed << UserWrapper)
+
+        "Value" ->
+            typedValueDecoder
+                |> andThen (succeed << TypedValueWrapper)
+
+        _ ->
+            fail <|
+                "Trying to decode ObjectWrapper, but type "
+                    ++ toString type_
+                    ++ " is not supported."
 
 
 popularTagDecoder : Decoder PopularTag
@@ -214,9 +246,10 @@ propertyDecoder =
         |: oneOf [ field "ratingSum" int, succeed 0 ]
         |: oneOf [ field "references" (dict (list string)), succeed Dict.empty ]
         |: oneOf [ field "subTypeIds" (list string), succeed [] ]
-        |: oneOf [ field "tags" (list (dict string)), succeed [] ]
+        |: oneOf [ field "tagIds" (list string), succeed [] ]
         |: oneOf [ field "trashed" bool, succeed False ]
         |: field "type" string
+        |: oneOf [ field "usageIds" (list string), succeed [] ]
         |: field "valueId" string
 
 
@@ -235,34 +268,6 @@ qualityItemDecoder =
         |: field "valueIds" (list string)
 
 
-statementWrapperDecoder : Decoder StatementWrapper
-statementWrapperDecoder =
-    field "type" string
-        |> andThen statementWrapperDecoderFromType
-
-
-statementWrapperDecoderFromType : String -> Decoder StatementWrapper
-statementWrapperDecoderFromType type_ =
-    case type_ of
-        "Card" ->
-            cardDecoder
-                |> andThen (succeed << CardWrapper)
-
-        "Property" ->
-            propertyDecoder
-                |> andThen (succeed << PropertyWrapper)
-
-        "Value" ->
-            typedValueDecoder
-                |> andThen (succeed << TypedValueWrapper)
-
-        _ ->
-            fail <|
-                "Trying to decode StatementWrapper, but type "
-                    ++ toString type_
-                    ++ " is not supported."
-
-
 typedValueAutocompletionDecoder : Decoder TypedValueAutocompletion
 typedValueAutocompletionDecoder =
     succeed TypedValueAutocompletion
@@ -274,7 +279,7 @@ typedValueAutocompletionDecoder =
 typedValueDecoder : Decoder TypedValue
 typedValueDecoder =
     succeed
-        (\argumentCount ballotId createdAt id qualities ratingCount ratingSum schemaId trashed type_ widgetId ->
+        (\argumentCount ballotId createdAt id qualities ratingCount ratingSum references schemaId subTypeIds tagIds trashed type_ usageIds widgetId ->
             { argumentCount = argumentCount
             , ballotId = ballotId
             , createdAt = createdAt
@@ -282,9 +287,13 @@ typedValueDecoder =
             , qualities = qualities
             , ratingCount = ratingCount
             , ratingSum = ratingSum
+            , references = references
             , schemaId = schemaId
+            , subTypeIds = subTypeIds
+            , tagIds = tagIds
             , trashed = trashed
             , type_ = type_
+            , usageIds = usageIds
             , widgetId = widgetId
             }
         )
@@ -295,12 +304,16 @@ typedValueDecoder =
         |: oneOf [ field "qualities" qualitiesDecoder, succeed Dict.empty ]
         |: oneOf [ field "ratingCount" int, succeed 0 ]
         |: oneOf [ field "ratingSum" int, succeed 0 ]
+        |: oneOf [ field "references" (dict (list string)), succeed Dict.empty ]
         |: field "schemaId" string
+        |: oneOf [ field "subTypeIds" (list string), succeed [] ]
+        |: oneOf [ field "tagIds" (list string), succeed [] ]
         |: oneOf [ field "trashed" bool, succeed False ]
         |: field "type" string
+        |: oneOf [ field "usageIds" (list string), succeed [] ]
         |: oneOf [ field "widgetId" string, succeed "" ]
         |> andThen
-            (\{ argumentCount, ballotId, createdAt, id, qualities, ratingCount, ratingSum, schemaId, trashed, type_, widgetId } ->
+            (\{ argumentCount, ballotId, createdAt, id, qualities, ratingCount, ratingSum, references, schemaId, subTypeIds, tagIds, trashed, type_, usageIds, widgetId } ->
                 (field "value" (valueWrapperDecoder schemaId widgetId))
                     |> map
                         (\value ->
@@ -312,9 +325,13 @@ typedValueDecoder =
                                 qualities
                                 ratingCount
                                 ratingSum
+                                references
                                 schemaId
+                                subTypeIds
+                                tagIds
                                 trashed
                                 type_
+                                usageIds
                                 value
                                 widgetId
                         )
@@ -338,6 +355,7 @@ userDecoder =
     succeed User
         |: field "activated" bool
         |: oneOf [ field "apiKey" string, succeed "" ]
+        |: field "createdAt" string
         |: oneOf [ field "email" string, succeed "" ]
         |: field "id" string
         |: field "isAdmin" bool

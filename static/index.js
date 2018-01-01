@@ -77,7 +77,7 @@ main.ports.fileSelected.subscribe(function (id) {
 // GraphQL
 // Cf https://medium.com/@michaelcbrook/how-to-get-apollo-2-0-working-with-graphql-subscriptions-321388be030c
 let graphqlClient = null
-let graphqlStatementUpsertedSubscription = null
+let graphqlObjectUpsertedSubscription = null
 
 // Cf https://www.apollographql.com/docs/react/recipes/fragment-matching.html
 const introspectionQueryResultData = {
@@ -246,6 +246,43 @@ main.ports.graphqlReset.subscribe(function () {
   graphqlClient.resetStore()
 });
 
+main.ports.graphqlSubscribeToObjectUpserted.subscribe(function ({apiKey, need}) {
+  if (!apiKey) {
+    apiKey = null
+  }
+  if (graphqlObjectUpsertedSubscription) {
+    graphqlObjectUpsertedSubscription.unsubscribe();
+    graphqlObjectUpsertedSubscription = null;
+  }
+  graphqlObjectUpsertedSubscription = graphqlClient.subscribe({
+    query: gql`
+      subscription onObjectUpserted ($apiKey: String, $need: [String!]) {
+        objectUpserted (apiKey: $apiKey, need: $need) {
+          ...DataWithIdFragment
+        }
+      }
+      ${ballotFragment}
+      ${cardFragment}
+      ${dataWithIdFragment}
+      ${propertyFragment}
+      ${qualityItemFragment}
+      ${valueFragment}
+    `,
+    variables: {
+      apiKey,
+      need
+    }
+  }).subscribe({
+    next (data) {
+      if (!data.data) {
+        console.log("graphqlSubscribeToObjectUpserted.subscribe.next", data);
+      }
+      // Notify your application with the new arrived data
+      main.ports.objectUpserted.send(data.data.objectUpserted);
+    }
+  });
+});
+
 main.ports.graphqlSubscribeToPropertyUpserted.subscribe(function ({objectIds, keyIds, valueIds}) {
   graphqlClient.subscribe({
     query: gql`
@@ -273,43 +310,6 @@ main.ports.graphqlSubscribeToPropertyUpserted.subscribe(function ({objectIds, ke
       }
       // Notify your application with the new arrived data
       main.ports.propertyUpserted.send(data.data.propertyUpserted);
-    }
-  });
-});
-
-main.ports.graphqlSubscribeToStatementUpserted.subscribe(function ({apiKey, need}) {
-  if (!apiKey) {
-    apiKey = null
-  }
-  if (graphqlStatementUpsertedSubscription) {
-    graphqlStatementUpsertedSubscription.unsubscribe();
-    graphqlStatementUpsertedSubscription = null;
-  }
-  graphqlStatementUpsertedSubscription = graphqlClient.subscribe({
-    query: gql`
-      subscription onStatementUpserted ($apiKey: String, $need: [String!]) {
-        statementUpserted (apiKey: $apiKey, need: $need) {
-          ...DataWithIdFragment
-        }
-      }
-      ${ballotFragment}
-      ${cardFragment}
-      ${dataWithIdFragment}
-      ${propertyFragment}
-      ${qualityItemFragment}
-      ${valueFragment}
-    `,
-    variables: {
-      apiKey,
-      need
-    }
-  }).subscribe({
-    next (data) {
-      if (!data.data) {
-        console.log("graphqlSubscribeToStatementUpserted.subscribe.next", data);
-      }
-      // Notify your application with the new arrived data
-      main.ports.statementUpserted.send(data.data.statementUpserted);
     }
   });
 });
