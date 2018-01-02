@@ -19,20 +19,19 @@ addToData objectWrapper data =
                 | properties = Dict.insert property.id property data.properties
             }
 
-        UserWrapper user ->
-            { data
-                | users = Dict.insert user.id user data.users
-            }
-
         TypedValueWrapper typedValue ->
             { data
                 | values = Dict.insert typedValue.id typedValue data.values
             }
 
+        UserWrapper user ->
+            { data
+                | users = Dict.insert user.id user data.users
+            }
+
 
 filterDataWithIds : DataProxy a -> Set String -> DataProxy a
 filterDataWithIds data ids =
-    -- TODO: Filter ballots, collections & users.
     { data
         | cards = Dict.filter (\id card -> Set.member card.id ids) data.cards
         , properties = Dict.filter (\id property -> Set.member property.id ids) data.properties
