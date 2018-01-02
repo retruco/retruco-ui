@@ -33,8 +33,10 @@ addToData objectWrapper data =
 filterDataWithIds : DataProxy a -> Set String -> DataProxy a
 filterDataWithIds data ids =
     { data
-        | cards = Dict.filter (\id card -> Set.member card.id ids) data.cards
+        | ballots = Dict.filter (\id ballot -> Set.member ballot.statementId ids) data.ballots
+        , cards = Dict.filter (\id card -> Set.member card.id ids) data.cards
         , properties = Dict.filter (\id property -> Set.member property.id ids) data.properties
+        , users = Dict.filter (\id user -> Set.member user.id ids) data.users
         , values = Dict.filter (\id typedValue -> Set.member typedValue.id ids) data.values
     }
 
@@ -100,9 +102,9 @@ idsUsedByProperty data property usedIds =
 idsUsedByStatement : DataProxy a -> Statement b -> Set String -> Set String
 idsUsedByStatement data statement usedIds =
     -- Incomplete function for internal use only.
+    -- Note: .ballotId is not added to the usedIds set because a ballot is not an object.
     usedIds
         |> Set.insert statement.id
-        |> idsUsedById data statement.ballotId
         |> idsUsedByIds
             data
             (Set.fromList <| Dict.keys statement.qualities ++ List.concat (Dict.values statement.qualities))
