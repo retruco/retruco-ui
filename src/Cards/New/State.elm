@@ -111,6 +111,11 @@ mergeModelData data model =
         }
 
 
+propagateModelDataChange : Model -> Model
+propagateModelDataChange model =
+    model
+
+
 setContext : Maybe Authentication -> Bool -> I18n.Language -> Model -> Model
 setContext authentication embed language model =
     { model
@@ -148,6 +153,7 @@ update msg model =
             let
                 mergedModel =
                     mergeModelData body.data model
+                        |> propagateModelDataChange
             in
                 ( mergedModel, Cmd.none )
 
@@ -158,6 +164,7 @@ update msg model =
             let
                 mergedModel =
                     mergeModelData body.data model
+                        |> propagateModelDataChange
 
                 mergedData =
                     mergedModel.data
@@ -195,6 +202,7 @@ update msg model =
             let
                 mergedModel =
                     mergeModelData body.data model
+                        |> propagateModelDataChange
 
                 nameId =
                     body.data.id
@@ -264,6 +272,7 @@ update msg model =
 
                 mergedModel =
                     mergeModelData body.data model
+                        |> propagateModelDataChange
             in
                 ( { mergedModel | cardId = cardId }
                 , Requests.postProperty model.authentication cardId "name" model.nameId (Just 1)

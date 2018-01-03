@@ -125,7 +125,8 @@ parseLocation location =
 propertyRouteParser : Parser (Properties.Item.Routes.Route -> a) a
 propertyRouteParser =
     oneOf
-        [ map Properties.Item.Routes.DebatePropertiesRoute top
+        [ map Properties.Item.Routes.MainRoute top
+        , map Properties.Item.Routes.DebatePropertiesRoute (s "arguments")
         , map Properties.Item.Routes.PropertiesRoute (s "properties")
         , map Properties.Item.Routes.SameObjectAndKeyPropertiesRoute (s "properties" </> idParser)
         , map Properties.Item.Routes.PropertiesAsValueRoute (s "uses")

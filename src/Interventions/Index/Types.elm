@@ -16,6 +16,7 @@ type ExternalMsg
 type InternalMsg
     = InterventionUpserted Types.DataWithId
     | NewInterventionMsg Interventions.New.Types.InternalMsg
+    | ObjectUpserted DataWithId ObjectWrapper
 
 
 type alias Model =

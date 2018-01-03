@@ -45,55 +45,70 @@ mergeModelData data model =
     let
         mergedData =
             mergeData data model.data
-
-        typedValue =
-            Dict.get model.id mergedData.values
     in
         { model
-            | activeTab =
-                case model.activeTab of
-                    DebatePropertiesTab debatePropertiesModel ->
-                        DebatePropertiesTab <|
-                            DebateProperties.SameObject.State.mergeModelData mergedData debatePropertiesModel
-
-                    PropertiesAsValueTab propertiesAsValueModel ->
-                        PropertiesAsValueTab <|
-                            Properties.SameValue.State.mergeModelData mergedData
-                                propertiesAsValueModel
-
-                    PropertiesTab propertiesModel ->
-                        PropertiesTab <| Properties.SameObject.State.mergeModelData mergedData propertiesModel
-
-                    _ ->
-                        model.activeTab
-            , data = mergedData
-            , sameKeyPropertiesModel =
-                case model.sameKeyPropertiesModel of
-                    Just sameKeyPropertiesModel ->
-                        Just <| Properties.SameObjectAndKey.State.mergeModelData mergedData sameKeyPropertiesModel
-
-                    Nothing ->
-                        Nothing
-            , toolbarModel =
-                case typedValue of
-                    Just typedValue ->
-                        case model.toolbarModel of
-                            Just toolbarModel ->
-                                Just <| Statements.Toolbar.State.setModelData mergedData typedValue toolbarModel
-
-                            Nothing ->
-                                Just <|
-                                    Statements.Toolbar.State.init
-                                        model.authentication
-                                        model.embed
-                                        model.language
-                                        mergedData
-                                        typedValue
-
-                    Nothing ->
-                        Nothing
-            , typedValue = typedValue
+            | data = mergedData
+            , typedValue = Dict.get model.id mergedData.values
         }
+
+
+propagateModelDataChange : Model -> Model
+propagateModelDataChange model =
+    { model
+        | activeTab =
+            case model.activeTab of
+                DebatePropertiesTab debatePropertiesModel ->
+                    DebatePropertiesTab
+                        (DebateProperties.SameObject.State.mergeModelData model.data debatePropertiesModel
+                            |> DebateProperties.SameObject.State.propagateModelDataChange
+                        )
+
+                PropertiesAsValueTab propertiesAsValueModel ->
+                    PropertiesAsValueTab
+                        (Properties.SameValue.State.mergeModelData model.data propertiesAsValueModel
+                            |> Properties.SameValue.State.propagateModelDataChange
+                        )
+
+                PropertiesTab propertiesModel ->
+                    PropertiesTab
+                        (Properties.SameObject.State.mergeModelData model.data propertiesModel
+                            |> Properties.SameObject.State.propagateModelDataChange
+                        )
+
+                _ ->
+                    model.activeTab
+        , sameKeyPropertiesModel =
+            case model.sameKeyPropertiesModel of
+                Just sameKeyPropertiesModel ->
+                    Just
+                        (Properties.SameObjectAndKey.State.mergeModelData model.data sameKeyPropertiesModel
+                            |> Properties.SameObjectAndKey.State.propagateModelDataChange
+                        )
+
+                Nothing ->
+                    Nothing
+        , toolbarModel =
+            case model.typedValue of
+                Just typedValue ->
+                    case model.toolbarModel of
+                        Just toolbarModel ->
+                            Just
+                                (Statements.Toolbar.State.setModelData model.data typedValue toolbarModel
+                                    |> Statements.Toolbar.State.propagateModelDataChange
+                                )
+
+                        Nothing ->
+                            Just <|
+                                Statements.Toolbar.State.init
+                                    model.authentication
+                                    model.embed
+                                    model.language
+                                    model.data
+                                    typedValue
+
+                Nothing ->
+                    Nothing
+    }
 
 
 setContext : Maybe Authentication -> Bool -> I18n.Language -> Model -> Model
@@ -184,7 +199,10 @@ update : InternalMsg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         DataUpdated data ->
-            ( mergeModelData data model, Cmd.none )
+            ( mergeModelData data model
+                |> propagateModelDataChange
+            , Cmd.none
+            )
 
         DebatePropertiesMsg childMsg ->
             case model.activeTab of
@@ -211,6 +229,7 @@ update msg model =
             let
                 mergedModel =
                     mergeModelData data model
+                        |> propagateModelDataChange
             in
                 ( { mergedModel
                     | duplicatedByPropertyIds = Just <| Array.toList data.ids
@@ -229,6 +248,7 @@ update msg model =
             let
                 mergedModel =
                     mergeModelData data model
+                        |> propagateModelDataChange
             in
                 ( { mergedModel
                     | duplicateOfPropertyIds = Just <| Array.toList data.ids
@@ -315,6 +335,7 @@ update msg model =
             let
                 mergedModel =
                     mergeModelData data model
+                        |> propagateModelDataChange
 
                 ( updatedModel, updatedCmd ) =
                     update (ToolbarMsg (Statements.Toolbar.Types.Start)) mergedModel

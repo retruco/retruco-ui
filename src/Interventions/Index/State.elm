@@ -3,12 +3,14 @@ module Interventions.Index.State exposing (..)
 import Array exposing (Array)
 import Authenticator.Types exposing (Authentication)
 import Constants exposing (discussionKeyIds)
-import Data exposing (initData, mergeData)
+import Data exposing (filterDataWithIds, idsUsedByIds, initData, mergeData)
 import Dict
 import I18n
 import Interventions.Index.Types exposing (..)
 import Interventions.New.State
+import Interventions.New.Types
 import Navigation
+import Set
 import Types exposing (..)
 import Urls
 
@@ -31,13 +33,29 @@ init authentication embed language objectId =
 mergeModelData : DataProxy a -> Model -> Model
 mergeModelData data model =
     let
-        mergedData =
+        allData =
             mergeData data model.data
+
+        usedIds =
+            Set.singleton model.objectId
+                |> Set.union (Set.fromList <| List.map .id <| Array.toList model.interventionProperties)
+                |> idsUsedByIds allData
+
+        mergedData =
+            filterDataWithIds allData usedIds
     in
         { model
             | data = mergedData
-            , newInterventionModel = Interventions.New.State.mergeModelData mergedData model.newInterventionModel
         }
+
+
+propagateModelDataChange : Model -> Model
+propagateModelDataChange model =
+    { model
+        | newInterventionModel =
+            Interventions.New.State.mergeModelData model.data model.newInterventionModel
+                |> Interventions.New.State.propagateModelDataChange
+    }
 
 
 setContext : Maybe Authentication -> Bool -> I18n.Language -> Model -> Model
@@ -97,6 +115,69 @@ update msg model =
             in
                 ( { model | newInterventionModel = updatedNewInterventionModel }
                 , Cmd.map translateNewInterventionMsg childCmd
+                )
+
+        ObjectUpserted dataWithId objectWrapper ->
+            let
+                ideaPropertyByValueId =
+                    case objectWrapper of
+                        PropertyWrapper property ->
+                            if (property.objectId == model.objectId) && (property.keyId == "idea") then
+                                Dict.insert property.id property model.ideaPropertyByValueId
+                            else
+                                model.ideaPropertyByValueId
+
+                        _ ->
+                            model.ideaPropertyByValueId
+
+                interventionProperties =
+                    case objectWrapper of
+                        PropertyWrapper property ->
+                            if (property.objectId == model.objectId) && (property.keyId == "intervention") then
+                                if
+                                    List.any
+                                        (\interventionProperty -> interventionProperty.id == property.id)
+                                        (Array.toList model.interventionProperties)
+                                then
+                                    model.interventionProperties
+                                else
+                                    Array.append (Array.fromList [ property ]) model.interventionProperties
+                            else
+                                model.interventionProperties
+
+                        _ ->
+                            model.interventionProperties
+
+                ( newInterventionModel, newInterventionCmd ) =
+                    let
+                        ( updatedNewInterventionModel, childCmd ) =
+                            Interventions.New.State.update
+                                (Interventions.New.Types.ObjectUpserted dataWithId objectWrapper)
+                                model.newInterventionModel
+                    in
+                        ( updatedNewInterventionModel
+                        , Cmd.map translateNewInterventionMsg childCmd
+                        )
+
+                questionPropertyByValueId =
+                    case objectWrapper of
+                        PropertyWrapper property ->
+                            if (property.objectId == model.objectId) && (property.keyId == "question") then
+                                Dict.insert property.id property model.questionPropertyByValueId
+                            else
+                                model.questionPropertyByValueId
+
+                        _ ->
+                            model.questionPropertyByValueId
+            in
+                ( { model
+                    | ideaPropertyByValueId = ideaPropertyByValueId
+                    , interventionProperties = interventionProperties
+                    , newInterventionModel = newInterventionModel
+                    , questionPropertyByValueId = questionPropertyByValueId
+                  }
+                    |> mergeModelData dataWithId
+                , newInterventionCmd
                 )
 
 

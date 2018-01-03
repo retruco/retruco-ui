@@ -41,82 +41,95 @@ filterDataWithIds data ids =
     }
 
 
-idsUsedByCard : DataProxy a -> Card -> Set String -> Set String
-idsUsedByCard data card usedIds =
+idsUsedByCardWithUsedIds : DataProxy a -> Card -> Set String -> Set String
+idsUsedByCardWithUsedIds data card usedIds =
     if Set.member card.id usedIds then
         usedIds
     else
-        idsUsedByStatement data card usedIds
+        idsUsedByStatementWithUsedIds data card usedIds
 
 
-idsUsedById : DataProxy a -> String -> Set String -> Set String
-idsUsedById data id usedIds =
+idsUsedById : DataProxy a -> String -> Set String
+idsUsedById data id =
+    idsUsedByIdWithUsedIds data id Set.empty
+
+
+idsUsedByIds : DataProxy a -> Set String -> Set String
+idsUsedByIds data ids =
+    idsUsedByIdsWithUsedIds data ids Set.empty
+
+
+idsUsedByIdsWithUsedIds : DataProxy a -> Set String -> Set String -> Set String
+idsUsedByIdsWithUsedIds data ids usedIds =
+    if Set.isEmpty ids then
+        usedIds
+    else
+        ids
+            |> Set.map (\id -> Set.toList <| idsUsedByIdWithUsedIds data id usedIds)
+            |> Set.toList
+            |> List.concat
+            |> Set.fromList
+
+
+idsUsedByIdWithUsedIds : DataProxy a -> String -> Set String -> Set String
+idsUsedByIdWithUsedIds data id usedIds =
     if (String.isEmpty id) || (Set.member id usedIds) then
         usedIds
     else
         case objectWrapperFromId data id of
             Just objectWrapper ->
-                idsUsedByObjectWrapper data objectWrapper usedIds
+                idsUsedByObjectWrapperWithUsedIds data objectWrapper usedIds
 
             Nothing ->
                 Set.insert id usedIds
 
 
-idsUsedByIds : DataProxy a -> Set String -> Set String -> Set String
-idsUsedByIds data ids usedIds =
-    ids
-        |> Set.map (\id -> Set.toList <| idsUsedById data id usedIds)
-        |> Set.toList
-        |> List.concat
-        |> Set.fromList
-
-
-idsUsedByObjectWrapper : DataProxy a -> ObjectWrapper -> Set String -> Set String
-idsUsedByObjectWrapper data objectWrapper usedIds =
+idsUsedByObjectWrapperWithUsedIds : DataProxy a -> ObjectWrapper -> Set String -> Set String
+idsUsedByObjectWrapperWithUsedIds data objectWrapper usedIds =
     case objectWrapper of
         CardWrapper card ->
-            idsUsedByCard data card usedIds
+            idsUsedByCardWithUsedIds data card usedIds
 
         PropertyWrapper property ->
-            idsUsedByProperty data property usedIds
+            idsUsedByPropertyWithUsedIds data property usedIds
 
         TypedValueWrapper typedValue ->
-            idsUsedByTypedValue data typedValue usedIds
+            idsUsedByTypedValueWithUsedIds data typedValue usedIds
 
         UserWrapper user ->
-            idsUsedByUser data user usedIds
+            idsUsedByUserWithUsedIds data user usedIds
 
 
-idsUsedByProperty : DataProxy a -> Property -> Set String -> Set String
-idsUsedByProperty data property usedIds =
+idsUsedByPropertyWithUsedIds : DataProxy a -> Property -> Set String -> Set String
+idsUsedByPropertyWithUsedIds data property usedIds =
     if Set.member property.id usedIds then
         usedIds
     else
         usedIds
-            |> idsUsedByStatement data property
-            |> idsUsedById data property.keyId
-            |> idsUsedById data property.objectId
-            |> idsUsedById data property.valueId
+            |> idsUsedByStatementWithUsedIds data property
+            |> idsUsedByIdWithUsedIds data property.keyId
+            |> idsUsedByIdWithUsedIds data property.objectId
+            |> idsUsedByIdWithUsedIds data property.valueId
 
 
-idsUsedByStatement : DataProxy a -> Statement b -> Set String -> Set String
-idsUsedByStatement data statement usedIds =
+idsUsedByStatementWithUsedIds : DataProxy a -> Statement b -> Set String -> Set String
+idsUsedByStatementWithUsedIds data statement usedIds =
     -- Incomplete function for internal use only.
     -- Note: .ballotId is not added to the usedIds set because a ballot is not an object.
     usedIds
         |> Set.insert statement.id
-        |> idsUsedByIds
+        |> idsUsedByIdsWithUsedIds
             data
             (Set.fromList <| Dict.keys statement.qualities ++ List.concat (Dict.values statement.qualities))
 
 
-idsUsedByTypedValue : DataProxy a -> TypedValue -> Set String -> Set String
-idsUsedByTypedValue data typedValue usedIds =
+idsUsedByTypedValueWithUsedIds : DataProxy a -> TypedValue -> Set String -> Set String
+idsUsedByTypedValueWithUsedIds data typedValue usedIds =
     if Set.member typedValue.id usedIds then
         usedIds
     else
         usedIds
-            |> idsUsedByStatement data typedValue
+            |> idsUsedByStatementWithUsedIds data typedValue
             |> (\usedIds ->
                     case typedValue.value of
                         BooleanWrapper _ ->
@@ -126,7 +139,7 @@ idsUsedByTypedValue data typedValue usedIds =
                             usedIds
 
                         IdsArrayWrapper ids ->
-                            idsUsedByIds data (Set.fromList ids) usedIds
+                            idsUsedByIdsWithUsedIds data (Set.fromList ids) usedIds
 
                         ImagePathWrapper _ ->
                             usedIds
@@ -145,8 +158,8 @@ idsUsedByTypedValue data typedValue usedIds =
                )
 
 
-idsUsedByUser : DataProxy a -> User -> Set String -> Set String
-idsUsedByUser data user usedIds =
+idsUsedByUserWithUsedIds : DataProxy a -> User -> Set String -> Set String
+idsUsedByUserWithUsedIds data user usedIds =
     if Set.member user.id usedIds then
         usedIds
     else

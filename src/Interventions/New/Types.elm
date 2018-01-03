@@ -21,6 +21,7 @@ type InternalMsg
     = InterventionSpecificPropertyUpserted (Result Http.Error DataWithIdBody)
     | KeyIdChanged String
     | NewProposalMsg Proposals.New.Types.InternalMsg
+    | ObjectUpserted DataWithId ObjectWrapper
     | Upserted (Result Http.Error DataWithIdBody)
     | ProposalUpserted DataWithId
     | Submit

@@ -31,14 +31,18 @@ init authentication embed language objectId =
 
 mergeModelData : DataProxy a -> Model -> Model
 mergeModelData data model =
-    let
-        mergedData =
-            mergeData data model.data
-    in
-        { model
-            | data = mergedData
-            , newDebatePropertyModel = DebateProperties.New.State.mergeModelData mergedData model.newDebatePropertyModel
-        }
+    { model
+        | data = mergeData data model.data
+    }
+
+
+propagateModelDataChange : Model -> Model
+propagateModelDataChange model =
+    { model
+        | newDebatePropertyModel =
+            DebateProperties.New.State.mergeModelData model.data model.newDebatePropertyModel
+                |> DebateProperties.New.State.propagateModelDataChange
+    }
 
 
 setContext : Maybe Authentication -> Bool -> I18n.Language -> Model -> Model
@@ -95,6 +99,7 @@ update msg model =
             let
                 mergedModel =
                     mergeModelData data model
+                        |> propagateModelDataChange
 
                 language =
                     model.language
@@ -113,6 +118,7 @@ update msg model =
             let
                 mergedModel =
                     mergeModelData data model
+                        |> propagateModelDataChange
 
                 language =
                     model.language

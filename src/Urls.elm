@@ -64,12 +64,12 @@ fullUrl url =
 idToDebatePropertiesPath : DataProxy a -> String -> String
 idToDebatePropertiesPath data id =
     (idToPath data id)
-        ++ case Dict.get id data.cards of
+        ++ case Dict.get id data.values of
             Just _ ->
-                "/arguments"
+                ""
 
             Nothing ->
-                ""
+                "/arguments"
 
 
 idToDiscussionPath : DataProxy a -> String -> String

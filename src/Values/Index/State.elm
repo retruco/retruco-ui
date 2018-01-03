@@ -74,13 +74,14 @@ init authentication embed language =
 
 mergeModelData : DataProxy a -> Model -> Model
 mergeModelData data model =
-    let
-        mergedData =
-            mergeData data model.data
-    in
-        { model
-            | data = mergedData
-        }
+    { model
+        | data = mergeData data model.data
+    }
+
+
+propagateModelDataChange : Model -> Model
+propagateModelDataChange model =
+    model
 
 
 update : InternalMsg -> Model -> ( Model, Cmd Msg )
@@ -110,6 +111,7 @@ update msg model =
             let
                 mergedModel =
                     mergeModelData data model
+                        |> propagateModelDataChange
 
                 existingIds =
                     Maybe.withDefault Array.empty model.ids

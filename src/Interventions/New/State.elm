@@ -2,7 +2,7 @@ module Interventions.New.State exposing (..)
 
 import Authenticator.Types exposing (Authentication)
 import Constants exposing (discussionKeyIds)
-import Data exposing (initDataWithId, mergeData)
+import Data exposing (filterDataWithIds, idsUsedByIds, initDataWithId, mergeData)
 import Dict
 import Http
 import I18n
@@ -12,6 +12,7 @@ import Ports
 import Proposals.New.State
 import Proposals.New.Types
 import Requests
+import Set
 import Task
 import Types exposing (DataProxy)
 import Urls
@@ -58,13 +59,29 @@ init authentication embed language objectId keyId keyIds =
 mergeModelData : DataProxy a -> Model -> Model
 mergeModelData data model =
     let
-        mergedData =
+        allData =
             mergeData data model.data
+
+        usedIds =
+            Set.fromList [ model.keyId, model.objectId ]
+                |> Set.union (Set.fromList model.keyIds)
+                |> idsUsedByIds allData
+
+        mergedData =
+            filterDataWithIds allData usedIds
     in
         { model
             | data = mergedData
-            , newProposalModel = Proposals.New.State.mergeModelData mergedData model.newProposalModel
         }
+
+
+propagateModelDataChange : Model -> Model
+propagateModelDataChange model =
+    { model
+        | newProposalModel =
+            Proposals.New.State.mergeModelData model.data model.newProposalModel
+                |> Proposals.New.State.propagateModelDataChange
+    }
 
 
 setContext : Maybe Authentication -> Bool -> I18n.Language -> Model -> Model
@@ -90,6 +107,7 @@ update msg model =
 
         InterventionSpecificPropertyUpserted (Ok body) ->
             ( mergeModelData body.data model
+                |> propagateModelDataChange
             , Cmd.none
             )
 
@@ -100,11 +118,31 @@ update msg model =
             let
                 ( newProposalModel, childCmd ) =
                     model.newProposalModel
-                        |> Proposals.New.State.setContext model.authentication model.embed model.language
+                        -- |> Proposals.New.State.setContext model.authentication model.embed model.language
                         |> Proposals.New.State.update childMsg
             in
                 ( { model | newProposalModel = newProposalModel }
                 , Cmd.map translateNewProposalMsg childCmd
+                )
+
+        ObjectUpserted dataWithId objectWrapper ->
+            let
+                ( newProposalModel, newProposalCmd ) =
+                    let
+                        ( updatedNewProposalModel, childCmd ) =
+                            Proposals.New.State.update
+                                (Proposals.New.Types.ObjectUpserted dataWithId objectWrapper)
+                                model.newProposalModel
+                    in
+                        ( updatedNewProposalModel
+                        , Cmd.map translateNewProposalMsg childCmd
+                        )
+            in
+                ( { model
+                    | newProposalModel = newProposalModel
+                  }
+                    |> mergeModelData dataWithId
+                , newProposalCmd
                 )
 
         ProposalUpserted data ->
@@ -136,17 +174,16 @@ update msg model =
 
         Upserted (Ok body) ->
             let
-                mergedModel =
-                    mergeModelData body.data model
-
-                mergedData =
-                    mergedModel.data
-
                 data =
-                    { mergedData | id = body.data.id }
+                    model.data
+
+                dataWithId =
+                    { data | id = body.data.id }
             in
-                ( mergedModel
-                , Task.perform (\_ -> ForParent <| InterventionUpserted data) (Task.succeed ())
+                ( { model | data = dataWithId }
+                    |> mergeModelData body.data
+                    |> propagateModelDataChange
+                , Task.perform (\_ -> ForParent <| InterventionUpserted dataWithId) (Task.succeed ())
                 )
 
 

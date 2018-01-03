@@ -28,6 +28,11 @@ init authentication embed language data statement =
     }
 
 
+propagateModelDataChange : Model (Statement b) -> Model (Statement b)
+propagateModelDataChange model =
+    model
+
+
 setContext : Maybe Authentication -> Bool -> I18n.Language -> Model (Statement b) -> Model (Statement b)
 setContext authentication embed language model =
     { model

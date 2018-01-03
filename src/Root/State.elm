@@ -10,7 +10,6 @@ import Cards.New.State
 import Constants exposing (imagePathKeyIds, nameKeyIds)
 import Data exposing (objectWrapperFromId)
 import Decoders
-import Dict
 import Discussions.Index.State
 import Discussions.New.State
 import Discussions.Routes exposing (..)
@@ -410,6 +409,7 @@ update msg model =
                         case objectWrapperFromId dataWithId dataWithId.id of
                             Just objectWrapper ->
                                 let
+                                    -- TODO: Handle other model attributes.
                                     ( cardModel, cardCmd ) =
                                         case model.cardModel of
                                             Just cardModel ->

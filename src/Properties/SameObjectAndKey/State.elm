@@ -30,14 +30,18 @@ init authentication embed language objectId keyId =
 
 mergeModelData : DataProxy a -> Model -> Model
 mergeModelData data model =
-    let
-        mergedData =
-            mergeData data model.data
-    in
-        { model
-            | data = mergedData
-            , newValueModel = Values.New.State.mergeModelData mergedData model.newValueModel
-        }
+    { model
+        | data = mergeData data model.data
+    }
+
+
+propagateModelDataChange : Model -> Model
+propagateModelDataChange model =
+    { model
+        | newValueModel =
+            Values.New.State.mergeModelData model.data model.newValueModel
+                |> Values.New.State.propagateModelDataChange
+    }
 
 
 setContext : Maybe Authentication -> Bool -> I18n.Language -> Model -> Model
@@ -89,6 +93,7 @@ update msg model =
             let
                 mergedModel =
                     mergeModelData data model
+                        |> propagateModelDataChange
 
                 language =
                     model.language
@@ -114,6 +119,7 @@ update msg model =
             let
                 mergedModel =
                     mergeModelData data model
+                        |> propagateModelDataChange
 
                 language =
                     model.language
@@ -135,6 +141,7 @@ update msg model =
 
         ValueUpserted data ->
             ( mergeModelData data model
+                |> propagateModelDataChange
             , Requests.postProperty model.authentication model.objectId model.keyId data.id (Just 1)
                 |> Http.send (ForSelf << Upserted)
             )

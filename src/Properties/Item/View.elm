@@ -1,7 +1,6 @@
 module Properties.Item.View exposing (..)
 
 import DebateProperties.SameObject.View
-import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Attributes.Aria exposing (..)
@@ -102,6 +101,26 @@ view model =
                                         navigateMsg
                                         embed
                                         language
+                                        (Urls.idToPath data property.id)
+                                        [ classList
+                                            [ ( "active"
+                                              , case model.activeTab of
+                                                    MainTab _ ->
+                                                        True
+
+                                                    _ ->
+                                                        False
+                                              )
+                                            , ( "nav-link", True )
+                                            ]
+                                        ]
+                                        [ text <| I18n.translate language I18n.General ]
+                                    ]
+                                , li [ class "nav-item" ]
+                                    [ aForPath
+                                        navigateMsg
+                                        embed
+                                        language
                                         (Urls.idToDebatePropertiesPath data property.id)
                                         [ classList
                                             [ ( "active"
@@ -162,6 +181,20 @@ view model =
                                 DebatePropertiesTab debatePropertiesModel ->
                                     DebateProperties.SameObject.View.view debatePropertiesModel
                                         |> Html.map translateDebatePropertiesMsg
+
+                                MainTab mainModel ->
+                                    case mainModel of
+                                        EmptyTabModel ->
+                                            text ""
+
+                                        IdeaTabModel propertyModel ->
+                                            text "Idea"
+
+                                        InterventionTabModel propertyModel ->
+                                            text "Intervention"
+
+                                        QuestionTabModel propertyModel ->
+                                            text "Question"
 
                                 NoTab ->
                                     text ""

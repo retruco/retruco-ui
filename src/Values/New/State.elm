@@ -226,6 +226,11 @@ mergeModelData data model =
     model
 
 
+propagateModelDataChange : Model -> Model
+propagateModelDataChange model =
+    model
+
+
 schemaIdsAndWidgetIds : String -> String -> ( List String, List String )
 schemaIdsAndWidgetIds fieldType languageId =
     case fieldType of
@@ -367,6 +372,9 @@ update msg model =
             ( { model | httpError = Just httpError }, Cmd.none )
 
         LocalizationPropertyUpserted (Ok body) ->
+            ( model, Cmd.none )
+
+        ObjectUpserted dataWithId objectWrapper ->
             ( model, Cmd.none )
 
         Submit ->

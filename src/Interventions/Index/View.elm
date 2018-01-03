@@ -108,30 +108,12 @@ viewInterventionListGroupLine embed language navigateMsg path data interventionP
             -- , ( "list-group-item-secondary", True )
             ]
         ]
-        [ div
-            [ classList [ ( "bg-white", True ), ( "ml-4", True ) ] ]
-            [ aForPath
-                navigateMsg
-                embed
-                language
-                (Urls.idToPath data interventionProperty.valueId)
-                [ classList
-                    [ ( "align", True )
-                    , ( "align-items-top", True )
-                    , ( "d-flex", True )
-                    , ( "flex-nowrap", True )
-                    , ( "justify-content-between", True )
-                    , ( "text-dark", True )
-                    ]
-                ]
-                [ viewStatementIdLine
-                    embed
-                    language
-                    navigateMsg
-                    True
-                    False
-                    data
-                    interventionProperty.valueId
-                ]
-            ]
+        [ viewStatementIdLine
+            embed
+            language
+            navigateMsg
+            True
+            False
+            data
+            interventionProperty.valueId
         ]

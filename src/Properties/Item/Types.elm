@@ -28,6 +28,25 @@ type InternalMsg
     | ValueRetrieved (Result Http.Error DataWithIdBody)
 
 
+type alias IdeaPropertyModel =
+    { trashedDrawerIsOpen : Bool
+    , trashedModel : Maybe Model
+    }
+
+
+type alias InterventionPropertyModel =
+    { trashedDrawerIsOpen : Bool
+    , trashedModel : Maybe Model
+    }
+
+
+type MainModel
+    = EmptyTabModel
+    | IdeaTabModel InterventionPropertyModel
+    | InterventionTabModel InterventionPropertyModel
+    | QuestionTabModel QuestionPropertyModel
+
+
 type alias Model =
     { activeTab : Tab
     , authentication : Maybe Authentication
@@ -60,8 +79,15 @@ type alias MsgTranslator parentMsg =
     Msg -> parentMsg
 
 
+type alias QuestionPropertyModel =
+    { trashedDrawerIsOpen : Bool
+    , trashedModel : Maybe Model
+    }
+
+
 type Tab
     = DebatePropertiesTab DebateProperties.SameObject.Types.Model
+    | MainTab MainModel
     | NoTab
     | PropertiesAsValueTab Properties.SameValue.Types.Model
     | PropertiesTab Properties.SameObject.Types.Model

@@ -1,7 +1,7 @@
 module Proposals.New.State exposing (..)
 
 import Authenticator.Types exposing (Authentication)
-import Data exposing (initDataWithId, mergeData)
+import Data exposing (filterDataWithIds, idsUsedByIds, initDataWithId, mergeData)
 import Dict exposing (Dict)
 import Http
 import I18n
@@ -9,10 +9,12 @@ import Navigation
 import Ports
 import Proposals.New.Types exposing (..)
 import Requests
+import Set
 import Task
 import Types exposing (DataProxy)
 import Urls
 import Values.New.State
+import Values.New.Types
 
 
 init : Maybe Authentication -> Bool -> I18n.Language -> Model
@@ -29,13 +31,32 @@ init authentication embed language =
 mergeModelData : DataProxy a -> Model -> Model
 mergeModelData data model =
     let
-        mergedData =
+        allData =
             mergeData data model.data
+
+        usedIds =
+            (if String.isEmpty allData.id then
+                Set.empty
+             else
+                Set.singleton allData.id
+            )
+                |> idsUsedByIds allData
+
+        mergedData =
+            filterDataWithIds allData usedIds
     in
         { model
             | data = mergedData
-            , newValueModel = Values.New.State.mergeModelData mergedData model.newValueModel
         }
+
+
+propagateModelDataChange : Model -> Model
+propagateModelDataChange model =
+    { model
+        | newValueModel =
+            Values.New.State.mergeModelData model.data model.newValueModel
+                |> Values.New.State.propagateModelDataChange
+    }
 
 
 setContext : Maybe Authentication -> Bool -> I18n.Language -> Model -> Model
@@ -60,11 +81,31 @@ update msg model =
             let
                 ( newValueModel, childCmd ) =
                     model.newValueModel
-                        |> Values.New.State.setContext model.authentication model.embed model.language
+                        -- |> Values.New.State.setContext model.authentication model.embed model.language
                         |> Values.New.State.update childMsg
             in
                 ( { model | newValueModel = newValueModel }
                 , Cmd.map translateNewValueMsg childCmd
+                )
+
+        ObjectUpserted dataWithId objectWrapper ->
+            let
+                ( newValueModel, newValueCmd ) =
+                    let
+                        ( updatedNewValueModel, childCmd ) =
+                            Values.New.State.update
+                                (Values.New.Types.ObjectUpserted dataWithId objectWrapper)
+                                model.newValueModel
+                    in
+                        ( updatedNewValueModel
+                        , Cmd.map translateNewValueMsg childCmd
+                        )
+            in
+                ( { model
+                    | newValueModel = newValueModel
+                  }
+                    |> mergeModelData dataWithId
+                , newValueCmd
                 )
 
         Rated (Err httpError) ->
@@ -72,27 +113,30 @@ update msg model =
 
         Rated (Ok body) ->
             let
-                mergedModel =
-                    mergeModelData body.data model
-
                 ballot =
-                    Dict.get body.data.id mergedModel.data.ballots
+                    Dict.get body.data.id body.data.ballots
             in
                 case ballot of
                     Just ballot ->
                         let
-                            mergedData =
-                                mergedModel.data
-
                             data =
-                                { mergedData | id = ballot.statementId }
+                                model.data
+
+                            dataWithId =
+                                { data | id = ballot.statementId }
                         in
-                            ( { mergedModel | data = data }
-                            , Task.perform (\_ -> ForParent <| ProposalUpserted data) (Task.succeed ())
+                            ( { model | data = dataWithId }
+                                |> mergeModelData body.data
+                                |> propagateModelDataChange
+                            , Task.perform (\_ -> ForParent <| ProposalUpserted dataWithId) (Task.succeed ())
                             )
 
                     Nothing ->
-                        ( mergedModel, Cmd.none )
+                        ( model
+                            |> mergeModelData body.data
+                            |> propagateModelDataChange
+                        , Cmd.none
+                        )
 
         Upserted data ->
             ( { model | data = mergeData data model.data }

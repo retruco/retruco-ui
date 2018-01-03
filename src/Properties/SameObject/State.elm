@@ -31,13 +31,14 @@ init authentication embed language objectId =
 
 mergeModelData : DataProxy a -> Model -> Model
 mergeModelData data model =
-    let
-        mergedData =
-            mergeData data model.data
-    in
-        { model
-            | data = mergedData
-        }
+    { model
+        | data = mergeData data model.data
+    }
+
+
+propagateModelDataChange : Model -> Model
+propagateModelDataChange model =
+    model
 
 
 setContext : Maybe Authentication -> Bool -> I18n.Language -> Model -> Model
@@ -109,6 +110,7 @@ update msg model =
             let
                 mergedModel =
                     mergeModelData data model
+                        |> propagateModelDataChange
             in
                 ( mergedModel
                 , Task.perform
@@ -142,6 +144,7 @@ update msg model =
             let
                 mergedModel =
                     mergeModelData data model
+                        |> propagateModelDataChange
 
                 language =
                     model.language
@@ -162,6 +165,7 @@ update msg model =
             let
                 mergedModel =
                     mergeModelData data model
+                        |> propagateModelDataChange
 
                 language =
                     model.language

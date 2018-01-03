@@ -19,7 +19,7 @@ type ExternalMsg
 type InternalMsg
     = IdeasMsg Ideas.Index.Types.InternalMsg
     | InterventionsMsg Interventions.Index.Types.InternalMsg
-    | PropertyUpserted Json.Encode.Value
+    | ObjectUpserted DataWithId ObjectWrapper
     | QuestionsMsg Questions.Index.Types.InternalMsg
     | Retrieve
     | Retrieved (Result Http.Error DataWithIdsBody)

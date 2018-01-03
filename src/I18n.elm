@@ -105,6 +105,7 @@ type TranslationId
     | FindValue
     | FooterAbout
     | FooterDiscover
+    | General
     | GenericError
     | GiveNegativeRating
     | GivePositiveRating
@@ -1112,6 +1113,13 @@ getTranslationSet translationId =
                 | english = s "Discover"
                 , french = s "Découvrir"
                 , spanish = s "Descubrir"
+            }
+
+        General ->
+            { emptyTranslationSet
+                | english = s "General"
+                , french = s "Général"
+                , spanish = todo
             }
 
         GenericError ->

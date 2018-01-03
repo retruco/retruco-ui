@@ -28,6 +28,7 @@ type InternalMsg
     | ImageUploaded (Result Http.Error String)
     | LanguageChanged String
     | LocalizationPropertyUpserted (Result Http.Error DataWithIdBody)
+    | ObjectUpserted DataWithId ObjectWrapper
     | Submit
     | Upserted (Result Http.Error DataWithIdBody)
     | ValueChanged String

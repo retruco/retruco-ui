@@ -83,6 +83,11 @@ mergeModelData data model =
         }
 
 
+propagateModelDataChange : Model -> Model
+propagateModelDataChange model =
+    model
+
+
 update : InternalMsg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -112,6 +117,7 @@ update msg model =
             let
                 mergedModel =
                     mergeModelData data model
+                        |> propagateModelDataChange
 
                 existingIds =
                     Maybe.withDefault Array.empty model.ids

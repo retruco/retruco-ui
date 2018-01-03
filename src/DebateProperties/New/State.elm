@@ -56,14 +56,18 @@ init authentication embed language objectId validFieldTypes =
 
 mergeModelData : DataProxy a -> Model -> Model
 mergeModelData data model =
-    let
-        mergedData =
-            mergeData data model.data
-    in
-        { model
-            | data = mergedData
-            , newValueModel = Values.New.State.mergeModelData mergedData model.newValueModel
-        }
+    { model
+        | data = mergeData data model.data
+    }
+
+
+propagateModelDataChange : Model -> Model
+propagateModelDataChange model =
+    { model
+        | newValueModel =
+            Values.New.State.mergeModelData model.data model.newValueModel
+                |> Values.New.State.propagateModelDataChange
+    }
 
 
 setContext : Maybe Authentication -> Bool -> I18n.Language -> Model -> Model
@@ -127,6 +131,7 @@ update msg model =
             let
                 mergedModel =
                     mergeModelData body.data model
+                        |> propagateModelDataChange
 
                 ballot =
                     Dict.get body.data.id mergedModel.data.ballots

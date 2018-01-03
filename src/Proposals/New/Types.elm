@@ -19,6 +19,7 @@ type alias FormErrors =
 
 type InternalMsg
     = NewValueMsg Values.New.Types.InternalMsg
+    | ObjectUpserted DataWithId ObjectWrapper
     | Rated (Result Http.Error DataWithIdBody)
     | Upserted DataWithId
 

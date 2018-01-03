@@ -103,7 +103,7 @@ viewPropertyLine embed language navigateMsg independent data property =
                 div
                 embed
                 language
-                True
+                independent
                 navigateMsg
                 [ ( "bg-white", True ), ( "ml-4", True ) ]
                 True

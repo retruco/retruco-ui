@@ -26,14 +26,18 @@ init authentication embed language objectId =
 
 mergeModelData : DataProxy a -> Model -> Model
 mergeModelData data model =
-    let
-        mergedData =
-            mergeData data model.data
-    in
-        { model
-            | data = mergedData
-            , newInterventionModel = Interventions.New.State.mergeModelData mergedData model.newInterventionModel
-        }
+    { model
+        | data = mergeData data model.data
+    }
+
+
+propagateModelDataChange : Model -> Model
+propagateModelDataChange model =
+    { model
+        | newInterventionModel =
+            Interventions.New.State.mergeModelData model.data model.newInterventionModel
+                |> Interventions.New.State.propagateModelDataChange
+    }
 
 
 setContext : Maybe Authentication -> Bool -> I18n.Language -> Model -> Model

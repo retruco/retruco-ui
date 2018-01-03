@@ -3,8 +3,7 @@ module Discussions.Item.State exposing (..)
 import Array exposing (Array)
 import Authenticator.Types exposing (Authentication)
 import Constants exposing (discussionKeyIds)
-import Data exposing (initData, mergeData)
-import Decoders
+import Data exposing (filterDataWithIds, idsUsedByIds, initData, mergeData)
 import Dict
 import Discussions.Item.Routes exposing (..)
 import Discussions.Item.Types exposing (..)
@@ -12,11 +11,12 @@ import Http
 import I18n
 import Ideas.Index.State
 import Interventions.Index.State
-import Json.Decode
+import Interventions.Index.Types
 import Navigation
 import Ports
 import Questions.Index.State
 import Requests
+import Set
 import Types exposing (..)
 import Urls
 
@@ -38,31 +38,60 @@ init authentication embed language objectId =
 mergeModelData : DataProxy a -> Model -> Model
 mergeModelData data model =
     let
-        mergedData =
+        allData =
             mergeData data model.data
+
+        usedIds =
+            Set.singleton model.objectId
+                |> (case model.discussionProperties of
+                        Just discussionProperties ->
+                            Set.union (Set.fromList <| List.map .id <| Array.toList discussionProperties)
+
+                        Nothing ->
+                            identity
+                   )
+                |> idsUsedByIds allData
+
+        mergedData =
+            filterDataWithIds allData usedIds
     in
         { model
-            | activeTab =
-                case model.activeTab of
-                    IdeasTab ideasModel ->
-                        IdeasTab <|
-                            Ideas.Index.State.mergeModelData mergedData ideasModel
-
-                    InterventionsTab interventionsModel ->
-                        InterventionsTab <|
-                            Interventions.Index.State.mergeModelData mergedData interventionsModel
-
-                    QuestionsTab questionsModel ->
-                        QuestionsTab <|
-                            Questions.Index.State.mergeModelData mergedData questionsModel
-
-                    -- TrashTab trashModel ->
-                    --     TrashTab <|
-                    --         Trash.Index.State.mergeModelData mergedData trashModel
-                    _ ->
-                        model.activeTab
-            , data = mergedData
+            | data = mergedData
         }
+
+
+propagateModelDataChange : Model -> Model
+propagateModelDataChange model =
+    { model
+        | activeTab =
+            case model.activeTab of
+                IdeasTab ideasModel ->
+                    IdeasTab
+                        (Ideas.Index.State.mergeModelData model.data ideasModel
+                            |> Ideas.Index.State.propagateModelDataChange
+                        )
+
+                InterventionsTab interventionsModel ->
+                    InterventionsTab
+                        (Interventions.Index.State.mergeModelData model.data interventionsModel
+                            |> Interventions.Index.State.propagateModelDataChange
+                        )
+
+                NoTab ->
+                    model.activeTab
+
+                QuestionsTab questionsModel ->
+                    QuestionsTab
+                        (Questions.Index.State.mergeModelData model.data questionsModel
+                            |> Questions.Index.State.propagateModelDataChange
+                        )
+
+        -- TrashTab trashModel ->
+        --     TrashTab
+        --         (Trash.Index.State.mergeModelData model.data trashModel
+        --             |> Trash.Index.State.propagateModelDataChange
+        --         )
+    }
 
 
 setContext : Maybe Authentication -> Bool -> I18n.Language -> Model -> Model
@@ -78,15 +107,16 @@ setContext authentication embed language model =
                     InterventionsTab <|
                         Interventions.Index.State.setContext authentication embed language interventionsModel
 
+                NoTab ->
+                    model.activeTab
+
                 QuestionsTab questionsModel ->
                     QuestionsTab <|
                         Questions.Index.State.setContext authentication embed language questionsModel
 
-                -- TrashTab trashModel ->
-                --     TrashTab <|
-                --         Trash.Index.State.setContext authentication embed language trashModel
-                _ ->
-                    model.activeTab
+        -- TrashTab trashModel ->
+        --     TrashTab <|
+        --         Trash.Index.State.setContext authentication embed language trashModel
         , authentication = authentication
         , embed = embed
         , language = language
@@ -113,15 +143,16 @@ setDiscussionProperties discussionPropertiesMaybe model =
                             InterventionsTab <|
                                 Interventions.Index.State.setDiscussionProperties discussionProperties interventionsModel
 
+                        NoTab ->
+                            model.activeTab
+
                         QuestionsTab questionsModel ->
                             QuestionsTab <|
                                 Questions.Index.State.setDiscussionProperties discussionProperties questionsModel
 
-                        -- TrashTab trashModel ->
-                        --     TrashTab <|
-                        --         Trash.Index.State.setDiscussionProperties  discussionProperties  trashModel
-                        _ ->
-                            model.activeTab
+            -- TrashTab trashModel ->
+            --     TrashTab <|
+            --         Trash.Index.State.setDiscussionProperties  discussionProperties  trashModel
             , discussionProperties = discussionPropertiesMaybe
         }
 
@@ -140,18 +171,18 @@ subscriptions model =
                     Sub.map InterventionsMsg
                         (Interventions.Index.State.subscriptions interventionsModel)
 
+            NoTab ->
+                Nothing
+
             QuestionsTab questionsModel ->
                 Just <|
                     Sub.map QuestionsMsg
                         (Questions.Index.State.subscriptions questionsModel)
 
-            -- TrashTab trashModel ->
-            --     Just <|
-            --         Sub.map TrashMsg
-            --             (Trash.Index.State.subscriptions trashModel)
-            _ ->
-                Nothing
-        , Just <| Ports.propertyUpserted PropertyUpserted
+        -- TrashTab trashModel ->
+        --     Just <|
+        --         Sub.map TrashMsg
+        --             (Trash.Index.State.subscriptions trashModel)
         ]
         |> Sub.batch
 
@@ -187,58 +218,68 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        PropertyUpserted propertyJson ->
-            case Json.Decode.decodeValue Decoders.graphqlPropertyDecoder propertyJson of
-                Err message ->
-                    let
-                        _ =
-                            Debug.log "PropertyUpserted Decode error:" message
+        ObjectUpserted dataWithId objectWrapper ->
+            let
+                ( activeTab, activeTabCmd ) =
+                    case model.activeTab of
+                        IdeasTab ideasModel ->
+                            -- TODO
+                            ( IdeasTab ideasModel, Cmd.none )
 
-                        _ =
-                            Debug.log "PropertyUpserted JSON:" propertyJson
-                    in
-                        ( model, Cmd.none )
+                        InterventionsTab interventionsModel ->
+                            let
+                                ( updatedInterventionsModel, childCmd ) =
+                                    Interventions.Index.State.update
+                                        (Interventions.Index.Types.ObjectUpserted dataWithId objectWrapper)
+                                        interventionsModel
+                            in
+                                ( InterventionsTab updatedInterventionsModel
+                                , Cmd.map translateInterventionsMsg childCmd
+                                )
 
-                Ok data ->
-                    let
-                        mergedModel =
-                            mergeModelData data model
+                        NoTab ->
+                            ( NoTab, Cmd.none )
 
-                        propertyId =
-                            data.id
+                        QuestionsTab questionsModel ->
+                            -- TODO
+                            ( QuestionsTab questionsModel, Cmd.none )
 
-                        discussionProperties =
-                            case Dict.get propertyId mergedModel.data.properties of
-                                Just property ->
-                                    if
-                                        (property.objectId == model.objectId)
-                                            && (List.member property.keyId discussionKeyIds)
-                                    then
-                                        case mergedModel.discussionProperties of
-                                            Just discussionProperties ->
-                                                if
-                                                    List.any
-                                                        (\discussionProperty -> discussionProperty.id == propertyId)
-                                                        (Array.toList discussionProperties)
-                                                then
-                                                    Just discussionProperties
-                                                else
-                                                    Just <|
-                                                        Array.append
-                                                            (Array.fromList [ property ])
-                                                            discussionProperties
+                discussionProperties =
+                    case objectWrapper of
+                        PropertyWrapper property ->
+                            if
+                                (property.objectId == model.objectId)
+                                    && (List.member property.keyId discussionKeyIds)
+                            then
+                                case model.discussionProperties of
+                                    Just discussionProperties ->
+                                        if
+                                            List.any
+                                                (\discussionProperty -> discussionProperty.id == property.id)
+                                                (Array.toList discussionProperties)
+                                        then
+                                            Just discussionProperties
+                                        else
+                                            Just <|
+                                                Array.append
+                                                    (Array.fromList [ property ])
+                                                    discussionProperties
 
-                                            Nothing ->
-                                                Just <| Array.fromList [ property ]
-                                    else
-                                        mergedModel.discussionProperties
+                                    Nothing ->
+                                        Just <| Array.fromList [ property ]
+                            else
+                                model.discussionProperties
 
-                                Nothing ->
-                                    mergedModel.discussionProperties
-                    in
-                        ( setDiscussionProperties discussionProperties mergedModel
-                        , Cmd.none
-                        )
+                        _ ->
+                            model.discussionProperties
+            in
+                ( { model
+                    | activeTab = activeTab
+                    , discussionProperties = discussionProperties
+                  }
+                    |> mergeModelData dataWithId
+                , activeTabCmd
+                )
 
         QuestionsMsg childMsg ->
             case model.activeTab of
@@ -272,30 +313,25 @@ update msg model =
 
         Retrieved (Ok { data }) ->
             let
-                language =
-                    model.language
-
-                mergedModel =
-                    mergeModelData data model
-
-                properties =
-                    mergedModel.data.properties
-
                 discussionProperties =
                     Just <|
                         Array.fromList <|
                             List.filterMap
-                                (\id -> Dict.get id properties)
+                                (\id -> Dict.get id data.properties)
                                 (Array.toList data.ids)
+
+                language =
+                    model.language
             in
-                (setDiscussionProperties discussionProperties mergedModel)
-                    ! [ Ports.subscribeToPropertyUpserted [ model.objectId ] discussionKeyIds []
-                      , Ports.setDocumentMetadata
-                            { description = I18n.translate language I18n.PropertiesDescription
-                            , imageUrl = Urls.appLogoFullUrl
-                            , title = I18n.translate language I18n.Properties
-                            }
-                      ]
+                ( (setDiscussionProperties discussionProperties model)
+                    |> mergeModelData data
+                    |> propagateModelDataChange
+                , Ports.setDocumentMetadata
+                    { description = I18n.translate language I18n.PropertiesDescription
+                    , imageUrl = Urls.appLogoFullUrl
+                    , title = I18n.translate language I18n.Properties
+                    }
+                )
 
 
 urlUpdate : Navigation.Location -> Route -> Model -> ( Model, Cmd Msg )
